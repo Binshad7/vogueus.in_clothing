@@ -28,6 +28,10 @@ const AddCategoryModal = ({ isOpen, onClose, parentName, child }) => {
     if(isError.name || isError.description){
       return setError(isError)
     };
+         
+
+    console.log('category Name: ',formData.name,',  desciption   :',formData.description)
+
 
   };
 

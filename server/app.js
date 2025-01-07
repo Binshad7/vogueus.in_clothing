@@ -5,10 +5,20 @@ const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 const morgan = require('morgan');
-
+const session = require('express-session')
 // Middleware
+
+
+const {SECRET} = require('./config/ENV_VARS')
+app.use(session({
+    secret:SECRET,
+    resave:true,
+    saveUninitialized:true
+}))
+
+
 const corsOptions = {  
-    origin: ' http://localhost:5173',
+    origin: 'http://localhost:5173',
     credentials: true,
     optionsSuccessStatus: 200
  }

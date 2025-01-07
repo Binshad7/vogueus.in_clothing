@@ -8,15 +8,14 @@ const AdminLogin = () => {
 
   const dispatch = useDispatch()
   const navigate = useNavigate()
-
+ const {adminIsisAuthenticated} = useSelector((state)=>state.admin)
   const { loading } = useSelector(state => state.admin)
   useEffect(() => {
-    const adminIsisAuthenticated = localStorage.getItem('adminIsisAuthenticated')
      
     if (adminIsisAuthenticated) {
       navigate('/admin/dash')
     }
-  }, [loading])
+  }, [adminIsisAuthenticated])
 
   const [adminDetails, setAdminDetails] = useState({
     email: '',

@@ -1,16 +1,16 @@
 import React, { useEffect } from 'react'
 import { Navigate } from 'react-router-dom'
 import { tokenRefresh } from '../store/middlewares/user/user_auth'
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 function UserProtectedRoute({element}) {
   const dispatch = useDispatch()
-  const user = JSON.parse(localStorage.getItem('isAuthenticated')||null)
+  const isAuthenticated = useSelector(state => state.user.isAuthenticated)
   useEffect(() => {
     console.log('user protected route render');
     dispatch(tokenRefresh())
-  }, [dispatch]) 
+  }, [dispatch,isAuthenticated]) 
    
-  return  user? element : <Navigate to='/login' />
+  return  isAuthenticated? element : <Navigate to='/login' />
 }
 
 export default UserProtectedRoute

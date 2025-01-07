@@ -31,7 +31,8 @@ function UserRoutes() {
                 {/*  */}
 
 
-                {/* <Route path='/cart-items' element={<Cart />} />
+                {/* 
+                <Route path='/cart-items' element={<Cart />} />
                 <Route path='/wishlist' element={<Wishlist />} />
                 <Route path='/support' element={<Support />} />
                 <Route path='/checkout' element={<Checkout />} />

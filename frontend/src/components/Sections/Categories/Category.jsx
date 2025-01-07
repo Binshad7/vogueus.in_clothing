@@ -3,7 +3,6 @@ import SectionHeading from '../SectionsHeading/SectionHeading'
 import Card from '../../user/Card'
 
 const Category = ({title,data}) => {
-  console.log(title,data,'category');
   
   return (
     <div key={title}>

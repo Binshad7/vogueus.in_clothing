@@ -8,23 +8,39 @@ const sendEmail = require('../utils/nodemailer');
 // create new user
 
 const register = async (req, res) => {
+
+    var { userName, email, password, user_Otp } = req.body
+    const currentTime = Date.now()
+    const expiryTime = req.session.otpExpiry
+    const otp = req.session.otp
+
     try {
-        const { userName, email, password } = req.body;
-        const Emial_exist = await User.findOne({ email });
-        if (Emial_exist) {
-            return res.status(409).json({ error: 'Email already exist' });
+
+        if (currentTime < expiryTime) {
+            if (otp == user_Otp) {
+                req.session.otp = null;
+
+
+                const hashedPassword = await hashPassword(password);
+                const user = new User({
+                    userName,
+                    email,
+                    password: hashedPassword,
+                    isVerified: true
+                });
+                const newUser = await user.save();
+                await generateToken(newUser._id, res);
+                var { password, googleId, ...userDetails } = newUser._doc
+                res.status(200).json({ success: true, message: 'User created successfully', user: userDetails });
+            } else {
+                return res.status(401).json({ success: false, message: 'OTP IS NOT VALID' })
+            }
+        } else {
+            return res.status(401).json({ success: false, message: 'OTP EXPAIR' })
         }
-        const hashedPassword = await hashPassword(password);
-        const user = new User({
-            userName,
-            email,
-            password: hashedPassword
-        });
-        const newUser = await user.save();
-        await generateToken(newUser._id, res);
-        res.status(200).json({ success: true, message: 'User created successfully', user: newUser });
+
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        res.status(500).json({ success: false, message: 'server side error try agian later' });
     }
 }
 
@@ -53,7 +69,9 @@ const googleSignup = async (req, res) => {
         const user = new User(req.body);
         const newUser = await user.save();
         await generateToken(newUser._id, res);
-        res.status(200).json({ success: true, message: 'User created successfully', user: newUser });
+        var { password, googleId, ...userDetails } = newUser._doc
+
+        res.status(200).json({ success: true, message: 'User created successfully', user: userDetails });
 
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -64,7 +82,7 @@ const googleSignup = async (req, res) => {
 // user login
 const login = async (req, res) => {
     try {
-        const { email, password } = req.body;
+        var { email, password } = req.body;
         const exist_user = await User.findOne(email);
         if (!exist_user) {
             return res.status(401).json({ success: false, message: 'Invalid email ' });
@@ -77,7 +95,9 @@ const login = async (req, res) => {
             return res.status(401).json({ success: false, message: ' this user is blocked from the site ' });
         }
         await generateToken(exist_user._id, res);
-        res.status(200).json({ success: true, message: 'User logged in successfully', user: exist_user });
+        var { password, googleId, ...userDetails } = newUser._doc
+
+        res.status(200).json({ success: true, message: 'User logged in successfully', user: userDetails });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
@@ -88,7 +108,7 @@ const login = async (req, res) => {
 
 const loginWIthGoogle = async (req, res) => {
     try {
-        const { email, googleId } = req.body;
+        var { email, googleId } = req.body;
 
         const exist_user = await User.findOne({ email });
         if (!exist_user) {
@@ -102,7 +122,9 @@ const loginWIthGoogle = async (req, res) => {
             return res.status(401).json({ success: false, message: ' this user is blocked from the site ' });
         }
         await generateToken(exist_user._id, res);
-        res.status(200).json({ success: true, message: 'User logged in successfully', user: exist_user });
+        var { password, googleId, ...userDetails } = exist_user  
+
+        res.status(200).json({ success: true, message: 'User logged in successfully', user: userDetails });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
@@ -135,7 +157,7 @@ const logout = async (req, res) => {
 }
 
 
-// email verification
+// email verification 
 
 const emailVerification = async (req, res) => {
 
@@ -144,11 +166,12 @@ const emailVerification = async (req, res) => {
 
         const Emial_exist = await User.findOne({ email });
         if (Emial_exist) {
+            console.log('email allready exist')
             return res.status(401).json({ success: false, message: 'Email already exist' });
         }
 
-        
-        sendEmail(email, userName, res);
+
+        sendEmail(email, userName, res, req);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
@@ -160,11 +183,13 @@ const emailResendCode = async (req, res) => {
 
     const { email, userName } = req.body;
     try {
-        sendEmail(email, userName, res);
+        sendEmail(email, userName, res, req);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
- }
+}
+
+
 
 
 module.exports = {
@@ -175,5 +200,5 @@ module.exports = {
     loginWIthGoogle,
     refreshToken,
     emailVerification,
-    emailResendCode
+    emailResendCode,
 }

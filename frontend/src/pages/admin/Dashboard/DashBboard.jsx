@@ -1,24 +1,22 @@
-import React, { useEffect,useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Plus } from 'lucide-react';
-
-
 import StatusCard from '../../../components/admin/Dashboard/StatusCardRow/StatusCard';
 import SalesStatistics from '../../../components/admin/Dashboard/Chart/SalesStatistics';
 import RevenueArea from '../../../components/admin/Dashboard/Chart/RevenueArea';
 import NewOrders from '../../../components/admin/Dashboard/OrcersAndMembers/NewOrders';
+import { useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom';
 
 const Dashboard = () => {
+  console.log('dash compontet dash')
   // Sample data
-  const [admin,setAdmin] = useState(true)
+  const { isAuthenticated } = useSelector((state) => state.user)
+  console.log('user',isAuthenticated);
+  
   const navigate = useNavigate()
-  console.log(admin, "admin")
   useEffect(() => {
-
-    setTimeout(() => {
-      if (!admin) return navigate("/admin/login")
-    }, 1000)
-  }, [admin])
+    if(!isAuthenticated) return  navigate('/admin/login')
+  }, [isAuthenticated])
   return (
     <div className="p-6 space-y-6 bg-gray-50">
       {/* Header with Create Report Button */}

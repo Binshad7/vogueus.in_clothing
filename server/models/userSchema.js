@@ -30,14 +30,6 @@ const userSchema = new mongoose.Schema({
         type: Boolean,
         default: false,
     },
-    otp: {
-        type: String,
-        default: null
-    },
-    otpExpireTime: {
-        type: Date,
-        default: null
-    },
     address: [{
         fullName: {
             type: String,

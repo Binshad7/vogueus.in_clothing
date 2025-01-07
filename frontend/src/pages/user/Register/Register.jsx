@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { Eye, EyeOff } from 'lucide-react'
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
@@ -11,16 +11,21 @@ import passwordStorng from '../../../utils/passwordStrong';
 import GoogleSignIn from '../../../components/user/GoogleSignIn';
 import { demoStore } from '../../../store/reducers/user/users_auth_slice';
 import emailVerification from '../../../api/email-verification';
+import Spinner from '../../../components/user/Spinner';
 
 const Register = () => {
-  const navigate = useNavigate();
 
+  const navigate = useNavigate();
+  const [isLoading, setLoading] = useState(false)
+  const { loading } = useSelector((state) => state.user)
   const isAuthenticated = localStorage.getItem('isAuthenticated') || false;
+
   useEffect(() => {
     if (isAuthenticated) {
       navigate('/')
     }
   }, [isAuthenticated])
+
 
   const [userData, setuserData] = useState({
     userName: "",
@@ -28,10 +33,12 @@ const Register = () => {
     password: '',
     confirmPassword: ""
   });
+
   const [error, setError] = useState({});
   const [passwordStrong, setPasswordStrong] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const dispatch = useDispatch();
+
   // handle on change user data
   const handleOnChange = useCallback((e) => {
     try {
@@ -59,32 +66,41 @@ const Register = () => {
 
 
   // handle on submit user data
-  const onSubmit = (e) => {
+  const onSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true)
     try {
       let errors = RegisterValidation(userData)
       setError(errors || {});
 
       if (Object?.keys(errors)?.length > 0 || passwordStrong?.status !== 'strong') {
+        setLoading(false)
         toast.error("Please fix the errors before submitting.");
         return
       }
-      dispatch(demoStore(userData));
       // email verification send to user
-      const otp = emailVerification(userData);
-      if (otp) {
-        toast.success("Email verification sent successfully")
-        navigate('/verify-email')
+      const response = await emailVerification(userData);
+      if (response) {
+        dispatch(demoStore(userData));
+        setLoading(false);
+        navigate('/verify-email');
       }
+      setLoading(false);
     } catch (error) {
+      setLoading(false);
       toast.error(error.message || "Some thing wrong")
-      console.log("some thing wrong ", error.message);
     }
 
   };
 
   return (
     <>
+
+      {
+        loading || isLoading && (
+          <Spinner />
+        )
+      }
       <div className="min-h-screen bg-white">
 
         <div className="max-w-6xl mx-auto px-1 py-12 flex">

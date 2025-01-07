@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react'
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import HeroSection from '../../../components/user/HeroSection'
 import NewArrivals from '../../../components/Sections/NewArrivals'
 import Category from '../../../components/Sections/Categories/Category'
@@ -8,11 +8,8 @@ import Footer from '../../../components/user/Footer'
 
 const Home = () => {
   
-  const dispatch = useDispatch();
-  useEffect(()=>{
-   
-  },[dispatch]);
-
+  const {user} = useSelector((state)=>state.user)
+ console.log(user,'user ind')
   return (
     <>
       <HeroSection />

@@ -6,6 +6,7 @@ import { toast } from "react-toastify";
 const userRegister = createAsyncThunk(
   'user/register',
   async (userData, { rejectWithValue }) => {
+
     try {
       console.log('userData:', userData);
       const response = await userAxios.post('/register', userData);
@@ -26,7 +27,6 @@ const userRegisterWihtGoogle = createAsyncThunk(
   'user/google/register',
   async (userData, { rejectWithValue }) => {
     try {
-      console.log('userData:', userData);
       const response = await userAxios.post('/googleSignup', userData);
       toast.success(response.data.message);
       return response.data.user;
@@ -84,7 +84,7 @@ const userLogout = createAsyncThunk(
     try {
       const response = await userAxios.get('/logout');
       toast.success(response.data.message);
-      return 
+      return
     } catch (error) {
       toast.error(error.response?.data?.message || error.message || "An error occurred while logging out.");
       return rejectWithValue(error.response?.data || error.message);
@@ -92,12 +92,14 @@ const userLogout = createAsyncThunk(
   }
 )
 
+// email verify
+
 
 // toekn refresh
 
 const tokenRefresh = createAsyncThunk(
   'user/refresh',
-  async (_, {rejectWithValue})=>{
+  async (_, { rejectWithValue }) => {
     try {
       const response = await userAxios.get('/refresh');
       return response.data.user;
@@ -108,11 +110,14 @@ const tokenRefresh = createAsyncThunk(
 )
 
 
+
+
+
 export {
   userRegister,
   userLogin,
   userRegisterWihtGoogle,
   userLoginWithGoogle,
   userLogout,
-  tokenRefresh
+  tokenRefresh,
 }

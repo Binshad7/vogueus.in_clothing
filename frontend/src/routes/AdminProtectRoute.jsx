@@ -1,18 +1,13 @@
-import React, { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { Navigate, Outlet } from 'react-router-dom';
+import { Navigate } from 'react-router-dom';
 
-// Protected Route Wrapper Component
 const AdminProtectedRoute = ({ children }) => {
-  const adminIsisAuthenticated = useSelector((state)=>state.admin.isAuthenticated)
-  console.log(adminIsisAuthenticated,'from')
-  useEffect(()=>{
-    console.log(adminIsisAuthenticated,'admin is ');
-    if (!adminIsisAuthenticated) {
-      return <Navigate to="/admin/login" replace />;
-    }
-    
-  },[adminIsisAuthenticated])
+  const adminIsisAuthenticated = useSelector((state) => state.admin.isAuthenticated)
+
+  if (!adminIsisAuthenticated) {
+    return <Navigate to="/admin/login"/>;
+  }
+
 
   return children;
 };

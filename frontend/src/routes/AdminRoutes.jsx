@@ -14,7 +14,7 @@ function AdminRoutes() {
   return (
     <div>
       <Routes>
-        <Route path='/dash' element={<DashBboard />} />
+        <Route path='/' element={<DashBboard />} />
         <Route path='/category' element={<Category />} />
 
         <Route path='/product' element={<ProductList />} />

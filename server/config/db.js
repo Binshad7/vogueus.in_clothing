@@ -6,7 +6,7 @@ function connect() {
         console.log('mongodb connected');   
 
     } catch (error) {
-        console.log('error in mongodb connect', error.message);
+        console.log('error in mongodb connect');
         process.exit(1);
     }
 }

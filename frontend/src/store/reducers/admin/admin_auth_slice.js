@@ -5,8 +5,8 @@ import { adminLogin } from "../../middlewares/admin/admin_auth";
 const adminAuthSlice = createSlice({
     name: 'adminAuth',
     initialState : {
-        admin: localStorage.getItem('admin')? JSON.parse(localStorage.getItem('admin')) : null,
-        isAuthenticated: JSON.parse(localStorage.getItem('adminIsisAuthenticated')) ||false,
+        admin: JSON.parse(localStorage.getItem('admin')) || null,  
+        isAuthenticated: JSON.parse(localStorage.getItem('adminIsisAuthenticated')) ||false, 
         loading: false
     },
     extraReducers: (builder) => {

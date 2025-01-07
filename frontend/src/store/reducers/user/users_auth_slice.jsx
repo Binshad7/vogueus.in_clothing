@@ -5,12 +5,12 @@ import {
     userRegisterWihtGoogle,
     userLoginWithGoogle,
     userLogout,
-    tokenRefresh
+    tokenRefresh,
 } from "../../middlewares/user/user_auth";
 
 const initialState = {
     isAuthenticated: JSON.parse(localStorage.getItem('isAuthenticated')) || false,
-    user: JSON.parse(localStorage.getItem('user')) || null,  
+    user: JSON.parse(localStorage.getItem('user')) || null,
     loading: false,
 };
 
@@ -31,6 +31,10 @@ const handleAuthSuccess = (state, action) => {
 // Helper function to handle rejection
 const handleRejection = (state, action) => {
     state.loading = false;
+    state.user = null;
+    state.isAuthenticated = false;
+    localStorage.removeItem('user');
+    localStorage.removeItem('isAuthenticated');
 };
 
 const userSlice = createSlice({
@@ -44,12 +48,12 @@ const userSlice = createSlice({
             localStorage.removeItem('isAuthenticated');
         },
         demoStore: (state, action) => {
-            console.log('action', action.payload);
             localStorage.setItem('demouser', JSON.stringify(action.payload));
             state.user = action.payload;
         },
-        clearDemoUser:(state)=>{
+        clearDemoUser: (state) => {
             state.user = null;
+            localStorage.removeItem('demouser');
         }
     },
     extraReducers: (builder) => {
@@ -83,7 +87,9 @@ const userSlice = createSlice({
                 localStorage.removeItem('user');
                 localStorage.removeItem('isAuthenticated');
             })
-            .addCase(userLogout.rejected, handleRejection)
+            .addCase(userLogout.rejected, (state) => {
+                state.loading = false;
+            })
 
 
             // referesh token 
@@ -95,10 +101,12 @@ const userSlice = createSlice({
                 state.isAuthenticated = false;
                 localStorage.removeItem('user');
                 localStorage.removeItem('isAuthenticated');
-            });
+            })
 
-},
+
+
+    },
 });
 
-export const {  clearUser,demoStore,clearDemoUser } = userSlice.actions;
+export const { clearUser, demoStore, clearDemoUser } = userSlice.actions;
 export default userSlice.reducer;

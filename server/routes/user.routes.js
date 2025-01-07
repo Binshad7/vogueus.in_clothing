@@ -10,7 +10,8 @@ const {
     loginWIthGoogle,
     refreshToken,
     emailVerification,
-    emailResendCode
+    emailResendCode,
+    otpValidation
 } = require('../controllers/user.controller');
 // auth routes
 user_router.post('/register', register);
