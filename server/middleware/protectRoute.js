@@ -4,9 +4,9 @@ const User = require('../models/userSchema');
 const protectRoute = async (req, res, next) => {
     
     try {
-
-        const token =  req.cookies['vogueusToken'];
-        console.log(token, 'token');
+         console.log('protect Route');
+         
+        const token = req.cookies['vogueusToken'];
         
         if (!token) {
             return res.status(401).json({ message: "You are not authenticated, please login" });
@@ -14,11 +14,18 @@ const protectRoute = async (req, res, next) => {
         const decoded = jsonwebtoken.verify(token, JWT_SECRET);
         if (!decoded) {
             return res.status(401).json({ message: "You are not authenticated, please login" });
-        }       
-        const user = await User.findById(decoded.userID);
-        if (!user) {
+        }
+        const userDetails = await User.findById(decoded.userID);
+        if (!userDetails) {
             return res.status(401).json({ message: "You are not authenticated, please login" });
-        }   
+        }
+
+        if(userDetails.isBlock){
+            return res.status(401).json({success:false,message:"You'r blocked from this site"})
+        }
+   
+        const { password, googleId, ...user } = userDetails._doc
+        
         req.user = user;
         next();
     } catch (error) {

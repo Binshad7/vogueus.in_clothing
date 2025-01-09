@@ -4,19 +4,16 @@ import StatusCard from '../../../components/admin/Dashboard/StatusCardRow/Status
 import SalesStatistics from '../../../components/admin/Dashboard/Chart/SalesStatistics';
 import RevenueArea from '../../../components/admin/Dashboard/Chart/RevenueArea';
 import NewOrders from '../../../components/admin/Dashboard/OrcersAndMembers/NewOrders';
-import { useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom';
 
 const Dashboard = () => {
-  console.log('dash compontet dash')
   // Sample data
-  const { isAuthenticated } = useSelector((state) => state.user)
-  console.log('user',isAuthenticated);
-  
+  const adminIsisAuthenticated = JSON.parse(localStorage.getItem('adminIsisAuthenticated'))
+
   const navigate = useNavigate()
   useEffect(() => {
-    if(!isAuthenticated) return  navigate('/admin/login')
-  }, [isAuthenticated])
+    if (!adminIsisAuthenticated) return navigate('/admin/login')
+  }, [adminIsisAuthenticated])
   return (
     <div className="p-6 space-y-6 bg-gray-50">
       {/* Header with Create Report Button */}

@@ -46,12 +46,27 @@ const adminLogout = async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 }
+const adminRefresh = (req, res) => {
+    try {
+        const admin = req.user;
+        if (admin.isBlock) {
+            return res.status(401).json({ success: false, message: 'admin is blocked' })
+        }
+        if (admin.role !== 'admin') {
+            return res.status(401).json({ success: false, message: 'Not valid Admin' })
+        }
+        res.status(200).json({ success: true, message: 'Valid Admin', admin })
+    } catch (error) {
+
+    }
+}
 
 module.exports = {
     adminLogin,
     adminLogout,
+    adminRefresh,
 }
-
+ 
 
 // const obj = {
 //     productName: 'shirt',

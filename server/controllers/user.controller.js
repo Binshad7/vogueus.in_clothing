@@ -27,7 +27,7 @@ const register = async (req, res) => {
                     email,
                     password: hashedPassword,
                     isVerified: true
-                });
+                }); 
                 const newUser = await user.save();
                 await generateToken(newUser._id, res);
                 var { password, googleId, ...userDetails } = newUser._doc
@@ -81,9 +81,10 @@ const googleSignup = async (req, res) => {
 
 // user login
 const login = async (req, res) => {
+    var { email, password } = req.body;
+    
     try {
-        var { email, password } = req.body;
-        const exist_user = await User.findOne(email);
+        const exist_user = await User.findOne({email});
         if (!exist_user) {
             return res.status(401).json({ success: false, message: 'Invalid email ' });
         }
@@ -91,11 +92,12 @@ const login = async (req, res) => {
         if (!isPasswordMatch) {
             return res.status(401).json({ success: false, message: 'Invalid password' });
         }
-        if (!exist_user.isBlock) {
+        if (exist_user.isBlock) {
             return res.status(401).json({ success: false, message: ' this user is blocked from the site ' });
         }
+        
         await generateToken(exist_user._id, res);
-        var { password, googleId, ...userDetails } = newUser._doc
+        var { password, googleId, ...userDetails } = exist_user._doc
 
         res.status(200).json({ success: true, message: 'User logged in successfully', user: userDetails });
     } catch (error) {
@@ -112,17 +114,17 @@ const loginWIthGoogle = async (req, res) => {
 
         const exist_user = await User.findOne({ email });
         if (!exist_user) {
-            return res.status(401).json({ success: false, message: 'Invalid email places register the email ' });
+            return res.status(401).json({ success: false, message: 'Invalid email please register the email ' });
         }
         if (exist_user.googleId !== googleId) {
-            return res.status(401).json({ success: false, message: 'Invalid google id ' });
+            return res.status(401).json({ success: false, message: 'Enter your email and passowrd ' });
         }
 
         if (exist_user.isBlock) {
             return res.status(401).json({ success: false, message: ' this user is blocked from the site ' });
         }
-        await generateToken(exist_user._id, res);
-        var { password, googleId, ...userDetails } = exist_user  
+        generateToken(exist_user._id, res);
+        var { password, googleId, ...userDetails } = exist_user
 
         res.status(200).json({ success: true, message: 'User logged in successfully', user: userDetails });
     } catch (error) {

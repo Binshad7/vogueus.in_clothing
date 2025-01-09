@@ -6,6 +6,7 @@ const categorySchema = new mongoose.Schema({
         type: String,
         required: true,
     },
+
     addedBy: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'admin',
@@ -15,6 +16,10 @@ const categorySchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'admin',
         required: true,
+    },
+    isUnlist:{
+      type:Boolean,
+      default:false
     },
     subcategories: [
         {
