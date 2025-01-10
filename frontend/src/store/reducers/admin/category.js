@@ -1,5 +1,15 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { createCategory, fetchCategory,updateCategory,deleteCategory,unlistParentCategory } from '../../middlewares/admin/categoryHandle'
+import {
+    createCategory,
+    fetchCategory,
+    updateCategory,
+    deleteCategory,
+    unlistParentCategory,
+    addSubCategory,
+    updateSubCategory,
+    subCategoryUnlist,
+    listSubCategory
+} from '../../middlewares/admin/categoryHandle'
 
 
 
@@ -41,10 +51,34 @@ const categoryManagement = createSlice({
             .addCase(deleteCategory.pending, handlePending)
             .addCase(deleteCategory.fulfilled, handleFulfilled)
             .addCase(deleteCategory.rejected, handleReject)
-             // unlist category
+            // unlist category
             .addCase(unlistParentCategory.pending, handlePending)
             .addCase(unlistParentCategory.fulfilled, handleFulfilled)
             .addCase(unlistParentCategory.rejected, handleReject)
+            // add subcategory 
+            .addCase(addSubCategory.pending, handlePending)
+            .addCase(addSubCategory.fulfilled, handleFulfilled)
+            .addCase(addSubCategory.rejected, (state) => {
+                state.loading = false;
+            })
+            // update sub category
+            .addCase(updateSubCategory.pending, handlePending)
+            .addCase(updateSubCategory.fulfilled, handleFulfilled)
+            .addCase(updateSubCategory.rejected, (state) => {
+                state.loading = false;
+            })
+            // subCategory unlist the subCategory
+            .addCase(subCategoryUnlist.pending, handlePending)
+            .addCase(subCategoryUnlist.fulfilled, handleFulfilled)
+            .addCase(subCategoryUnlist.rejected, (state) => {
+                state.loading = false;
+            })
+            // subCategory list the subCategory
+            .addCase(listSubCategory.pending, handlePending)
+            .addCase(listSubCategory.fulfilled, handleFulfilled)
+            .addCase(listSubCategory.rejected, (state) => {
+                state.loading = false;
+            })
 
 
     }

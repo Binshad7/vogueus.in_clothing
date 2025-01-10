@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');       
+const mongoose = require('mongoose');
 
 const subcategorySchema = new mongoose.Schema({
 
@@ -16,15 +16,15 @@ const subcategorySchema = new mongoose.Schema({
         ref: 'admin',
         required: true,
     },
+    isUnlist: {
+        type: Boolean,
+        default: false
+    },
     updatedBy: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'admin',
         required: true,
-    },
-    descriptions:{ 
-        type: String,
-        required: true,
     }
-},{timestamps: true});
+}, { timestamps: true });
 
 module.exports = mongoose.model("subcategory", subcategorySchema);

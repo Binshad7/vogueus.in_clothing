@@ -19,8 +19,6 @@ const register = async (req, res) => {
         if (currentTime < expiryTime) {
             if (otp == user_Otp) {
                 req.session.otp = null;
-
-
                 const hashedPassword = await hashPassword(password);
                 const user = new User({
                     userName,

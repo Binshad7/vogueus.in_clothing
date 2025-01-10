@@ -18,19 +18,20 @@ const customStyles = {
     backgroundColor: 'rgba(0, 0, 0, 0.75)'
   }
 };
-
-function CategoryModal({ unlist,modalIsOpen, closeModal, handleDeleteConfirm, categoryName,handleUnlistConfrim }) {
+function SubCategoryModal({ unlist, isOpen, closeModal, handleDeleteConfirm, categoryName, handleUnlistConfirm }) {
+    
   return (
     <Modal
-      isOpen={modalIsOpen}
+      isOpen={isOpen}
       onRequestClose={closeModal}
       style={customStyles}
       contentLabel="Delete Confirmation"
       ariaHideApp={false}
     >
+      
       <div className="flex flex-col">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-semibold">{ unlist?'Confrim Unlist' : 'Confirm Delete'}</h2>
+          <h2 className="text-xl font-semibold">{ unlist?'Confrim list' : 'Confirm unlist'}</h2>
           <button
             onClick={closeModal}
             className="text-gray-500 hover:text-gray-700"
@@ -40,7 +41,7 @@ function CategoryModal({ unlist,modalIsOpen, closeModal, handleDeleteConfirm, ca
         </div>
 
         <p className="mb-6">
-          Are you sure you want to {unlist?'unlist':'delete'} this category{' '}
+          Are you sure you want to {unlist?'list':'unlist'} this category{' '}
           <span className='text-red-500 font-medium'>{categoryName}</span>?
         </p>
 
@@ -55,17 +56,17 @@ function CategoryModal({ unlist,modalIsOpen, closeModal, handleDeleteConfirm, ca
          {
             unlist? 
             <button
-            onClick={handleUnlistConfrim}
+            onClick={handleUnlistConfirm}
             className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
           >
-            Unlist
+            list
           </button>
             :
             <button
             onClick={handleDeleteConfirm}
             className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
           >
-            Delete
+            Unlist
           </button>
             
          }
@@ -75,4 +76,4 @@ function CategoryModal({ unlist,modalIsOpen, closeModal, handleDeleteConfirm, ca
   );
 }
 
-export default CategoryModal;
+export default React.memo(SubCategoryModal);
