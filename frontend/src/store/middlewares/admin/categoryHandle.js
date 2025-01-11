@@ -150,6 +150,20 @@ const listSubCategory = createAsyncThunk(
         }
     }
 )
+
+
+const addProductListCategory = createAsyncThunk(
+    'category/addProductListCategory',
+    async (_, { rejectWithValue }) => {
+        try {
+            const response = await adminAxios.get("/category/addProductListCategory");
+            return JSON.parse(response.data.categorys)
+        } catch (error) {
+            toast.error(error.response.data.message);
+            return rejectWithValue(error.response?.data || error.message);
+        }
+    }
+)
 export {
     createCategory,
     fetchCategory,
@@ -159,5 +173,6 @@ export {
     addSubCategory,
     updateSubCategory,
     subCategoryUnlist,
-    listSubCategory
+    listSubCategory,
+    addProductListCategory
 }

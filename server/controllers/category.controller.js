@@ -214,6 +214,26 @@ const listSubCategory = async (req, res) => {
     }
 }
 
+const addProductCategoryListing = async (req, res) => {
+    try {
+        const lookupCategory = await fetchCategoriesWithSubcategories();
+
+        const filter_Parent_Categorys = lookupCategory.filter((cat) => cat.isUnlist !== true);
+
+        const filteredCategories = filter_Parent_Categorys.map((cat) => {
+            const filteredSubCategories = cat.subcategories.filter((subCat) => subCat.isUnlist !== true);
+            return { ...cat, subcategories: filteredSubCategories };
+        });
+        console.log(JSON.stringify(filteredCategories, null, 2))
+   
+        res.status(200).json({ success: true, message: 'list SubCategory success fully completed', categorys: JSON.stringify(filteredCategories, null, 2) })
+
+
+    } catch (error) {
+        console.log('category.controller addProductCategoryListing error', error.message);
+        return res.status(500).json({ success: false, message: 'server side error try again later' })
+    }
+}
 
 module.exports = {
     addCategory,
@@ -224,5 +244,6 @@ module.exports = {
     addSubCategory,
     updateSubCategory,
     unlistSubCategory,
-    listSubCategory
+    listSubCategory,
+    addProductCategoryListing
 }

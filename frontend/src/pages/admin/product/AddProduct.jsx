@@ -5,25 +5,31 @@ import 'cropperjs/dist/cropper.css';
 import toast from 'react-hot-toast';
 import { validate } from './validation';
 import { useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from 'react-redux';
+import { addProductListCategory } from '../../../store/middlewares/admin/categoryHandle';
 
 const AddProduct = () => {
   const [images, setImages] = useState([null, null, null]);
   const [imagePreviews, setImagePreviews] = useState([null, null, null]);
   const [croppingIndex, setCroppingIndex] = useState(null);
   const [cropperRefs, setCropperRefs] = useState([React.createRef(), React.createRef(), React.createRef()]);
-  const [categories, setCategory] = useState([]);
-  const [subCategorie, setSubCategory] = useState([]);
-  
-  
-  // Modified stock state with dynamic sizes
+  const [selectedCategory, setSelectedCategory] = useState('');
+  const [subcategories, setSubcategories] = useState([]);
+
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  const { addProductListingCategory, loading } = useSelector((state) => state.category);
+
+  // Stock state with dynamic sizes
   const [stockItems, setStockItems] = useState([
     { size: 'S', quantity: 0 },
     { size: 'M', quantity: 0 },
     { size: 'L', quantity: 0 },
     { size: 'XL', quantity: 0 }
   ]);
-  
-  // New state for custom size input
+
+  // State for custom size input
   const [newSize, setNewSize] = useState('');
 
   const [errors, setErrors] = useState({
@@ -31,14 +37,14 @@ const AddProduct = () => {
     description: '',
     regularPrice: '',
     stock: '',
-    image:""
+    image: ""
   });
 
   const [formData, setFormData] = useState({
     productName: '',
     description: '',
-    category: categories[0]?.name,
-    subcategory: categories[0]?.subCategories[0]?.name,
+    category: '',
+    subcategory: '',
     quantity: '',
     regularPrice: '',
     currentPrice: '',
@@ -46,7 +52,30 @@ const AddProduct = () => {
     stock: []
   });
 
-  const navigate = useNavigate();
+  // Fetch categories on component mount
+  useEffect(() => {
+    dispatch(addProductListCategory());
+  }, [dispatch]);
+
+  // Set initial category and subcategory when categories are loaded
+  useEffect(() => {
+    if (addProductListingCategory && addProductListingCategory.length > 0) {
+     
+        
+        const initialCategory = addProductListingCategory[0]?.categoryName || '';
+        const initialSubcategories = addProductListingCategory[0]?.subcategories || [];
+       
+        setSelectedCategory(initialCategory);
+        setSubcategories(initialSubcategories);
+
+        setFormData(prev => ({
+          ...prev,
+          category: initialCategory,
+          subcategory: initialSubcategories[0]?.subcategoryName || ''
+        }));
+     
+    }
+  }, [addProductListingCategory]);
 
   // Handle adding new size
   const handleAddSize = () => {
@@ -55,7 +84,6 @@ const AddProduct = () => {
       return;
     }
 
-    // Check if size already exists
     if (stockItems.some(item => item.size.toLowerCase() === newSize.toLowerCase())) {
       toast.error('This size already exists');
       return;
@@ -75,8 +103,7 @@ const AddProduct = () => {
     const newStockItems = [...stockItems];
     newStockItems[index].quantity = parseInt(value) || 0;
     setStockItems(newStockItems);
-    
-    // Update total quantity in formData
+
     const totalQuantity = newStockItems.reduce((sum, item) => sum + item.quantity, 0);
     setFormData(prev => ({
       ...prev,
@@ -85,32 +112,44 @@ const AddProduct = () => {
     }));
   };
 
-  // Rest of your existing functions remain unchanged
-  const handleInputChange = (field) => (e) => {
-    if (!e.target.value && field === "subCategory") return;
-    setFormData((prev) => ({
+  // Handle category change
+  const handleCategoryChange = (e) => {
+    const selectedCategoryName = e.target.value;
+    const selectedCategoryData = addProductListingCategory.find(cat => cat.categoryName === selectedCategoryName);
+
+    setSelectedCategory(selectedCategoryName);
+    setSubcategories(selectedCategoryData?.subcategories || []);
+
+    setFormData(prev => ({
       ...prev,
-      [field]: e.target.value,
+      category: selectedCategoryName,
+      subcategory: selectedCategoryData?.subcategories[0]?.subcategories || ''
     }));
-    if (field === "category") {
-      let category = categories.find(item => item.name === e.target.value);
-      setSubCategory(category.subCategories);
-    }
   };
 
-  // Image handling functions remain unchanged
+  // Handle input changes for other fields
+  const handleInputChange = (field) => (e) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: e.target.value
+    }));
+  };
+
+  // Image handling functions
   const handleImageChange = (e, index) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
       const reader = new FileReader();
+
       reader.onloadend = () => {
-        setImagePreviews((prev) => {
+        setImagePreviews(prev => {
           const newPreviews = [...prev];
           newPreviews[index] = reader.result;
           return newPreviews;
         });
         setCroppingIndex(index);
       };
+
       reader.readAsDataURL(file);
     }
   };
@@ -120,28 +159,31 @@ const AddProduct = () => {
     if (cropper) {
       const croppedCanvas = cropper.getCroppedCanvas();
       const croppedImage = croppedCanvas.toDataURL();
-      setImages((prev) => {
+
+      setImages(prev => {
         const newImages = [...prev];
         newImages[croppingIndex] = croppedImage;
         return newImages;
       });
-      setImagePreviews((prev) => {
+
+      setImagePreviews(prev => {
         const newPreviews = [...prev];
         newPreviews[croppingIndex] = croppedImage;
         return newPreviews;
       });
+
       setCroppingIndex(null);
     }
   };
 
+  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     let isValidate = validate(formData, imagePreviews, setErrors);
-    console.log(isValidate
-
-    )
     if (!isValidate) return;
+     
+
 
     // Check if at least one size has stock
     const hasStock = stockItems.some(item => item.quantity > 0);
@@ -150,45 +192,55 @@ const AddProduct = () => {
         ...prev,
         stock: 'At least one size must have stock quantity'
       }));
-      return console.log("not working");
+      return;
     }
 
-    let newFromData = new FormData();
-    newFromData.append('name', formData.productName);
-    newFromData.append('category', formData.subcategory);
-    newFromData.append('description', formData.description);
-    newFromData.append('currentPrice', formData.currentPrice);
-    newFromData.append('quantity', formData.quantity);
-    newFromData.append('regularPrice', formData.regularPrice);
-    newFromData.append('stock', JSON.stringify(stockItems));
+    const newFormData = new FormData();
+    newFormData.append('name', formData.productName);
+    newFormData.append('category', formData.subcategory);
+    newFormData.append('description', formData.description);
+    newFormData.append('currentPrice', formData.currentPrice);
+    newFormData.append('quantity', formData.quantity);
+    newFormData.append('regularPrice', formData.regularPrice);
+    newFormData.append('stock', JSON.stringify(stockItems));
 
     imagePreviews.forEach((img, i) => {
-      let newImgFile = base64ToFile(img, `image${i}.jpg`);
-      newFromData.append("images", newImgFile);
+      if (img) {
+        const newImgFile = base64ToFile(img, `image${i}.jpg`);
+        newFormData.append("images", newImgFile);
+      }
     });
 
+    console.log('With all values : = ',newFormData)
+
     try {
-      console.log('completed');
-      
-      navigate('/admin')
-    }
-    catch (error) {
-      toast.error(error.response.data || error.message);
-      console.log(error)
+      // Add your API call here to save the product
+      console.log('Form submitted successfully');
+      navigate('/admin');
+    } catch (error) {
+      toast.error(error.response?.data || error.message);
+      console.error(error);
     }
   };
 
-  useEffect(() => {
-    console.log('fetching data');
-    
-  }, []);
+  // Helper function to convert base64 to file
+  const base64ToFile = (base64String, filename) => {
+    const arr = base64String.split(',');
+    const mime = arr[0].match(/:(.*?);/)[1];
+    const bstr = atob(arr[1]);
+    let n = bstr.length;
+    const u8arr = new Uint8Array(n);
+    while (n--) {
+      u8arr[n] = bstr.charCodeAt(n);
+    }
+    return new File([u8arr], filename, { type: mime });
+  };
 
   return (
     <div className="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow">
       <h2 className="text-2xl font-semibold mb-6">Add Product</h2>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Previous form fields remain unchanged */}
         <Input
           label="Product Name"
           value={formData.productName}
@@ -211,18 +263,18 @@ const AddProduct = () => {
             label="Category"
             type="select"
             value={formData.category}
-            onChange={handleInputChange('category')}
+            onChange={handleCategoryChange}
             placeholder="Select Category"
-            options={categories}
+            options={addProductListingCategory || []}
           />
 
           <Input
             label="Subcategory"
-            type="select"
+            type="Subcategory"
             value={formData.subcategory}
             onChange={handleInputChange('subcategory')}
             placeholder="Select Subcategory"
-            options={subCategorie}
+            options={subcategories || []}
           />
         </div>
 
@@ -245,11 +297,10 @@ const AddProduct = () => {
           />
         </div>
 
-        {/* New Stock Management Section */}
+        {/* Stock Management Section */}
         <div className="space-y-4">
           <h3 className="text-lg font-medium">Stock Management</h3>
-          
-          {/* Add New Size Section */}
+
           <div className="flex gap-2 items-end mb-4">
             <div className="flex-grow max-w-xs">
               <Input
@@ -268,7 +319,6 @@ const AddProduct = () => {
             </button>
           </div>
 
-          {/* Stock Items Grid */}
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             {stockItems.map((item, index) => (
               <div key={item.size} className="relative p-4 border rounded-lg">
@@ -298,10 +348,13 @@ const AddProduct = () => {
           )}
         </div>
 
-        {/* Image upload section remains unchanged */}
+        {/* Image Upload Section */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Product Images
+            {errors.image && (
+            <p className="text-red-500 text-sm">{errors.image}</p>
+          )}
           </label>
           <div className="grid grid-cols-3 gap-4">
             {croppingIndex !== null ? (
@@ -348,7 +401,7 @@ const AddProduct = () => {
             )}
           </div>
         </div>
-        
+
         <div className="flex justify-end">
           <button
             type="submit"

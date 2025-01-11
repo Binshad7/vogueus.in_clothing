@@ -19,7 +19,8 @@ const {
     addSubCategory,
     updateSubCategory,
     unlistSubCategory,
-    listSubCategory
+    listSubCategory,
+    addProductCategoryListing
 } = require('../controllers/category.controller')
 
 
@@ -43,6 +44,6 @@ admin_router.post('/category/addSubCategory',protectRoute,addSubCategory);
 admin_router.patch('/category/updateSubCategory',protectRoute,updateSubCategory)
 admin_router.patch('/category/subCategoryUnlist/:subCategoryId',protectRoute,unlistSubCategory)
 admin_router.patch('/category/listSubCategory/:subCategoryId',protectRoute,listSubCategory)
-
+admin_router.get('/category/addProductListCategory',addProductCategoryListing)
 
 module.exports = admin_router;

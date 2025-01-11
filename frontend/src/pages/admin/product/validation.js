@@ -1,6 +1,5 @@
 export const validate = (formData, images, setErrors) => {
   const newErrors = {};
-
   // Validate productName: should not contain special characters and minimum length 3 (ignoring spaces)
   const namePattern = /^[A-Za-z0-9 ]+$/;
   if (!formData.productName || formData.productName.length < 3 || !namePattern.test(formData.productName.trim())) {
@@ -50,15 +49,15 @@ export const validate = (formData, images, setErrors) => {
   }
 
   // Validate images (using separate images parameter)
-  if (!images || !Array.isArray(images)) {
-      newErrors.images = 'Please provide at least one product image.';
+  if (!Array.isArray(images) || images.length < 3) {
+    newErrors.images = 'Please provide at least three product images.';
   } else {
-      const hasAtLeastOneImage = images.some(img => img !== null);
-      if (!hasAtLeastOneImage) {
-          newErrors.images = 'Please provide at least one product image.';
-      }
+    const validImagesCount = images.filter(img => img && typeof img === 'string' && img.trim().length > 0).length;
+  
+    if (validImagesCount < 3) {
+      newErrors.images = 'Please provide at least three product images.';
+    }
   }
-  console.log(newErrors)
-  setErrors(newErrors);
-  return Object.keys(newErrors).length === 0; // If no errors, return true
+  
+  return Object.keys(newErrors).length === 0 ? false :setErrors(newErrors) ; // If no errors, return true
 };

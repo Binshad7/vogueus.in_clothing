@@ -33,8 +33,24 @@ const Input = ({
         >
           <option value="">select option</option>
           {options?.map((option) => (
-            <option key={option._id} value={option.name}>
-              {option.name}
+            <option key={option._id} value={option.categoryName}>
+              {option.categoryName}
+            </option>
+          ))}
+        </select>
+      );
+    }
+    if (type === "Subcategory") {
+      return (
+        <select
+          value={value}
+          onChange={onChange}
+          className={`${baseInputStyles} ${className}`}
+        >
+          <option value="">select option</option>
+          {options?.map((option) => (
+            <option key={option._id} value={option.subcategoryName}>
+              {option.subcategoryName}
             </option>
           ))}
         </select>
@@ -43,6 +59,7 @@ const Input = ({
     
     return (
       <input
+        min={0}
         type={type}
         value={value}
         onChange={onChange}

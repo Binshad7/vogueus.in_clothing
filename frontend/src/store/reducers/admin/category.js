@@ -8,7 +8,8 @@ import {
     addSubCategory,
     updateSubCategory,
     subCategoryUnlist,
-    listSubCategory
+    listSubCategory,
+    addProductListCategory
 } from '../../middlewares/admin/categoryHandle'
 
 
@@ -31,7 +32,8 @@ const categoryManagement = createSlice({
     name: 'categoryMangemente',
     initialState: {
         loading: false,
-        category: []
+        category: [],
+        addProductListingCategory: []
     },
     extraReducers: (builder) => {
         builder
@@ -77,6 +79,15 @@ const categoryManagement = createSlice({
             .addCase(listSubCategory.pending, handlePending)
             .addCase(listSubCategory.fulfilled, handleFulfilled)
             .addCase(listSubCategory.rejected, (state) => {
+                state.loading = false;
+            })
+            // addProductListCategory
+            .addCase(addProductListCategory.pending, handlePending)
+            .addCase(addProductListCategory.fulfilled, (state, action) => {
+                state.loading = false;
+                state.addProductListingCategory = action.payload;
+            })
+            .addCase(addProductListCategory.rejected, (state) => {
                 state.loading = false;
             })
 

@@ -66,16 +66,17 @@ module.exports = {
     adminLogout,
     adminRefresh,
 }
- 
+
 
 // const obj = {
 //     productName: 'shirt',
-//     price: 500,
 //     description: 'good shirt',
-//     verians:
+//     Subcategory:'ObjejetId',
+//     category :'ObjectId',
+//     variations:
 //         [
-//              {color:'red',img:['img-1.png','img-2.png','img-3.png'],stock:{s:2,m:3,l:5,xl:1}},
-//              {color:'black',img:['img-1.png','img-2.png','img-3.png'],stock:{s:3,m:4,l:1,xl:6}}
-
+//              {color:'red',img:['img-red-1.png','img-red-2.png','img-red-3.png'],stock:{s:2,m:3,l:5,xl:1},price: 400},
+//              {color:'black',img:['img-black-1.png','img-black-2.png','img-black-3.png'],stock:{s:3,m:4,l:1,xl:6},price: 500},
+//              {color:'white',img:['img-white-1.png','img-white-2.png','img-white-3.png'],stock:{s:1,m:3,l:2,xl:5},price: 500},
 //         ]
 // } rbac

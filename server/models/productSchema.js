@@ -24,10 +24,6 @@ const productSchema = new mongoose.Schema({
         ref: 'admin',
         required: true,
     },
-    brand: {
-        type: String,
-        required: true,
-    },
     category:{
         type: mongoose.Schema.Types.ObjectId,
         required: true,
