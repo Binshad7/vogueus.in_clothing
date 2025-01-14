@@ -18,7 +18,7 @@ app.use(session({
 
 
 const corsOptions = {  
-    origin: 'http://localhost:5173',
+    origin: 'http://localhost:5174',
     credentials: true,
     optionsSuccessStatus: 200
  }
@@ -34,6 +34,7 @@ app.use(express.static('public'));
 
 
 // Routes
+
 // user
 
 const userRouter = require('./routes/user.routes');
@@ -47,6 +48,24 @@ app.use('/api/v1/admin', adminRouter);
 
 
 
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+    if (err instanceof multer.MulterError) {
+        // Handle Multer-specific errors
+        if (err.code === 'LIMIT_FILE_SIZE') {
+            return res.status(400).send({ error: 'File size exceeds the 5MB limit!' });
+        }
+        return res.status(400).send({ error: err.message });
+    } else if (err) {
+        // Handle general errors
+        return res.status(400).send({ error: err.message });
+    }
+    next();
+});
+
+
+// mongodb connect 
 const { PORT } = require('./config/ENV_VARS');
 const connect = require('./config/db');
 

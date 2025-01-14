@@ -7,7 +7,9 @@ const Input = ({
   className = "", 
   rows,
   options = [],
-  onError = null
+  onError = null,
+  subCategoryError =null,
+  categoryError= null
 }) => {
   const baseInputStyles = "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500";
   
@@ -26,27 +28,32 @@ const Input = ({
     
     if (type === "select") {
       return (
+        <>
         <select
           value={value}
           onChange={onChange}
           className={`${baseInputStyles} ${className}`}
-        >
+          >
           <option value="">select option</option>
           {options?.map((option) => (
             <option key={option._id} value={option.categoryName}>
               {option.categoryName}
             </option>
           ))}
+
         </select>
+        {categoryError&& <p className="text-red-500 text-sm">{categoryError}</p>}
+          </>
       );
     }
     if (type === "Subcategory") {
       return (
+        <>
         <select
           value={value}
           onChange={onChange}
           className={`${baseInputStyles} ${className}`}
-        >
+          >
           <option value="">select option</option>
           {options?.map((option) => (
             <option key={option._id} value={option.subcategoryName}>
@@ -54,6 +61,9 @@ const Input = ({
             </option>
           ))}
         </select>
+        {subCategoryError&& <p className="text-red-500 text-sm">{subCategoryError}</p>}
+
+          </>
       );
     }
     
