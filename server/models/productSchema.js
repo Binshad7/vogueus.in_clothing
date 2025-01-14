@@ -24,7 +24,7 @@ const productSchema = new mongoose.Schema({
     },
     addedBy: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'admin',
+        ref: 'user',
         required: true,
     },
     updatedBy: {

@@ -239,7 +239,7 @@ const AddProduct = () => {
     newFormData.append('description', formData.description);
     newFormData.append('currentPrice', formData.currentPrice);
     newFormData.append('regularPrice', formData.regularPrice);
-    newFormData.append('variants', JSON.stringify(formData.stock));
+    newFormData.append('variants', JSON.stringify(stockItems));
 
     // Filter out null/undefined values and only append unique images
 
