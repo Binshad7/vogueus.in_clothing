@@ -224,7 +224,6 @@ const addProductCategoryListing = async (req, res) => {
             const filteredSubCategories = cat.subcategories.filter((subCat) => subCat.isUnlist !== true);
             return { ...cat, subcategories: filteredSubCategories };
         });
-        console.log(JSON.stringify(filteredCategories, null, 2))
    
         res.status(200).json({ success: true, message: 'list SubCategory success fully completed', categorys: JSON.stringify(filteredCategories, null, 2) })
 

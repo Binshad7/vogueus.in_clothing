@@ -6,10 +6,11 @@ const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 const morgan = require('morgan');
 const session = require('express-session')
+
 // Middleware
 
+const { PORT,SECRET } = require('./config/ENV_VARS');
 
-const {SECRET} = require('./config/ENV_VARS')
 app.use(session({
     secret:SECRET,
     resave:true,
@@ -47,7 +48,6 @@ app.use('/api/v1/admin', adminRouter);
 
 
 
-const { PORT } = require('./config/ENV_VARS');
 const connect = require('./config/db');
 
 

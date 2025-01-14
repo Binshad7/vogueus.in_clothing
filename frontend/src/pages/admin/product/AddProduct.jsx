@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { ImageIcon, X } from 'lucide-react';
 import { addProductListCategory } from '../../../store/middlewares/admin/categoryHandle'
 import { useDispatch, useSelector } from 'react-redux';
@@ -6,6 +6,8 @@ import { toast } from 'react-toastify';
 import ReactCrop from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 import { validate } from '../../../pages/admin/product/validation'
+import DeleteVariants from './productList/DeleteVariants';
+import { AddProduct } from '../../../store/middlewares/admin/ProductRelate';
 
 export default function EnhancedAddProduct() {
 
@@ -13,8 +15,9 @@ export default function EnhancedAddProduct() {
   const [description, setDescription] = useState("");
 
   const [category, setCategory] = useState("");
+  const [categoryId, setCategoryId] = useState(null);
   const [subcategory, setSubcategory] = useState("");
-
+  const [subcategoryId, setSubCategoryId] = useState(null);
   const [variants, setVariants] = useState([]);
   const [newSize, setNewSize] = useState("");
   const [availableSubcategories, setAvailableSubcategories] = useState([]);
@@ -25,9 +28,9 @@ export default function EnhancedAddProduct() {
     description: '',
     Price: '',
     category: '',
-    subCategory: ''
+    subCategory: '',
+    variantErrors: []
   });
-
 
 
   // Add new state for image cropping
@@ -38,6 +41,10 @@ export default function EnhancedAddProduct() {
     width: 90,
     aspect: 1
   });
+  // modal state for remove variant
+  const [modalIsOpen, setMoalIsOpen] = useState(false)
+  const [variantRemoveIndex, setVariantRemoveIndex] = useState(null)
+
   const [completedCrop, setCompletedCrop] = useState(null);
   const [currentVariantIndex, setCurrentVariantIndex] = useState(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(null);
@@ -60,15 +67,16 @@ export default function EnhancedAddProduct() {
 
   useEffect(() => {
     if (addProductListingCategory && addProductListingCategory.length > 0) {
-      const initialCategory = addProductListingCategory[0]?.categoryName || '';
-      setCategory(initialCategory);
-
+      const initialCategory = addProductListingCategory[0] || '';
+      setCategory(initialCategory.categoryName);
+      setCategoryId(initialCategory._id)
       // Set available subcategories for the initial category
       const initialSubcategories = addProductListingCategory[0]?.subcategories || [];
       setAvailableSubcategories(initialSubcategories);
 
       // Set first subcategory as default if available
       if (initialSubcategories.length > 0) {
+        setSubCategoryId(initialSubcategories[0]._id)
         setSubcategory(initialSubcategories[0].subcategoryName);
       }
     }
@@ -154,12 +162,13 @@ export default function EnhancedAddProduct() {
     const categoryData = addProductListingCategory.find(
       cat => cat.categoryName === selectedCategory
     );
-
+    setCategoryId(categoryData._id)
     const newSubcategories = categoryData?.subcategories || [];
     setAvailableSubcategories(newSubcategories);
 
     // Reset subcategory selection
     setSubcategory(newSubcategories.length > 0 ? newSubcategories[0].subcategoryName : '');
+    setSubCategoryId(newSubcategories._Id)
   };
 
   // Add image cropping functions
@@ -176,7 +185,6 @@ export default function EnhancedAddProduct() {
   };
 
   const getCroppedImg = async (image, crop) => {
-    console.log('in get Crop :', image.src, '    ', crop)
     const canvas = document.createElement('canvas');
     const scaleX = image.naturalWidth / image.width;
     const scaleY = image.naturalHeight / image.height;
@@ -203,7 +211,7 @@ export default function EnhancedAddProduct() {
           return;
         }
 
-        blob.name = colors ? `${colors}-cropped-${imageName}` : `${imageName}`;
+        blob.name = colors ? `${colors}-cropped-${productName?`${productName}-${imageName}`:imageName}` : `${imageName}`;
         resolve(blob);
       }, 'image/jpeg', 1);
     });
@@ -211,7 +219,9 @@ export default function EnhancedAddProduct() {
 
   // Modify handleUpdateVariant to handle cropped images
   const handleImageUpload = (variantIndex, imageIndex, e) => {
+    console.log('image : ', e.target.files)
     if (e.target.files?.[0]) {
+
       const validTypes = ['image/png', 'image/jpeg', 'image/jpg'];
       if (!validTypes.includes(e.target.files?.[0].type)) {
         toast.error("Only PNG, JPG, and JPEG files are allowed.");
@@ -238,6 +248,7 @@ export default function EnhancedAddProduct() {
         imgRef.current,
         completedCrop
       );
+      console.log('croped image : ', croppedImageBlob)
 
       const updatedVariants = [...variants];
       updatedVariants[currentVariantIndex].images[currentImageIndex] = croppedImageBlob;
@@ -251,12 +262,36 @@ export default function EnhancedAddProduct() {
     }
   };
 
+  // handle remove variant 
+
+  const handleRemoveVariant = useCallback((index) => {
+    setVariantRemoveIndex(index)
+    setMoalIsOpen(true)
+  }, [modalIsOpen])
+
+  const handleCancelRemoveVariant = useCallback(() => {
+    setVariantRemoveIndex(null)
+    setMoalIsOpen(false)
+  }, [modalIsOpen])
+
+  const handleRemoveConfirm = useCallback(() => {
+    const currentVariants = [...variants];
+    const updatedVariants = currentVariants.filter((item, i) => i !== variantRemoveIndex)
+    setVariants(updatedVariants)
+    toast.success(`Variant ${variantRemoveIndex + 1} is Success fully Remove`);
+    setVariantRemoveIndex(null)
+    setMoalIsOpen(false)
+  }, [modalIsOpen])
+
+
+
   const handleSubmitProduct = async () => {
     const isValid = variants.every(variant =>
       variant.images.filter(img => img !== null).length === 3
     );
-    const errorSubmit = await validate(productName, description, category, subcategory);
-    if (Object.keys(errorSubmit).length > 0) {
+    const errorSubmit = validate(productName, description, category, subcategory, variants);
+    if (Object.keys(errorSubmit).length !== 0) {
+      toast.error('Please fix all variant errors before submitting');
       setErrors(errorSubmit)
       return
     }
@@ -264,23 +299,63 @@ export default function EnhancedAddProduct() {
       toast.error('Each variant must have exactly 3 images!')
       return;
     }
+    const categoryData = addProductListingCategory.find(
+      cat => cat.categoryName === category
+    );
+    const SetId = categoryData?.subcategories?.find(
+      subCat => subCat.subcategoryName === subcategory
+    );
+    setCategoryId(SetId?.parentCategory)
+    setSubCategoryId(SetId?._id)
+    const formData = new FormData();
 
-    const productData = {
-      productName,
-      description,
-      category,
-      subcategory,
-      variants: variants.map(variant => ({
+    formData.append('ProductName', productName);
+    formData.append('description', description);
+    formData.append('category', categoryId);
+    formData.append('subcategory', subcategoryId);
 
-        ...variant,
-        images: variant.images.map(file => file.name)
-      }))
-    };
-    console.log('Product Data:', productData);
-    toast.error('Product submission simulated!')
+
+       // Handle variants and their images
+       variants.forEach((variant, variantIndex) => {
+        // Append variant details
+        formData.append(`variants[${variantIndex}][color]`, variant.color);
+        formData.append(`variants[${variantIndex}][regularPrice]`, variant.regularPrice);
+        formData.append(`variants[${variantIndex}][onSale]`, variant.onSale);
+        if (variant.onSale) {
+          formData.append(`variants[${variantIndex}][salePrice]`, variant.salePrice);
+        }
+  
+        // Append stock information
+        Object.entries(variant.stock).forEach(([size, quantity]) => {
+          formData.append(`variants[${variantIndex}][stock][${size}]`, quantity);
+        });
+  
+        // Append images
+        variant.images.forEach((image, imageIndex) => {
+          if (image) {
+            formData.append(
+              `variants[${variantIndex}][images][${imageIndex}]`, 
+              image,
+              image.name
+            );
+          }
+        });
+      });
+  
+      // For debugging - log FormData contents
+      // for (let pair of formData.entries()) {
+      //   console.log(pair[0], pair[1]);
+      // }
+      dispatch(AddProduct(formData));
   }
   return (
     <div className="p-6 max-w-4xl mx-auto bg-white rounded-lg shadow">
+      <DeleteVariants
+        modalIsOpen={modalIsOpen}
+        closeModal={handleCancelRemoveVariant}
+        handleVariantRemoveConfirm={handleRemoveConfirm}
+        index={variantRemoveIndex}
+      />
       <h1 className="text-2xl font-bold mb-6">Add Product</h1>
 
       {/* Base Product Info */}
@@ -296,6 +371,7 @@ export default function EnhancedAddProduct() {
             placeholder="Enter product name"
             className="w-full p-2 border rounded-md"
           />
+          {errors.productName && <p className='text-red-700 text-lg'> {errors.productName}</p>}
         </div>
 
         <div>
@@ -309,6 +385,7 @@ export default function EnhancedAddProduct() {
             className="w-full p-2 border rounded-md"
             rows={4}
           />
+          {errors.description && <p className='text-red-700 text-lg'> {errors.description}</p>}
         </div>
 
         {/* Category Selection */}
@@ -324,11 +401,13 @@ export default function EnhancedAddProduct() {
             >
               <option value="">Select Category</option>
               {addProductListingCategory?.map((cat) => (
-                <option key={cat._id} value={cat.categoryName}>
+                <option
+                  key={cat._id} value={cat.categoryName}>
                   {cat.categoryName}
                 </option>
               ))}
             </select>
+            {errors.category && <p className='text-red-700 text-lg'> {errors.category}</p>}
           </div>
 
           <div>
@@ -343,11 +422,13 @@ export default function EnhancedAddProduct() {
             >
               <option value="">Select Subcategory</option>
               {availableSubcategories.map((sub) => (
-                <option key={sub._id} value={sub.subcategoryName}>
+                <option key={sub._id} value={sub.subcategoryName}
+                >
                   {sub.subcategoryName}
                 </option>
               ))}
             </select>
+            {errors.subCategory && <p className='text-red-700 text-lg'> {errors.subCategory}</p>}
           </div>
         </div>
       </div>
@@ -366,7 +447,10 @@ export default function EnhancedAddProduct() {
 
         <div className="space-y-6">
           {variants.map((variant, variantIndex) => (
-            <div key={variantIndex} className="border rounded-lg p-6 space-y-6 bg-gray-50">
+            <div key={variantIndex} className="relative border rounded-lg p-6 space-y-6 bg-gray-50">
+              <X size={35}
+                className="absolute top-4 right-4 cursor-pointer text-red-700"
+                onClick={() => handleRemoveVariant(variantIndex)} />
               <h3 className="font-medium text-lg">Variant {variantIndex + 1}</h3>
 
               {/* Color */}
@@ -381,6 +465,7 @@ export default function EnhancedAddProduct() {
                   placeholder="Enter color"
                   className="w-full p-2 border rounded-md"
                 />
+                {errors.variantErrors && errors?.variantErrors[variantIndex]?.color && <p className='text-red-700'>{errors?.variantErrors[variantIndex]?.color}</p>}
               </div>
 
               {/* Enhanced Price Section */}
@@ -397,6 +482,7 @@ export default function EnhancedAddProduct() {
                     className="w-full p-2 border rounded-md"
                     min="0"
                   />
+                  {errors.variantErrors && errors?.variantErrors[variantIndex]?.regularPrice && <p className='text-red-700'>{errors?.variantErrors[variantIndex]?.regularPrice}</p>}
                 </div>
 
                 <div className="flex items-center gap-2 mb-2">
@@ -406,6 +492,7 @@ export default function EnhancedAddProduct() {
                     onChange={(e) => handleUpdateVariant(variantIndex, "onSale", e.target.checked)}
                     className="h-4 w-4 text-blue-600"
                   />
+
                   <label className="text-sm font-medium text-gray-700">
                     On Sale
                   </label>
@@ -425,6 +512,7 @@ export default function EnhancedAddProduct() {
                       min="0"
                       max={variant.regularPrice}
                     />
+                    {errors.variantErrors && errors?.variantErrors[variantIndex]?.salePrice && <p className='text-red-700'>{errors?.variantErrors[variantIndex]?.salePrice}</p>}
                     {variant.regularPrice > 0 && variant.salePrice > 0 && (
                       <span className="text-sm text-gray-500 mt-1 block">
                         Discount: {Math.round((1 - variant.salePrice / variant.regularPrice) * 100)}%
@@ -473,7 +561,9 @@ export default function EnhancedAddProduct() {
                             className="hidden"
                             onChange={(e) => handleImageUpload(variantIndex, imageIndex, e)}
                           />
+                          {errors.variantErrors && errors?.variantErrors[variantIndex]?.images && <p className='text-red-700'>{errors?.variantErrors[variantIndex]?.images}</p>}
                         </label>
+
                       )}
                     </div>
                   ))}
@@ -541,6 +631,7 @@ export default function EnhancedAddProduct() {
                     Add Size
                   </button>
                 </div>
+                {errors.variantErrors && errors?.variantErrors[variantIndex]?.stock && <p className='text-red-700'>{errors?.variantErrors[variantIndex]?.stock}</p>}
 
                 {/* Size Grid */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
