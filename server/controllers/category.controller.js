@@ -39,11 +39,12 @@ const addCategory = async (req, res) => {
 
 // editCategory
 const editCategory = async (req, res) => {
-
     try {
-
         const { categoryId, categoryName } = req.body;
-
+        const Exist = await category.findOne({categoryName});
+        if(Exist){
+            return res.status(400).json({success:false,message:'Category is Already exist '})
+        }
         const updatedCategory = await category.updateOne({ _id: categoryId }, { $set: { categoryName: categoryName, updatedBy: req.user._id } });
         if (!updatedCategory) {
             return res.status(400).json({ success: false, message: 'category not find' })
@@ -151,34 +152,59 @@ const addSubCategory = async (req, res) => {
     }
 }
 const updateSubCategory = async (req, res) => {
-    console.log(req.body);
-    const { parentCategory, subcategoryName, subCategoryID } = req.body;
+    console.log(req.body); // Log the incoming request body
+    const { parentCategory, subcategoryNewName, subCategoryID } = req.body;
+
     try {
-        const Exist_SubCategory = await subCategory.findOne({ subcategoryName });
+        const Exist_SubCategory = await subCategory
+            .findOne({ subcategoryName: subcategoryNewName })
+            .lean(); // Ensure a plain object is returned
 
 
-        if (Exist_SubCategory?.parentCategory?.toString() === parentCategory && Exist_SubCategory?.subcategoryName === subcategoryName) {
-            return res.status(401).json({ success: false, message: 'This category Name is already Exist in under Parent Category ' })
+        if (Exist_SubCategory) {
+
+            if (
+                Exist_SubCategory.parentCategory?.toString() === parentCategory &&
+                Exist_SubCategory.subcategoryName === subcategoryNewName
+            ) {
+                return res.status(401).json({
+                    success: false,
+                    message: 'This category name already exists under the specified parent category.',
+                });
+            }
         }
 
+        // Update the subcategory name
         const updateSubCategory = await subCategory.updateOne(
             { _id: subCategoryID },
-            {
-                $set: { subcategoryName: subcategoryName }
-            });
+            { $set: { subcategoryName: subcategoryNewName } }
+        );
 
-        if (!updateSubCategory) {
-            return res.status(401).json({ success: false, message: 'error face in update SubCategory name' });
+        // Check if the update was successful
+        if (!updateSubCategory.modifiedCount) {
+            return res.status(401).json({
+                success: false,
+                message: 'Error updating the subcategory name.',
+            });
         }
 
+        // Fetch and send updated categories with subcategories
         const catego = await fetchCategoriesWithSubcategories();
         const categorys = JSON.stringify(catego, null, 2);
-        res.status(200).json({ success: true, message: 'subcategory Name success fully updated', categorys })
+        res.status(200).json({
+            success: true,
+            message: 'Subcategory name successfully updated.',
+            categorys,
+        });
     } catch (error) {
-        console.log('category.controller  update  sub category error', error.message);
-        res.status(500).json({ success: false, message: 'server side error' })
+        console.error('Error in updateSubCategory:', error.message);
+        res.status(500).json({
+            success: false,
+            message: 'Server-side error.',
+        });
     }
-}
+};
+
 
 
 const unlistSubCategory = async (req, res) => {
@@ -196,7 +222,7 @@ const unlistSubCategory = async (req, res) => {
         return res.status(500).json({ success: false, message: 'server side error try again later' })
     }
 }
-
+ 
 // list category 
 const listSubCategory = async (req, res) => {
     try {
@@ -224,7 +250,6 @@ const addProductCategoryListing = async (req, res) => {
             const filteredSubCategories = cat.subcategories.filter((subCat) => subCat.isUnlist !== true);
             return { ...cat, subcategories: filteredSubCategories };
         });
-        console.log(JSON.stringify(filteredCategories, null, 2))
    
         res.status(200).json({ success: true, message: 'list SubCategory success fully completed', categorys: JSON.stringify(filteredCategories, null, 2) })
 

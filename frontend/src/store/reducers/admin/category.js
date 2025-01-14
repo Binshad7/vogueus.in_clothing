@@ -24,8 +24,8 @@ const handleFulfilled = (state, action) => {
 }
 const handleReject = (state) => {
     state.loading = false;
-    state.category = []
-    localStorage.removeItem('categorys');
+    // state.category = []
+    // localStorage.removeItem('categorys');
 
 }
 const categoryManagement = createSlice({

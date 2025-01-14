@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 
 const productSchema = new mongoose.Schema({
 
+
     productName: {
         type: String,
         required: true,
@@ -12,7 +13,14 @@ const productSchema = new mongoose.Schema({
     },
     offerPrice: {
         type: Number,
+    },
+    ProductName: {
+        type: String,
         required: true,
+    },
+    description:{
+        type:String,
+        required:true
     },
     addedBy: {
         type: mongoose.Schema.Types.ObjectId,
@@ -29,7 +37,7 @@ const productSchema = new mongoose.Schema({
         required: true,
         ref: 'category',
     },
-    Subcategory: {
+    subcategory: {
         type: mongoose.Schema.Types.ObjectId,
         required: true,
         ref: 'subcategory',

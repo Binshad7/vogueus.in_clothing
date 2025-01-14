@@ -251,7 +251,7 @@ const CategoryManagement = () => {
 
     dispatch(updateSubCategory({
       parentCategory: editSubCategory.parentCategory,
-      subcategoryName: editSubcategoryName,
+      subcategoryNewName: editSubcategoryName,
       subCategoryID: editSubcategoryID
     }));
     setEditSubcategoryID(null)
