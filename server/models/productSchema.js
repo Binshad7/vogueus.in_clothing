@@ -7,11 +7,11 @@ const productSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
-    productPrice: {
+    regularPrice: {
         type: Number,
         required: true,
     },
-    offerPrice: {
+    currentPrice: {
         type: Number,
     },
     ProductName: {
@@ -37,7 +37,7 @@ const productSchema = new mongoose.Schema({
         required: true,
         ref: 'category',
     },
-    subcategory: {
+    subCategory: {
         type: mongoose.Schema.Types.ObjectId,
         required: true,
         ref: 'subcategory',
@@ -47,7 +47,7 @@ const productSchema = new mongoose.Schema({
             String
         ]
     },
-    variant: [
+    variants: [
         {
           size: {
             type: String,

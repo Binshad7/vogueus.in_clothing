@@ -134,25 +134,23 @@ const AddProduct = () => {
     setCategoryId(selectedCategoryData?._id);
     setSelectedCategory(selectedCategoryName);
     setSubcategories(selectedCategoryData?.subcategories || []);
-
+    setSubCategoryId(selectedCategoryData?.subcategories[0]?._id)
     setFormData(prev => ({
       ...prev,
       category: selectedCategoryName,
-      subcategory: selectedCategoryData?.subcategories[0]?.subcategories || ''
+      subcategory: selectedCategoryData?.subcategories[0]?.subcategoryName || ''
     }));
   };
 
   // Handle input changes for other fields
   const handleInputChange = (field) => (e) => {
-    // setErrors({
-    //   productName: '',
-    //   description: '',
-    //   regularPrice: '',
-    //   category: '',
-    //   subcategory: '',
-    //   stock: '',
-    //   image: ''
-    // });
+    if (field == 'subcategory') {
+      const selectedCategoryData = addProductListingCategory.find(cat => cat.categoryName === selectedCategory);
+      console.log(selectedCategoryData)
+      const selectSubCategory = selectedCategoryData?.subcategories?.find(subCat => subCat.subcategoryName == e.target.value);
+      console.log(selectSubCategory)
+      setSubCategoryId(selectSubCategory._id)
+    }
     setFormData(prev => ({
       ...prev,
       [field]: e.target.value
@@ -234,11 +232,12 @@ const AddProduct = () => {
 
 
     const newFormData = new FormData();
-    newFormData.append('name', formData.productName);
-    newFormData.append('category', formData.subcategory);
-    newFormData.append('description', formData.description);
-    newFormData.append('currentPrice', formData.currentPrice);
+    newFormData.append('productName', formData.productName);
     newFormData.append('regularPrice', formData.regularPrice);
+    newFormData.append('currentPrice', formData.currentPrice);
+    newFormData.append('category', categoryId);
+    newFormData.append('subCategory', subcategoryId);
+    newFormData.append('description', formData.description);
     newFormData.append('variants', JSON.stringify(stockItems));
 
     // Filter out null/undefined values and only append unique images
