@@ -16,7 +16,7 @@ const {
 // auth routes
 user_router.post('/register', register);
 user_router.post('/login', login);
-user_router.get('/logout', logout);
+user_router.get('/logout', protectRoute,logout);
 
 // google auth routes
 

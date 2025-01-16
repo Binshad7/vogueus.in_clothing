@@ -7,13 +7,13 @@ const subcategorySchema = new mongoose.Schema({
         required: true,
         ref: 'category',
     },
-    subcategories: {
+    subcategoryName: {
         type: String,
         required: true,
     },
     addedBy: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'admin',
+        ref: 'user',
         required: true,
     },
     isUnlist: {
@@ -22,7 +22,7 @@ const subcategorySchema = new mongoose.Schema({
     },
     updatedBy: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'admin',
+        ref: 'user',
         required: true,
     }
 }, { timestamps: true });

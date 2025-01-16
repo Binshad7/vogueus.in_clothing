@@ -1,11 +1,32 @@
-const productSchema = require('../models/productSchema');
 const {imageUploadToCloudinary} = require('../utils/cloudinary')
+const productSchema = require('../models/productSchema'); // Assuming this is the product schema
+const Category = require('../models/category'); 
+const SubCategory = require('../models/subcategory');
+
+async function getProducts() {
+    try {
+        const products = await productSchema.find()
+        .populate({
+            path: 'category',
+            select: 'categoryName isUnlist'
+        })
+        .populate({
+            path: 'subCategory', // Changed from 'subcategory' to 'subCategory' to match schema
+            select: 'subcategories isUnlist parentCategory' // Updated to match subcategory schema fields
+        })
+        .lean();
+            console.log(products);
+            
+        return  products;
+    } catch (error) {
+        console.error("Error fetching products:", error);
+        throw error;
+    }
+}
 
 
-  const getAllProduts = async ()=>{
-    const Products = await productSchema.find();
-    return Products
-  }
+
+
 
 
   const addProduct = async (req, res) => {
@@ -75,7 +96,7 @@ const {imageUploadToCloudinary} = require('../utils/cloudinary')
             return res.status(400).json({ success: false, message: "Something went wrong. Product can't be added. Please try again later." });
         }
 
-        const allProducts = await getAllProduts();
+        const allProducts = await getProducts();
         res.status(201).json({ success: true, message: 'Product added successfully', products: allProducts });
     } catch (error) {
         console.error(error);
@@ -86,7 +107,7 @@ const {imageUploadToCloudinary} = require('../utils/cloudinary')
 
 const fetchProduct = async (req,res)=>{
     try {
-     const AllProduct = await getAllProduts();
+     const AllProduct = await getProducts();
      res.status(200).json({success:true,message:'Product success fully fetch',product:AllProduct})
     }catch(error){
         res.status(500).json({ success:false,message: `An error occurred  ${error.message} `, error: error.message });
@@ -107,7 +128,7 @@ const updateProductStatus =async (req,res)=>{
       if(updatedProduct.modifiedCount==0){
         return res.status(400).json({success:false,message:'some thing wrong in update Product'})
       }
-      const AllProduct = await getAllProduts();
+      const AllProduct = await getProducts();
 
       res.status(200).json({success:true,message:'success fully updated status',product:AllProduct})
     }catch(error){

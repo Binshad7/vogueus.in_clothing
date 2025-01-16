@@ -39,7 +39,7 @@ const AdminProductList = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { Products, loading } = useSelector((state) => state.AllProducts);
-
+   
   useEffect(() => {
     dispatch(fetchProduct());
   }, [dispatch]);
@@ -47,7 +47,7 @@ const AdminProductList = () => {
   const HandleEdit = (product) => {
     setEditedProduct(product);
   };
-
+   console.log(Products)
   const handleOpenModal = async (productId, ProName, type) => {
     setTypeBlock(type);
     setOpenModal(true);
@@ -156,11 +156,11 @@ const AdminProductList = () => {
                     </Box>
                     <Box sx={{ textAlign: 'right' }}>
                       <Typography variant="h6" color="primary">
-                        ${product.currentPrice || product.regularPrice}
+                       ₹{product.currentPrice || product.regularPrice}
                       </Typography>
                       {product.currentPrice !== 0 && product.regularPrice !== product.currentPrice && (
                         <Typography variant="body2" color="text.secondary" sx={{ textDecoration: 'line-through' }}>
-                          ${product.regularPrice}
+                        ${product.regularPrice}
                         </Typography>
                       )}
                     </Box>
@@ -170,7 +170,7 @@ const AdminProductList = () => {
                     <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
                       <TagIcon fontSize="small" sx={{ mr: 1, color: 'text.secondary' }} />
                       <Typography variant="body2" color="text.secondary">
-                        Category: mens
+                        Category: {product?.category?.categoryName}
                       </Typography>
                     </Box>
 
