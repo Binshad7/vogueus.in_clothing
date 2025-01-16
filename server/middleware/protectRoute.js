@@ -2,12 +2,12 @@ const jsonwebtoken = require('jsonwebtoken');
 const { JWT_SECRET } = require('../config/ENV_VARS');
 const User = require('../models/userSchema');
 const protectRoute = async (req, res, next) => {
-    
+
     try {
-         console.log('protect Route');
-         
+        console.log('protect Route');
+
         const token = req.cookies['vogueusToken'];
-        
+
         if (!token) {
             return res.status(401).json({ message: "You are not authenticated, please login" });
         }
@@ -20,12 +20,13 @@ const protectRoute = async (req, res, next) => {
             return res.status(401).json({ message: "You are not authenticated, please login" });
         }
 
-        if(userDetails.isBlock){
-            return res.status(401).json({success:false,message:"You'r blocked from this site"})
+        if (userDetails.isBlock) {
+            res.clearCookie("vogueusToken")
+            return res.status(401).json({ success: false, message: "You'r blocked from this site" })
         }
-   
+
         const { password, googleId, ...user } = userDetails._doc
-        
+
         req.user = user;
         next();
     } catch (error) {

@@ -20,15 +20,15 @@ const Sidebar = ({ }) => {
     {
       title: 'Dashboard',
       icon: <Home className="h-5 w-5" />,
-      path: '/dash'
+      path: '/'
     },
     {
       title: 'Products',
       icon: <Package className="h-5 w-5" />,
       path: '/product',
       submenu: [
-        { title: 'Add Product', path: '/addproduct' },
-        { title: 'Product List', path: '/product' }
+        { title: 'Product List', path: '/product' },
+        { title: 'Add Product', path: '/addproduct' }
       ]
     },
     {
@@ -45,7 +45,7 @@ const Sidebar = ({ }) => {
     {
       title: 'Customers',
       icon: <Users className="h-5 w-5" />,
-      path: '/customers'
+      path: '/allusers'
     },
     {
       title: 'Settings',

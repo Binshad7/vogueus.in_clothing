@@ -5,25 +5,30 @@ cloudinary.config({
     api_key: CLOUDINARY_API_KEY,
     api_secret: CLOUDINARY_API_SECRET,
 });
-
-
 const imageUploadToCloudinary = async (images) => {
     const uploadPromises = images.map(file => {
         return new Promise((resolve, reject) => {
             const uploadStream = cloudinary.uploader.upload_stream(
                 { resource_type: 'image' },
                 (error, result) => {
-                    if (error) return reject(error); // Reject if an error occurs
-                    resolve(result.secure_url); // Resolve the URL when upload is successful
+                    if (error) return reject(new Error(`Image upload failed: ${error.message}`));
+                    resolve(result.secure_url);
                 }
             );
-            uploadStream.end(file.buffer); // Upload file buffer to Cloudinary
+            uploadStream.end(file.buffer);
         });
     });
 
-    // Wait for all uploads to complete
-    const uploadedUrls = await Promise.all(uploadPromises);
-    console.log(uploadedUrls)
-}
+    try {
+        // Wait for all uploads to complete
+        const imgUrls = await Promise.all(uploadPromises);
 
-module.exports = { cloudinary, imageUploadToCloudinary };
+        return imgUrls
+    } catch (error) {
+        console.log('image urls', error.message);
+
+        throw new Error(`Failed to upload one or more images: ${error.message}`);
+    }
+};
+
+module.exports = { imageUploadToCloudinary }

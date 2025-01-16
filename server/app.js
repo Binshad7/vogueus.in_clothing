@@ -54,15 +54,22 @@ app.use((err, req, res, next) => {
     if (err instanceof multer.MulterError) {
         // Handle Multer-specific errors
         if (err.code === 'LIMIT_FILE_SIZE') {
-            return res.status(400).send({ error: 'File size exceeds the 5MB limit!' });
+            console.log('error in middleware size limit is high ',err.message);
+            
+            return res.status(400).send({ success: false, message: 'File size exceeds the 5MB limit!' });
         }
-        return res.status(400).send({ error: err.message });
+        console.log('error in middleware size limit is high ',err.message);
+
+        return res.status(400).send({ success: false, message: err.message });
     } else if (err) {
         // Handle general errors
-        return res.status(400).send({ error: err.message });
+        console.log('error in middleware size limit is high ',err.message);
+
+        return res.status(400).send({ success: false, message: err.message });
     }
     next();
 });
+
 
 
 // mongodb connect 

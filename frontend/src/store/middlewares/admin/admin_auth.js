@@ -1,5 +1,5 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import toast from "react-hot-toast";
+import {toast} from "react-toastify";
 import adminAxios from "../../../api/adminAxios";
 
 
@@ -11,7 +11,6 @@ const adminLogin = createAsyncThunk(
             toast.success('login success fully completed')
             return response.data.admin
         } catch (error) {
-            console.log('login error hit')
 
             toast.error(error.response?.data?.message || error.message || "An error occurred while logging out.")
             return rejectWithValue(error.response?.data || error.message)

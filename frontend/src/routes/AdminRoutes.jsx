@@ -23,7 +23,7 @@ function AdminRoutes() {
 
 
         <Route path='/orders' element={<DashBboard />} />
-        <Route path='/usermangenent' element={<UserManagement />} />
+        <Route path='/allusers' element={<UserManagement />} />
 
 
 

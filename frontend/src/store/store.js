@@ -3,6 +3,7 @@ import  userSlice  from './reducers/user/users_auth_slice'
 import  adminSlice  from './reducers/admin/admin_auth_slice'
 import  categoryManagement  from './reducers/admin/category'
 import  AllProducts  from './reducers/admin/product_slice'
+import  AllUsersHandle  from './reducers/admin/usersAdminHandle'
 
 
 const store = configureStore({
@@ -11,6 +12,7 @@ const store = configureStore({
        admin: adminSlice,
        category:categoryManagement,
        AllProducts,
+       AllUsersHandle
    }
 })
 

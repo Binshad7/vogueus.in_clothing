@@ -1,13 +1,29 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import addProductAxios from "../../../api/adminProductUploads";
 import { toast } from "react-toastify";
+import adminProductAxios from "../../../api/adminProducAxios";
 
-const AddProduct = createAsyncThunk(
+
+const addProdcut = createAsyncThunk(
     'admin/addProduct',
     async (formData, { rejectWithValue }) => {
         try {
-            const response = await addProductAxios.post('/product/addProduct', formData);
-            toast.success(response?.data?.message || 'Product Success Fully Added')
+            const response = await adminProductAxios.post('/addProduct', formData);
+            toast.success('Product successfully added')
+            return response.data.products
+        } catch (error) {
+            toast.error(error?.response?.data?.message || error.message)
+            return rejectWithValue(error.message)
+        }
+    }
+)
+
+const fetchProduct = createAsyncThunk(
+    'admin/fetchProduct',
+    async (_, { rejectWithValue }) => {
+        try {
+
+            const response = await adminProductAxios.get('/fetchProduct')
+            return response.data.product
         } catch (error) {
             toast.error(error?.response?.data?.message || error.message);
             return rejectWithValue()
@@ -15,6 +31,20 @@ const AddProduct = createAsyncThunk(
     }
 )
 
+const blockAndUnBlock = createAsyncThunk(
+    'admin/blockAndUnBlock',
+    async (proID, { rejectWithValue }) => {
+        try {
+          
+            const response = await adminProductAxios.patch(`/updateProductStatus/${proID}`);
+            toast.success(response.data.message || 'Product Status Changed');
+            return response.data.product
+        } catch (error) {
+            toast.error(error?.response?.data?.message || error.message);
+            return rejectWithValue()
+        }
+    }
+)
 
 const EditProduct = createAsyncThunk(
     'admin/EditProduct',
@@ -29,36 +59,9 @@ const EditProduct = createAsyncThunk(
 )
 
 
-const unlistProduct = createAsyncThunk(
-    'admin/unlistProduct',
-    async (_, { rejectWithValue }) => {
-        try {
-
-        } catch (error) {
-            toast.error(error?.response?.data?.message || error.message);
-            return rejectWithValue()
-        }
-    }
-)
-
-
-const fetchProduct = createAsyncThunk(
-    'admin/fetchProduct',
-    async (_, { rejectWithValue }) => {
-        try {
-
-
-        } catch (error) {
-            toast.error(error?.response?.data?.message || error.message);
-            return rejectWithValue()
-        }
-    }
-)
-
-
 export {
-    AddProduct,
+    addProdcut,
+    fetchProduct,
     EditProduct,
-    unlistProduct,
-    fetchProduct
+    blockAndUnBlock,
 }

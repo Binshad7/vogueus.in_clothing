@@ -8,8 +8,6 @@ import Footer from '../../../components/user/Footer'
 
 const Home = () => {
   
-  const {user} = useSelector((state)=>state.user)
- console.log(user,'user ind')
   return (
     <>
       <HeroSection />
