@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 // Material UI imports
-import { 
+import {
   Box,
   Card,
   CardContent,
@@ -28,18 +28,23 @@ import CircularProgress from '@mui/material/CircularProgress';
 
 import { fetchProduct, blockAndUnBlock } from '../../../../store/middlewares/admin/ProductRelate';
 import BloackProductModal from './BloackProductModal';
+import { toast } from 'react-toastify';
 
 const AdminProductList = () => {
   const [editProduct, setEditedProduct] = useState(false);
-  const [openModal, setOpenModal] = useState(false);
-  const [blockProId, setBlockProId] = useState(null);
-  const [proName, setProName] = useState(null);
-  const [typeBlock, setTypeBlock] = useState(null);
+
+
+  const [modalState, setModalState] = useState({
+    isOpen: false,
+    productId: null,
+    productName: null,
+    actionType: null
+  });
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { Products, loading } = useSelector((state) => state.AllProducts);
-   
+
   useEffect(() => {
     dispatch(fetchProduct());
   }, [dispatch]);
@@ -47,27 +52,29 @@ const AdminProductList = () => {
   const HandleEdit = (product) => {
     setEditedProduct(product);
   };
-   console.log(Products)
-  const handleOpenModal = async (productId, ProName, type) => {
-    setTypeBlock(type);
-    setOpenModal(true);
-    setBlockProId(productId);
-    setProName(ProName);
-  };
 
-  const handleCloseModal = () => {
-    setOpenModal(false);
-    setBlockProId(null);
-    setProName(null);
-  };
+  const handleOpenModal = useCallback((productId, productName, actionType) => {
+    setModalState({
+      isOpen: true,
+      productId,
+      productName,
+      actionType
+    })
+  }, [])
 
-  const handleConfirmBlock = () => {
-    dispatch(blockAndUnBlock(blockProId));
-    setOpenModal(false);
-    setBlockProId(null);
-    setProName(null);
-    setTypeBlock(null);
-  };
+  const handleCloseModal = useCallback(() => {
+    setModalState(prev => ({
+      ...prev,
+      isOpen: false,
+    }))
+  }, []);
+
+  const handleConfirmBlock = useCallback(() => {
+    if (modalState.productId) {
+      dispatch(blockAndUnBlock(modalState.productId));
+    }
+    handleCloseModal()
+  }, [modalState.productId, modalState.actionType, handleCloseModal]);
 
   if (loading) {
     return (
@@ -81,9 +88,9 @@ const AdminProductList = () => {
     <Container maxWidth="xl" sx={{ py: 6 }}>
       <BloackProductModal
         item={'Product'}
-        itemName={proName}
-        typeUpdation={typeBlock}
-        modalIsOpen={openModal}
+        itemName={modalState.productName}
+        typeUpdation={modalState.actionType}
+        modalIsOpen={modalState.isOpen}
         closeModal={handleCloseModal}
         handleConfirmBlock={handleConfirmBlock}
       />
@@ -156,11 +163,11 @@ const AdminProductList = () => {
                     </Box>
                     <Box sx={{ textAlign: 'right' }}>
                       <Typography variant="h6" color="primary">
-                       ₹{product.currentPrice || product.regularPrice}
+                        ₹{product.currentPrice || product.regularPrice}
                       </Typography>
                       {product.currentPrice !== 0 && product.regularPrice !== product.currentPrice && (
                         <Typography variant="body2" color="text.secondary" sx={{ textDecoration: 'line-through' }}>
-                        ${product.regularPrice}
+                          ${product.regularPrice}
                         </Typography>
                       )}
                     </Box>
@@ -199,24 +206,24 @@ const AdminProductList = () => {
                       <IconButton color="primary" size="small">
                         <VisibilityIcon />
                       </IconButton>
-                      <IconButton 
-                        color="success" 
-                        size="small" 
+                      <IconButton
+                        color="success"
+                        size="small"
                         onClick={() => HandleEdit(product)}
                         sx={{ ml: 1 }}
                       >
                         <EditIcon />
                       </IconButton>
                     </Box>
-                    
+
                     <Button
                       startIcon={product.isBlocked ? <CancelIcon /> : <CheckCircleIcon />}
                       color={product.isBlocked ? "error" : "success"}
                       variant="outlined"
                       size="small"
                       onClick={() => handleOpenModal(
-                        product._id, 
-                        product?.productName, 
+                        product._id,
+                        product?.productName,
                         product.isBlocked ? 'List' : 'Unlist'
                       )}
                     >

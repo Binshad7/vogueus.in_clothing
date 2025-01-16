@@ -1,7 +1,8 @@
-.react-slider-custom-item{
-    max-width: 220px;
-    img {
-        height: 220px;
-    }
-}
-
+.hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }

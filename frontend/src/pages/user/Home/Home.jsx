@@ -1,21 +1,25 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux';
 import HeroSection from '../../../components/user/HeroSection'
 import NewArrivals from '../../../components/Sections/NewArrivals'
 import Category from '../../../components/Sections/Categories/Category'
-import content from '../../../data/content.json';
 import Footer from '../../../components/user/Footer'
-
+import Spinner from '../../../components/user/Spinner'
+import { fetchAllProducts } from '../../../store/middlewares/user/products_handle';
 const Home = () => {
-  
+  const dispatch = useDispatch();
+  const { loading } = useSelector(state => state.AllProductManageSlice);
+  useEffect(() => {
+    dispatch(fetchAllProducts());
+  }, [dispatch])
+
+ 
   return (
     <>
+    {loading && <Spinner/>}
       <HeroSection />
       <NewArrivals />
-      {
-      content?.pages?.shop?.sections && content?.pages?.shop?.sections?.map((item, index) =>
-         <Category key={item?.title+index} {...item} />
-         )}
+      <Category />
       <Footer />
     </>
   )

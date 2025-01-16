@@ -47,7 +47,7 @@ async function sendEmail(userEmail, userName, res ,req) {
         if (send_Mail) {
             console.log('current time :',Date.now(),',   expiry time :', Date.now() + 60000)
             req.session.otp =  otp;
-            req.session.otpExpiry  =  Date.now() + 60000
+            req.session.otpExpiry  =  Date.now() + 70000
             res.status(200).json({ success: true, message: 'OTP sent to your email check your email' })
         } else {
             res.status(500).json({ success: false, message: 'Failed to send OTP'})

@@ -2,13 +2,13 @@ export const validate = (formData, images, setErrors) => {
     const newErrors = {};
 
     // Validate productName: should not contain special characters and minimum length 3 (ignoring spaces)
-    const namePattern = /^[A-Za-z0-9 ]+$/;
-    if (!formData.productName || formData.productName.length < 3 || !namePattern.test(formData.productName.trim())) {
+    // const namePattern = /^[A-Za-z0-9 ]+$/;
+    if (!formData.productName || formData.productName.length < 3  ) {
         newErrors.productName = 'Product name must be at least 3 characters long and cannot contain special characters.';
     }
 
     // Validate description: should not contain special characters and minimum length 3 (ignoring spaces)
-    if (!formData.description || formData.description.length < 3 || !namePattern.test(formData.description.trim())) {
+    if (!formData.description || formData.description.length < 3 ) {
         newErrors.description = 'Description must be at least 3 characters long and cannot contain special characters.';
     }
 

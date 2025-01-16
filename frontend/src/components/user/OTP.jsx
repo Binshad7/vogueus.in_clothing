@@ -20,7 +20,7 @@ const OTP = () => {
 
   useEffect(() => {
     if (isAuthenticated) {
-      localStorage.removeItem('demouser')
+      dispatch(clearDemoUser());
       navigate('/')
     }
   }, [isAuthenticated])
@@ -28,13 +28,21 @@ const OTP = () => {
 
   // time update
   useEffect(() => {
+    // Only create the interval if timeLeft is greater than 0
     if (timeLeft > 0) {
       const timer = setInterval(() => {
-        setTimeLeft(prev => prev - 1);
+        setTimeLeft(prev => {
+          if (prev <= 1) {
+            clearInterval(timer); // Clear the interval when it reaches 0
+            setIsExpired(true);
+            return 0; // Ensure timeLeft doesn't go below 0
+          }
+          return prev - 1; // Decrease timeLeft by 1
+        });
       }, 1000);
+
+      // Cleanup function to clear the interval
       return () => clearInterval(timer);
-    } else {
-      setIsExpired(true);
     }
   }, [timeLeft]);
 
@@ -83,10 +91,10 @@ const OTP = () => {
     const demouser = JSON.parse(localStorage.getItem('demouser'))
 
     const user_Otp = otp.join('');
+    console.log(user_Otp)
     demouser.user_Otp = user_Otp
     try {
       dispatch(userRegister(demouser))
-      dispatch(clearDemoUser())
     } catch (error) {
       toast.error('some thing wrong')
     }
@@ -97,7 +105,7 @@ const OTP = () => {
   const handleResend = () => {
     const userData = JSON.parse(localStorage.getItem('demouser'));
     const newOtp = emailVerification(userData, 'resend');
-    
+    console.log(userData)
     if (newOtp) {
       toast.success('OTP sent successfully');
     }

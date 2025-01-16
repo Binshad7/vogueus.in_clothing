@@ -3,6 +3,7 @@ import userAxios from "./userAxios";
 async function emailVerification(userData, resend = null) {
     try {
         const { email, userName } = userData;
+        console.log(email, userName)
         if (resend) {
             await userAxios.post("/email-resendcode", { email, userName });
             return true;
@@ -12,8 +13,6 @@ async function emailVerification(userData, resend = null) {
         toast.success(response.data.message)
         return response.data.success || true;
     } catch (error) {
-        console.log('');
-
         toast.error(error?.response?.data?.message || "Some thing wrong while sending email verification");
         return error?.response?.data?.success || false;
     }

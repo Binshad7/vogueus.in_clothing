@@ -36,6 +36,8 @@ const customStyles = {
 };
 
 const CategoryManagement = () => {
+
+
   const dispatch = useDispatch();
   const { category, loading } = useSelector((state) => state.category);
 
@@ -68,7 +70,10 @@ const CategoryManagement = () => {
   const [subCategoryModalOpenUnlist, setSubCategoryModalOpenUnlist] = useState(false)
 
 
-  // Fetch categories on mount
+
+
+
+
   useEffect(() => {
     dispatch(fetchCategory());
   }, [dispatch]);

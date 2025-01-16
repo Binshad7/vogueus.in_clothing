@@ -18,7 +18,7 @@ const fetchCategory = async (req, res) => {
 const addCategory = async (req, res) => {
     const { categoryName } = req.body;
     try {
-        const ExistCategory = await category.findOne({ categoryName });
+        const ExistCategory = await category.findOne({categoryName:{$regex:new RegExp(categoryName,'i')}});
         if (ExistCategory) {
             return res.status(401).json({ success: false, message: "Category is Already Exist" })
         }
@@ -41,7 +41,7 @@ const addCategory = async (req, res) => {
 const editCategory = async (req, res) => {
     try {
         const { categoryId, categoryName } = req.body;
-        const Exist = await category.findOne({categoryName});
+        const Exist = await category.findOne({categoryName:{$regex:new RegExp(categoryName,'i')}});
         if(Exist){
             return res.status(400).json({success:false,message:'Category is Already exist '})
         }
@@ -106,7 +106,7 @@ const listCategory = async (req, res) => {
 const addSubCategory = async (req, res) => {
     try {
         const { parentCategory, subcategoryName } = req.body;
-        const Exist_SubCategory = await subCategory.findOne({ subcategoryName });
+        const Exist_SubCategory = await subCategory.findOne({ subcategoryName:{$regex:new RegExp(subcategoryName,'i')} });
         console.log(Exist_SubCategory)
         if (
             Exist_SubCategory &&
@@ -152,12 +152,11 @@ const addSubCategory = async (req, res) => {
     }
 }
 const updateSubCategory = async (req, res) => {
-    console.log(req.body); // Log the incoming request body
     const { parentCategory, subcategoryNewName, subCategoryID } = req.body;
 
     try {
         const Exist_SubCategory = await subCategory
-            .findOne({ subcategoryName: subcategoryNewName })
+            .findOne({ subcategoryName: {$regex:new RegExp(subcategoryNewName,'i')}})
             .lean(); // Ensure a plain object is returned
 
 

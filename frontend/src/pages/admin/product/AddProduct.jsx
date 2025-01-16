@@ -85,7 +85,7 @@ const AddProduct = () => {
       return;
     }
 
-    if (stockItems.some(item => item.size === trimmedSize)) {
+    if (stockItems.some(item => item.size.toUpperCase() === trimmedSize)) {
       toast.error('This size already exists');
       return;
     }
@@ -104,7 +104,9 @@ const AddProduct = () => {
   }, []);
 
   const handleStockChange = useCallback((index, value) => {
-    const parsedValue = parseInt(value) || 0;
+    const sanitizedValue = value.replace(/^0+(?=\d)/, ''); // Removes leading zeros
+    const parsedValue = parseInt(sanitizedValue) || 0;
+    // console.log(parsedValue)
     setStockItems(prev => {
       const newItems = [...prev];
       newItems[index] = {

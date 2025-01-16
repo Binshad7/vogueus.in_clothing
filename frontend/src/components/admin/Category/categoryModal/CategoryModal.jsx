@@ -1,7 +1,6 @@
 import React from 'react';
 import Modal from 'react-modal';
 import { X } from 'lucide-react';
-
 const customStyles = {
   content: {
     top: '50%',
@@ -19,7 +18,7 @@ const customStyles = {
   }
 };
 function CategoryModal({ unlist, modalIsOpen, closeModal, handleDeleteConfirm, categoryName, handleUnlistConfirm }) {
-    
+ 
   return (
     <Modal
       isOpen={modalIsOpen}
@@ -28,10 +27,10 @@ function CategoryModal({ unlist, modalIsOpen, closeModal, handleDeleteConfirm, c
       contentLabel="Delete Confirmation"
       ariaHideApp={false}
     >
-      
+
       <div className="flex flex-col">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-semibold">{ unlist?'Confrim list' : 'Confirm unlist'}</h2>
+          <h2 className="text-xl font-semibold">{unlist ? 'Confrim list' : 'Confirm unlist'}</h2>
           <button
             onClick={closeModal}
             className="text-gray-500 hover:text-gray-700"
@@ -41,7 +40,7 @@ function CategoryModal({ unlist, modalIsOpen, closeModal, handleDeleteConfirm, c
         </div>
 
         <p className="mb-6">
-          Are you sure you want to {unlist?'list':'unlist'} this category{' '}
+          Are you sure you want to {unlist ? 'list' : 'unlist'} this category{' '}
           <span className='text-red-500 font-medium'>{categoryName}</span>?
         </p>
 
@@ -53,23 +52,23 @@ function CategoryModal({ unlist, modalIsOpen, closeModal, handleDeleteConfirm, c
             Cancel
           </button>
 
-         {
-            unlist? 
-            <button
-            onClick={handleUnlistConfirm}
-            className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
-          >
-            list
-          </button>
-            :
-            <button
-            onClick={handleDeleteConfirm}
-            className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
-          >
-            unlist
-          </button>
-            
-         }
+          {
+            unlist ?
+              <button
+                onClick={handleUnlistConfirm}
+                className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
+              >
+                list
+              </button>
+              :
+              <button
+                onClick={handleDeleteConfirm}
+                className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
+              >
+                unlist
+              </button>
+
+          }
         </div>
       </div>
     </Modal>

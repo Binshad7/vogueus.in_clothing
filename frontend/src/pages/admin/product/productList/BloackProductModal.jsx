@@ -19,7 +19,7 @@ const customStyles = {
     }
 };
 function BloackProductModal({ itemName, typeUpdation, modalIsOpen, closeModal, handleConfirmBlock ,item }) {
-
+      console.log('render in modal block')
     return (
         <Modal
             isOpen={modalIsOpen}

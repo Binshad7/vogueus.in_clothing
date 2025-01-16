@@ -1,33 +1,6 @@
 const {imageUploadToCloudinary} = require('../utils/cloudinary')
-const productSchema = require('../models/productSchema'); // Assuming this is the product schema
-const Category = require('../models/category'); 
-const SubCategory = require('../models/subcategory');
-
-async function getProducts() {
-    try {
-        const products = await productSchema.find()
-        .populate({
-            path: 'category',
-            select: 'categoryName isUnlist'
-        })
-        .populate({
-            path: 'subCategory', // Changed from 'subcategory' to 'subCategory' to match schema
-            select: 'subcategories isUnlist parentCategory' // Updated to match subcategory schema fields
-        })
-        .lean();
-            console.log(products);
-            
-        return  products;
-    } catch (error) {
-        console.error("Error fetching products:", error);
-        throw error;
-    }
-}
-
-
-
-
-
+const productSchema = require('../models/productSchema'); 
+const {getProducts} = require('../utils/getProducts')
 
   const addProduct = async (req, res) => {
     const { productName, regularPrice, currentPrice, category, subCategory, description, variants } = req.body;

@@ -52,7 +52,6 @@ const userSlice = createSlice({
             state.user = action.payload;
         },
         clearDemoUser: (state) => {
-            state.user = null;
             localStorage.removeItem('demouser');
         }
     },

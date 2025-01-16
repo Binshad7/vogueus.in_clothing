@@ -16,7 +16,7 @@ const {
 // auth routes
 user_router.post('/register', register);
 user_router.post('/login', login);
-user_router.get('/logout', protectRoute,logout);
+user_router.get('/logout', protectRoute, logout);
 
 // google auth routes
 
@@ -28,9 +28,12 @@ user_router.post('/googleLogin', loginWIthGoogle);
 
 user_router.post('/email-verification', emailVerification);
 user_router.post('/email-resendcode', emailResendCode);
+user_router.get('/refresh', protectRoute, refreshToken)
 
 
-user_router.get('/refresh',protectRoute,refreshToken )
+// user products 
+const { getAllProducts } = require('../controllers/userProducts.controller');                                   
+user_router.get('/product/fetchAllProducts', protectRoute, getAllProducts)
 
 
 module.exports = user_router;

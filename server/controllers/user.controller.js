@@ -29,7 +29,6 @@ const register = async (req, res) => {
                 const newUser = await user.save();
                 await generateToken(newUser._id, res);
                 var { password, googleId, ...userDetails } = newUser._doc
-                let nwpas =
                     res.status(200).json({ success: true, message: 'User created successfully', user: userDetails });
             } else {
                 return res.status(401).json({ success: false, message: 'OTP IS NOT VALID' })
