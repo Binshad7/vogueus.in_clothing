@@ -7,20 +7,16 @@ const productSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
-    productPrice: {
+    regularPrice: {
         type: Number,
         required: true,
     },
-    offerPrice: {
+    currentPrice: {
         type: Number,
     },
-    ProductName: {
+    description: {
         type: String,
-        required: true,
-    },
-    description:{
-        type:String,
-        required:true
+        required: true
     },
     addedBy: {
         type: mongoose.Schema.Types.ObjectId,
@@ -37,7 +33,7 @@ const productSchema = new mongoose.Schema({
         required: true,
         ref: 'category',
     },
-    subcategory: {
+    subCategory: {
         type: mongoose.Schema.Types.ObjectId,
         required: true,
         ref: 'subcategory',
@@ -47,29 +43,33 @@ const productSchema = new mongoose.Schema({
             String
         ]
     },
-    variant: [
+    isBlocked: {
+        type: Boolean,
+        default: false
+    },
+    variants: [
         {
-          size: {
-            type: String,
-            required: true,
-          },
-          stock: {
-            type: Number,
-            required: true,
-            min: 0,
-          },
-          status: {
-            type: String,
-            required: true,
-            enum: ['available', 'out of stock', 'discontinued'],
-            default: 'available',
-          },
-          isBlocked:{
-            type:Boolean,
-            default:false
-          }
-        },
-      ],
+            size: {
+                type: String,
+                required: true,
+            },
+            stock: {
+                type: Number,
+                required: true,
+                min: 0,
+            },
+            status: {
+                type: String,
+                required: true,
+                enum: ['available', 'out of stock', 'discontinued'],
+                default: 'available',
+            },
+            isBlocked: {
+                type: Boolean,
+                default: false
+            }
+        },
+    ],
 }, { timestamps: true });
 
 module.exports = mongoose.model('products', productSchema);

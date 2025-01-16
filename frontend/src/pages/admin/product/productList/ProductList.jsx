@@ -1,143 +1,235 @@
 import React, { useEffect, useState } from 'react';
-import { Edit, Trash2, Eye, CheckSquare, XSquare } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import EditProductPopup from '../EditProduct/EditProduct';
-import toast from 'react-hot-toast';
+import { useSelector, useDispatch } from 'react-redux';
+// Material UI imports
+import { 
+  Box,
+  Card,
+  CardContent,
+  CardMedia,
+  Typography,
+  Button,
+  Chip,
+  Grid,
+  IconButton,
+  Container,
+  Divider,
+  Paper
+} from '@mui/material';
+import {
+  Edit as EditIcon,
+  Visibility as VisibilityIcon,
+  CheckCircle as CheckCircleIcon,
+  Cancel as CancelIcon,
+  LocalOffer as TagIcon,
+  Inventory as InventoryIcon
+} from '@mui/icons-material';
+import CircularProgress from '@mui/material/CircularProgress';
+
+import { fetchProduct, blockAndUnBlock } from '../../../../store/middlewares/admin/ProductRelate';
+import BloackProductModal from './BloackProductModal';
 
 const AdminProductList = () => {
-  const [products, setProducts] = useState([]);
-  const [network, setNetwork] = useState(false)
-  const [editProduct, setEditedProduct] = useState(false)
+  const [editProduct, setEditedProduct] = useState(false);
+  const [openModal, setOpenModal] = useState(false);
+  const [blockProId, setBlockProId] = useState(null);
+  const [proName, setProName] = useState(null);
+  const [typeBlock, setTypeBlock] = useState(null);
 
-  useEffect(()=>{
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const { Products, loading } = useSelector((state) => state.AllProducts);
 
+  useEffect(() => {
+    dispatch(fetchProduct());
+  }, [dispatch]);
 
-  },[])
+  const HandleEdit = (product) => {
+    setEditedProduct(product);
+  };
 
-  const navigate = useNavigate()
-  const HandleEdit = (product) =>{  
-    setEditedProduct(product)
-  }
+  const handleOpenModal = async (productId, ProName, type) => {
+    setTypeBlock(type);
+    setOpenModal(true);
+    setBlockProId(productId);
+    setProName(ProName);
+  };
 
-  const handleToogleActivation = async(productId, productStatus)=>{
+  const handleCloseModal = () => {
+    setOpenModal(false);
+    setBlockProId(null);
+    setProName(null);
+  };
 
-   try{
+  const handleConfirmBlock = () => {
+    dispatch(blockAndUnBlock(blockProId));
+    setOpenModal(false);
+    setBlockProId(null);
+    setProName(null);
+    setTypeBlock(null);
+  };
 
-      setProducts(products.map((product)=>{
-        if(productId === product._id){
-          return {...product, status: !productStatus}
-        }
-        return product
-      }))
-      toast.success(response.data)
-    }
-    catch(error){
-      toast.error(error.respone.data || error.message)
-    }
+  if (loading) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="80vh">
+        <CircularProgress />
+      </Box>
+    );
   }
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
-      {/* edit product */}
-      {
-        setEditedProduct &&
-        <EditProductPopup
-          product={editProduct}
-          isOpen={editProduct}
-          onClose={()=> setEditedProduct(false)}
-        />
-      }
-      {/* end edit product */}
-      
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Product Management</h1>
-        <button 
-          onClick={()=> navigate('/admin/addproduct')}
-        className="bg-green-200 text-green-700 px-4 py-2 rounded-lg font-medium hover:bg-green-300 transition-colors">
+    <Container maxWidth="xl" sx={{ py: 6 }}>
+      <BloackProductModal
+        item={'Product'}
+        itemName={proName}
+        typeUpdation={typeBlock}
+        modalIsOpen={openModal}
+        closeModal={handleCloseModal}
+        handleConfirmBlock={handleConfirmBlock}
+      />
+
+      <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Box>
+          <Typography variant="h4" component="h1" gutterBottom>
+            Product Management
+          </Typography>
+          <Typography variant="body1" color="text.secondary">
+            Manage and monitor your product inventory
+          </Typography>
+        </Box>
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={() => navigate('/admin/addproduct')}
+        >
           Add New Product
-        </button>
-      </div>
+        </Button>
+      </Box>
 
-      {
-        products.length ?
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        
-        {products.map((product) => (
-          <div key={product._id} className="bg-white rounded-lg shadow-md overflow-hidden">
-            <div className="relative h-48 bg-gray-100">
-              <img
-                src={product.images[0]}
-                alt={product.name}
-                className="w-full h-full object-cover"
-              />
-              <div className="absolute top-2 right-2">
-                <span className={`px-2 py-1 rounded-full text-sm ${
-                  product.status ? 'bg-green-200 text-green-700' : 'bg-red-200 text-red-700'
-                }`}>
-                  {product.status ? 'Active' : 'Inactive'}
-                </span>
-              </div>
-            </div>
+      {Products.length === 0 ? (
+        <Paper sx={{ p: 6, textAlign: 'center' }}>
+          <InventoryIcon sx={{ fontSize: 48, color: 'text.secondary' }} />
+          <Typography variant="h6" sx={{ mt: 2 }}>
+            No Products Found
+          </Typography>
+          <Typography color="text.secondary">
+            There are no products in the system.
+          </Typography>
+        </Paper>
+      ) : (
+        <Grid container spacing={3}>
+          {Products.map((product) => (
+            <Grid item xs={12} sm={6} md={4} key={product?._id}>
+              <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+                <Box sx={{ position: 'relative' }}>
+                  <CardMedia
+                    component="img"
+                    height="260"
+                    image={product?.images[0]}
+                    alt={product?.productName}
+                  />
+                  <Chip
+                    label={product?.isBlocked ? 'Inactive' : 'Active'}
+                    color={product?.isBlocked ? 'error' : 'success'}
+                    sx={{
+                      position: 'absolute',
+                      top: 16,
+                      right: 16
+                    }}
+                  />
+                </Box>
 
-            <div className="p-4">
-              <div className="mb-4">
-                <h2 className="text-xl font-semibold mb-2 truncate">{product.name}</h2>
-                <p className="text-gray-600 text-sm line-clamp-2 mb-2">
-                  {product.description}
-                </p>
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="text-lg font-bold">${product.currentPrice}</span>
-                  {product.regularPrice !== product.currentPrice && (
-                    <span className="text-sm text-gray-500 line-through">
-                      ${product.regularPrice}
-                    </span>
-                  )}
-                </div>
-                <div className="text-sm text-gray-600">
-                  Category: {product.category}
-                </div>
-              </div>
+                <CardContent sx={{ flexGrow: 1 }}>
+                  <Box sx={{ mb: 2, display: 'flex', justifyContent: 'space-between' }}>
+                    <Box>
+                      <Typography variant="h6" gutterBottom>
+                        {product.productName}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary" sx={{
+                        display: '-webkit-box',
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: 'vertical',
+                        overflow: 'hidden'
+                      }}>
+                        {product.description}
+                      </Typography>
+                    </Box>
+                    <Box sx={{ textAlign: 'right' }}>
+                      <Typography variant="h6" color="primary">
+                        ${product.currentPrice || product.regularPrice}
+                      </Typography>
+                      {product.currentPrice !== 0 && product.regularPrice !== product.currentPrice && (
+                        <Typography variant="body2" color="text.secondary" sx={{ textDecoration: 'line-through' }}>
+                          ${product.regularPrice}
+                        </Typography>
+                      )}
+                    </Box>
+                  </Box>
 
-              <div className="flex justify-between items-center border-t pt-4">
-                <div className="text-sm text-gray-500">
-                  Stock: {product.stock.reduce((acc, item) => acc + item.quantity, 0)} units
-                </div>
-                <div className="flex gap-2">
-                  <button 
-                    className="p-1 hover:bg-gray-100 rounded transition-colors" 
-                    title="View"
-                  >
-                    <Eye size={18} className="text-blue-600" />
-                  </button>
-                  <button 
-                    className="p-1 hover:bg-gray-100 rounded transition-colors" 
-                    title="Edit"
-                    onClick={()=> HandleEdit(product)}
-                  >
-                    <Edit size={18} className="text-green-600" />
-                  </button>
-                  <button 
-                    className="p-1 hover:bg-gray-100 rounded transition-colors" 
-                    title={product.status ? 'Deactivate' : 'Activate'}
-                    onClick={()=> handleToogleActivation(product._id, product.status)}
-                  >
-                    {product.status ? (
-                      <XSquare size={18} className="text-red-600" />
-                    ) : (
-                      <CheckSquare size={18} className="text-green-600" />
-                    )}
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-      :<div>
-        no products
-      </div>
-      }
-    </div>
+                  <Box sx={{ mb: 2 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                      <TagIcon fontSize="small" sx={{ mr: 1, color: 'text.secondary' }} />
+                      <Typography variant="body2" color="text.secondary">
+                        Category: mens
+                      </Typography>
+                    </Box>
+
+                    <Paper variant="outlined" sx={{ p: 2, mt: 2 }}>
+                      <Typography variant="subtitle2" gutterBottom>
+                        Available Sizes
+                      </Typography>
+                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                        {product?.variants?.map((variant, index) => (
+                          <Chip
+                            key={index}
+                            label={variant.size}
+                            size="small"
+                            color="primary"
+                            variant="outlined"
+                          />
+                        ))}
+                      </Box>
+                    </Paper>
+                  </Box>
+
+                  <Divider sx={{ my: 2 }} />
+
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Box>
+                      <IconButton color="primary" size="small">
+                        <VisibilityIcon />
+                      </IconButton>
+                      <IconButton 
+                        color="success" 
+                        size="small" 
+                        onClick={() => HandleEdit(product)}
+                        sx={{ ml: 1 }}
+                      >
+                        <EditIcon />
+                      </IconButton>
+                    </Box>
+                    
+                    <Button
+                      startIcon={product.isBlocked ? <CancelIcon /> : <CheckCircleIcon />}
+                      color={product.isBlocked ? "error" : "success"}
+                      variant="outlined"
+                      size="small"
+                      onClick={() => handleOpenModal(
+                        product._id, 
+                        product?.productName, 
+                        product.isBlocked ? 'List' : 'Unlist'
+                      )}
+                    >
+                      {product.isBlocked ? 'List' : 'Unlist'}
+                    </Button>
+                  </Box>
+                </CardContent>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
+      )}
+    </Container>
   );
 };
 

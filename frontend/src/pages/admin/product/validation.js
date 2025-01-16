@@ -1,7 +1,6 @@
 export const validate = (formData, images, setErrors) => {
     const newErrors = {};
 
-    console.log(formData)
     // Validate productName: should not contain special characters and minimum length 3 (ignoring spaces)
     const namePattern = /^[A-Za-z0-9 ]+$/;
     if (!formData.productName || formData.productName.length < 3 || !namePattern.test(formData.productName.trim())) {
@@ -60,13 +59,11 @@ export const validate = (formData, images, setErrors) => {
     if (formData.variant.length ==0 ) {
         newErrors.variant = 'At least one size is required.';
     }
-      console.log('new array : ',formData.variant)
       
     //    must be want  3 images 
     if (images.includes(null) || images.length < 3 || images.some(image => image === '')) {
         newErrors.images = "All 3 images are required, and none should be null or empty.";
     }
-    console.log(newErrors)
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
 };

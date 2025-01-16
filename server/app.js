@@ -9,19 +9,19 @@ const session = require('express-session')
 // Middleware
 
 
-const {SECRET} = require('./config/ENV_VARS')
+const { SECRET, PORT } = require('./config/ENV_VARS')
 app.use(session({
-    secret:SECRET,
-    resave:true,
-    saveUninitialized:true
+    secret: SECRET,
+    resave: true,
+    saveUninitialized: true
 }))
 
 
-const corsOptions = {  
-    origin: 'http://localhost:5174',
+const corsOptions = {
+    origin: 'http://localhost:5173',
     credentials: true,
     optionsSuccessStatus: 200
- }
+}
 app.use(cors(corsOptions));
 
 app.use(cookieParser());
@@ -54,24 +54,30 @@ app.use((err, req, res, next) => {
     if (err instanceof multer.MulterError) {
         // Handle Multer-specific errors
         if (err.code === 'LIMIT_FILE_SIZE') {
-            return res.status(400).send({ error: 'File size exceeds the 5MB limit!' });
+            console.log('error in middleware size limit is high ',err.message);
+            
+            return res.status(400).send({ success: false, message: 'File size exceeds the 5MB limit!' });
         }
-        return res.status(400).send({ error: err.message });
+        console.log('error in middleware size limit is high ',err.message);
+
+        return res.status(400).send({ success: false, message: err.message });
     } else if (err) {
         // Handle general errors
-        return res.status(400).send({ error: err.message });
+        console.log('error in middleware size limit is high ',err.message);
+
+        return res.status(400).send({ success: false, message: err.message });
     }
     next();
 });
 
 
+
 // mongodb connect 
-const { PORT } = require('./config/ENV_VARS');
 const connect = require('./config/db');
 
 
 
-app.listen(PORT,()=>{
+app.listen(PORT, () => {
     connect();
     console.log(`Server is running on port ${PORT}`);
 })

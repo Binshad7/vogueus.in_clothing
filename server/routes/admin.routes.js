@@ -10,11 +10,11 @@ const {
     adminLogout,
     adminRefresh,
 
- } = require('../controllers/admin.controller');
+} = require('../controllers/admin.controller');
 // auth routes
-admin_router.post('/login',adminLogin);
-admin_router.get('/logout',adminLogout);
-admin_router.get('/refresh',protectRoute,adminRefresh);
+admin_router.post('/login', adminLogin);
+admin_router.get('/logout', adminLogout);
+admin_router.get('/refresh', protectRoute, adminRefresh);
 
 
 // category
@@ -31,26 +31,38 @@ const {
     addProductCategoryListing
 } = require('../controllers/category.controller');
 
-admin_router.post('/category/addCategory',protectRoute,addCategory);
-admin_router.get('/category/fetch',protectRoute,fetchCategory);
-admin_router.patch('/category/updateCategory',protectRoute,editCategory);
-admin_router.delete('/category/deleteCategory/:deleteId',protectRoute,unlistCategory);
-admin_router.patch('/category/unlistCategory/:categoryId',protectRoute,listCategory);
+admin_router.post('/category/addCategory', protectRoute, addCategory);
+admin_router.get('/category/fetch', protectRoute, fetchCategory);
+admin_router.patch('/category/updateCategory', protectRoute, editCategory);
+admin_router.delete('/category/deleteCategory/:deleteId', protectRoute, unlistCategory);
+admin_router.patch('/category/unlistCategory/:categoryId', protectRoute, listCategory);
 
 // subCategory
-admin_router.post('/category/addSubCategory',protectRoute,addSubCategory);
-admin_router.patch('/category/updateSubCategory',protectRoute,updateSubCategory);
-admin_router.patch('/category/subCategoryUnlist/:subCategoryId',protectRoute,unlistSubCategory);
-admin_router.patch('/category/listSubCategory/:subCategoryId',protectRoute,listSubCategory);
-admin_router.get('/category/addProductListCategory',addProductCategoryListing);
+admin_router.post('/category/addSubCategory', protectRoute, addSubCategory);
+admin_router.patch('/category/updateSubCategory', protectRoute, updateSubCategory);
+admin_router.patch('/category/subCategoryUnlist/:subCategoryId', protectRoute, unlistSubCategory);
+admin_router.patch('/category/listSubCategory/:subCategoryId', protectRoute, listSubCategory);
+admin_router.get('/category/addProductListCategory', addProductCategoryListing);
 
 
 // product
 const {
-    addProduct
- } = require('../controllers/product.controller');
+    addProduct,
+    fetchProduct,
+    updateProductStatus
+} = require('../controllers/product.controller');
 
- const upload = require('../middleware/multer')
- admin_router.post('/product/addProduct', upload.array('images',3), protectRoute, addProduct)
+const upload = require('../middleware/multer')
+admin_router.post('/product/addProduct', upload.array('images', 3), protectRoute, addProduct);
+admin_router.get('/product/fetchProduct', protectRoute, fetchProduct)
+admin_router.patch('/product/updateProductStatus/:proId', protectRoute, updateProductStatus)
+
+
+
+
+// admin users handle 
+const { fetchAllUsers, updateUserStatus } = require('../controllers/adminManageUser.controller')
+admin_router.get('/usersHandle/fetchUsers', protectRoute, fetchAllUsers)
+admin_router.patch('/usersHandle/blockAndUnBlock/:userID', protectRoute, updateUserStatus)
 
 module.exports = admin_router; 

@@ -4,12 +4,15 @@ import { Navigate } from 'react-router-dom';
 
 const AdminProtectedRoute = ({ children }) => {
 
-  const adminIsisAuthenticated = useSelector((state) => state.admin.isAuthenticated)
+  const { isAuthenticated, admin } = useSelector((state) => state.admin)
 
-
-  if (!adminIsisAuthenticated) {
+  if (admin?.isBlock) {
+    <Navigate to="/admin/login" />
+  }
+  if (!isAuthenticated) {
     return <Navigate to="/admin/login" />;
   }
+
 
 
   return children;

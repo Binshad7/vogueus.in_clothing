@@ -25,12 +25,12 @@ const register = async (req, res) => {
                     email,
                     password: hashedPassword,
                     isVerified: true
-                }); 
+                });
                 const newUser = await user.save();
                 await generateToken(newUser._id, res);
                 var { password, googleId, ...userDetails } = newUser._doc
-                let nwpas = 
-                res.status(200).json({ success: true, message: 'User created successfully', user: userDetails });
+                let nwpas =
+                    res.status(200).json({ success: true, message: 'User created successfully', user: userDetails });
             } else {
                 return res.status(401).json({ success: false, message: 'OTP IS NOT VALID' })
             }
@@ -81,9 +81,9 @@ const googleSignup = async (req, res) => {
 // user login
 const login = async (req, res) => {
     var { email, password } = req.body;
-    
+
     try {
-        const exist_user = await User.findOne({email});
+        const exist_user = await User.findOne({ email });
         if (!exist_user) {
             return res.status(401).json({ success: false, message: 'Invalid email ' });
         }
@@ -94,7 +94,7 @@ const login = async (req, res) => {
         if (exist_user.isBlock) {
             return res.status(401).json({ success: false, message: ' this user is blocked from the site ' });
         }
-        
+
         await generateToken(exist_user._id, res);
         var { password, googleId, ...userDetails } = exist_user._doc
 
@@ -150,7 +150,7 @@ const refreshToken = async (req, res) => {
 
 const logout = async (req, res) => {
     try {
-        res.clearCookie('voice_token');
+        res.clearCookie("vogueusToken")
         res.status(200).json({ success: true, message: 'User logged out successfully' });
     } catch (error) {
         res.status(500).json({ error: error.message });
