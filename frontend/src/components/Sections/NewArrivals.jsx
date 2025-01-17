@@ -1,23 +1,18 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { useDispatch, useSelector } from 'react-redux';
-import { fetchAllProducts } from '../../store/middlewares/user/products_handle';
 import ProductCard from '../user/ProductCard';
-// import './NewArrivals.css';
 
-const NewArrivals = () => {
+const NewArrivals = ({AllProducts}) => {
   const [scrollPosition, setScrollPosition] = useState(0);
   const containerRef = React.useRef(null);
-  const dispatch = useDispatch();
-  const { AllProducts, loading } = useSelector(state => state.AllProductManageSlice);
+  
 
-  useEffect(() => {
-    dispatch(fetchAllProducts());
-  }, [dispatch]);
+
 
   const scroll = (direction) => {
     const container = containerRef.current;
+    console.log(container.offsetWidth)
     if (container) {
       const scrollAmount = direction === 'left' ? -container.offsetWidth : container.offsetWidth;
       container.scrollBy({ left: scrollAmount, behavior: 'smooth' });

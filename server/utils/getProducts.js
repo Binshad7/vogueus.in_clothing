@@ -12,7 +12,7 @@ async function getProducts() {
             select: 'subcategories isUnlist parentCategory' // Updated to match subcategory schema fields
         })
         .lean();
-            console.log(products);
+            // console.log(products);
             
         return  products;
     } catch (error) {

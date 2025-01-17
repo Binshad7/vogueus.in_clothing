@@ -1,20 +1,18 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useLoaderData, useParams } from 'react-router-dom'
-import Breadcrumb from '../../../components/Breadcrumb/Breadcrumb';
-import content from '../../../data/content.json'
-import Rating from '../../../components/Rating/Rating';
-import SizeFilter from '../../../components/Filters/SizeFilter';
+import Breadcrumb from '../../../components/user/Breadcrumb';
+import Rating from '../../../components/user/Rating';
+import SizeFilter from '../../../components/user/Filters/SizeFilter';
 import ProductColors from './ProductColors';
-import SvgCreditCard from '../../../components/common/SvgCreditCard';
-import SvgCloth from '../../../components/common/SvgCloth';
-import SvgShipping from '../../../components/common/SvgShipping';
-import SvgReturn from '../../../components/common/SvgReturn';
+import SvgCreditCard from '../../../components/user/common/SvgCreditCard';
+import SvgCloth from '../../../components/user/common/SvgCloth';
+import SvgShipping from '../../../components/user/common/SvgShipping';
+import SvgReturn from '../../../components/user/common/SvgReturn';
 import SectionHeading from '../../../components/Sections/SectionsHeading/SectionHeading';
 import ProductCard from '../ProductListPage/ProductCard';
 import { useDispatch, useSelector } from 'react-redux';
 import _ from 'lodash';
-import { getAllProducts } from '../../../api/fetchProducts';
-import { addItemToCartAction } from '../../../store/actions/cartAction';
+
 
 //const categories = content?.categories;
 
@@ -42,43 +40,29 @@ const ProductDetails = () => {
   const [image, setImage] = useState();
   const [breadCrumbLinks, setBreadCrumbLink] = useState([]);
   const dispatch = useDispatch();
-  const cartItems = useSelector((state) => state.cartState?.cart);
   const [similarProduct,setSimilarProducts] = useState([]);
-  const categories = useSelector((state)=> state?.categoryState?.categories);
   const [selecteSize,setSelectedSize] = useState('');
   const [error,setError] = useState('');
 
 
-  const productCategory = useMemo(() => {
-    return categories?.find((category) => category?.id === product?.categoryId);
-  }, [product,categories]);
 
-  useEffect(()=>{
-    getAllProducts(product?.categoryId,product?.categoryTypeId).then(res=>{
-      const excludedProduct = res?.filter((item)=> item?.id !== product?.id);
-      setSimilarProducts(excludedProduct);
-    }).catch(()=>[
-      
-    ])
-  },[product?.categoryId, product?.categoryTypeId, product?.id]);
 
-  useEffect(() => {
-    setImage(product?.thumbnail);
-    setBreadCrumbLink([]);
-    const arrayLinks = [{ title: 'Shop', path: '/' }, {
-      title: productCategory?.name,
-      path: productCategory?.name
-    }];
-    const productType = productCategory?.categoryTypes?.find((item)=> item?.id === product?.categoryTypeId);
-    
-    if(productType){
-      arrayLinks?.push({
-        title: productType?.name,
-        path: productType?.name
-      })
-    }
-    setBreadCrumbLink(arrayLinks);
-  }, [productCategory, product]);
+  // useEffect(() => {
+  //   setImage(product?.thumbnail);
+  //   setBreadCrumbLink([]);
+  //   const arrayLinks = [{ title: 'Shop', path: '/' }, {
+  //     title: productCategory?.name,
+  //     path: productCategory?.name
+  //   }];
+
+  //   if(productType){
+  //     arrayLinks?.push({
+  //       title: productType?.name,
+  //       path: productType?.name
+  //     })
+  //   }
+  //   setBreadCrumbLink(arrayLinks);
+  // }, [ product]);
 
   const addItemToCart = useCallback(()=>{
     //dispatch(addToCart({id:product?.id,quantity:1}));
