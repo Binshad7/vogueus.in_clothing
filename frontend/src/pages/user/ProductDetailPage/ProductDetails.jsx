@@ -1,201 +1,371 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react'
-import { Link, useLoaderData, useParams } from 'react-router-dom'
-import Breadcrumb from '../../../components/user/Breadcrumb';
-import Rating from '../../../components/user/Rating';
-import SizeFilter from '../../../components/user/Filters/SizeFilter';
-import ProductColors from './ProductColors';
-import SvgCreditCard from '../../../components/user/common/SvgCreditCard';
-import SvgCloth from '../../../components/user/common/SvgCloth';
-import SvgShipping from '../../../components/user/common/SvgShipping';
-import SvgReturn from '../../../components/user/common/SvgReturn';
-import SectionHeading from '../../../components/Sections/SectionsHeading/SectionHeading';
-import ProductCard from '../ProductListPage/ProductCard';
+import React, { useEffect, useState, useMemo } from 'react'
 import { useDispatch, useSelector } from 'react-redux';
-import _ from 'lodash';
-
-
-//const categories = content?.categories;
-
-const extraSections = [
-  {
-    icon:<SvgCreditCard />,
-    label:'Secure payment'
-  },
-  {
-    icon:<SvgCloth />,
-    label:'Size & Fit'
-  },
-  {
-    icon:<SvgShipping />,
-    label:'Free shipping'
-  },
-  {
-    icon:<SvgReturn />,
-    label:'Free Shipping & Returns'
-  }
-]
+import { Link, useParams } from 'react-router-dom'
+import { fetchAllProducts } from '../../../store/middlewares/user/products_handle';
+import ProductCard from '../ProductListPage/ProductCard';
+import SectionHeading from '../../../components/Sections/SectionsHeading/SectionHeading';
+import Spinner from '../../../components/user/Spinner';
+import {
+  Box,
+  Breadcrumbs,
+  Typography,
+  Button,
+  Paper,
+  Rating,
+  Chip,
+  Divider,
+  IconButton,
+  Grid,
+  Stack,
+  Container
+} from '@mui/material';
+import {
+  Heart,
+  ShoppingCart,
+  Truck,
+  RotateCcw,
+  CreditCard,
+  Ruler,
+  ChevronRight
+} from 'lucide-react';
 
 const ProductDetails = () => {
-  const { product } = useLoaderData();
-  const [image, setImage] = useState();
-  const [breadCrumbLinks, setBreadCrumbLink] = useState([]);
-  const dispatch = useDispatch();
-  const [similarProduct,setSimilarProducts] = useState([]);
-  const [selecteSize,setSelectedSize] = useState('');
-  const [error,setError] = useState('');
+  const dispatch = useDispatch()
+  const [product, setProduct] = useState(null)
+  const { productId } = useParams();
+  const { AllProducts, loading } = useSelector((state) => state.AllProductManageSlice)
 
-
-
-
-  // useEffect(() => {
-  //   setImage(product?.thumbnail);
-  //   setBreadCrumbLink([]);
-  //   const arrayLinks = [{ title: 'Shop', path: '/' }, {
-  //     title: productCategory?.name,
-  //     path: productCategory?.name
-  //   }];
-
-  //   if(productType){
-  //     arrayLinks?.push({
-  //       title: productType?.name,
-  //       path: productType?.name
-  //     })
-  //   }
-  //   setBreadCrumbLink(arrayLinks);
-  // }, [ product]);
-
-  const addItemToCart = useCallback(()=>{
-    //dispatch(addToCart({id:product?.id,quantity:1}));
-    //const selectedSize = 
-    console.log("size ",selecteSize);
-    if(!selecteSize){
-      setError('Please select size');
+  useEffect(() => {
+    if (!AllProducts.length) {
+      dispatch(fetchAllProducts());
     }
-    else{
-      const selectedVariant = product?.variants?.filter((variant)=> variant?.size === selecteSize)?.[0];
-      console.log("selected ",selectedVariant);
-      if(selectedVariant?.stockQuantity>0){
-        dispatch(addItemToCartAction({
-          productId:product?.id,
-          thumbnail:product?.thumbnail,
-          name: product?.name,
-          variant:selectedVariant,
-          quantity:1,
-          subTotal: product?.price,
-          price:product?.price,
-        }))
-      }
-      else{
-        setError('Out of Stock');
-      }
+  }, [AllProducts.length, dispatch]);
+
+  useEffect(() => {
+    const currentProduct = AllProducts?.find((item) => item?._id === productId);
+    console.log('current code', currentProduct)
+    setProduct(currentProduct);
+  }, [AllProducts, productId]);
+
+
+  console.log(product)
+  const demoProduct = {
+    id: '1',
+    name: 'Premium Cotton Casual Shirt',
+    price: 899,
+    rating: 4.5,
+    description: 'A versatile and comfortable casual shirt made from premium cotton fabric. Perfect for both casual and semi-formal occasions. Features a modern fit with high-quality stitching and durable buttons.',
+    variants: [
+      { size: 'S', stockQuantity: 5 },
+      { size: 'M', stockQuantity: 10 },
+      { size: 'L', stockQuantity: 8 },
+      { size: 'XL', stockQuantity: 6 },
+      { size: '3Xl', stockQuantity: 4 },
+      { size: '2XL', stockQuantity: 7 }
+    ],
+    productResources: [
+      { url: 'https://www.manyavar.com/on/demandware.static/-/Library-Sites-ManyavarSharedLibrary/default/dw31a6b54b/images/feeds/UC108626.jpg' },
+      { url: 'https://www.beyoung.in/blog/wp-content/uploads/2018/09/general-1.png' },
+      { url: 'https://i.pinimg.com/736x/14/8a/8b/148a8bf21abeb27a79780b558770fbe1.jpg' },
+      { url: 'https://i.pinimg.com/564x/1c/35/f2/1c35f23072d43569dc4f607f38089372.jpg' }
+    ],
+    thumbnail: 'https://i.pinimg.com/originals/ce/9d/72/ce9d72b1c00f219345aedeb68ae6b1c4.jpg'
+  };
+  const [selectedImage, setSelectedImage] = useState(null);
+  useEffect(() => {
+    if (product?.images?.length) {
+      setSelectedImage(product.images[0]);
     }
+  }, [product]);
 
-  },[dispatch, product, selecteSize]);
+  const [selectedSize, setSelectedSize] = useState('');
+  const [error, setError] = useState('');
+  const [isZoomed, setIsZoomed] = useState(false);
+  const [zoomPosition, setZoomPosition] = useState({ x: 0, y: 0 });
 
-  useEffect(()=>{
-    if(selecteSize){
-      setError('');
-    }
-  },[selecteSize]);
+  const handleMouseMove = (e) => {
+    if (!isZoomed) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+    setZoomPosition({ x, y });
+  };
 
-  const colors = useMemo(()=>{
-    const colorSet = _.uniq(_.map(product?.variants,'color'));
-    return colorSet
+  const extraFeatures = [
+    { icon: <CreditCard className="w-6 h-6" />, label: 'Secure Payment', description: 'Safe & secure checkout' },
+    { icon: <Ruler className="w-6 h-6" />, label: 'Size & Fit', description: 'Find your perfect fit' },
+    { icon: <Truck className="w-6 h-6" />, label: 'Free Shipping', description: 'On orders above ₹999' },
+    { icon: <RotateCcw className="w-6 h-6" />, label: 'Easy Returns', description: '30-day return policy' }
+  ];
 
-  },[product]);
-
-  const sizes = useMemo(()=>{
-    const sizeSet = _.uniq(_.map(product?.variants,'size'));
-    return sizeSet
-
-  },[product]);
 
 
   return (
-    <>
-    <div className='flex flex-col md:flex-row px-10'>
-      <div className='w-[100%] lg:w-[50%] md:w-[40%]'>
-        {/* Image */}
-        <div className='flex flex-col md:flex-row'>
-          <div className='w-[100%] md:w-[20%] justify-center h-[40px] md:h-[420px]'>
-            {/* Stack images */}
-            <div className='flex flex-row md:flex-col justify-center h-full'>
-              {
-                product?.productResources?.map((item, index) => (
-                  <button key={index} onClick={() => setImage(item?.url)} className='rounded-lg w-fit p-2 mb-2'><img src={item?.url} className='h-[60px] w-[60px] rounded-lg bg-cover bg-center hover:scale-105 hover:border' alt={'sample-' + index} /></button>
-                ))
-              }
-            </div>
+    <Container maxWidth="lg" sx={{ py: 4 }}>
+      {loading && <Spinner />}
+      {/* Breadcrumb */}
+      <Breadcrumbs
+        separator={<ChevronRight sx={{ fontSize: 16 }} />}
+        sx={{ mb: 4 }}
+      >
+        <Link to={'/'} color="inherit" underline="hover">Home</Link>
+        <Link to={'/men'} color="inherit" underline="hover">Men</Link>
+        <Typography color="text.primary">Shirts</Typography>
+      </Breadcrumbs>
 
-          </div>
-          <div className='w-full md:w-[80%] flex justify-center md:pt-0 pt-10'>
-            <img src={image} className='h-full w-full max-h-[520px]
-         border rounded-lg cursor-pointer object-cover' alt={product?.name} />
-          </div>
-        </div>
+      <Grid container spacing={6}>
+        {/* Left: Image Gallery */}
+        <Grid item xs={12} md={6}>
+          <Stack spacing={3}>
+            {/* Main Image with Zoom */}
+            <Paper
+              elevation={0}
+              sx={{
+                overflow: 'hidden',
+                borderRadius: 2,
+                border: '1px solid',
+                borderColor: 'divider'
+              }}
+            >
+              <Box
+                sx={{
+                  position: 'relative',
+                  paddingTop: '125%', // 4:5 aspect ratio
+                  overflow: 'hidden'
+                }}
+                onMouseEnter={() => setIsZoomed(true)}
+                onMouseLeave={() => setIsZoomed(false)}
+                onMouseMove={handleMouseMove}
+              >
+                <Box
+                  component="img"
+                  src={selectedImage}
+                  alt={product?.productName}
+                  sx={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'cover',
+                    transform: isZoomed ? 'scale(2)' : 'scale(1)',
+                    transformOrigin: `${zoomPosition.x}% ${zoomPosition.y}%`,
+                    transition: 'transform 0.3s ease-out'
+                  }}
+                />
+              </Box>
+            </Paper>
 
-      </div>
-      <div className='w-[60%] px-10'>
-        {/* Product Description */}
-        <Breadcrumb links={breadCrumbLinks} />
-        <p className='text-3xl pt-4'>{product?.name}</p>
-        <Rating rating={product?.rating} />
-        {/* Price Tag */}
-        <p className='text-xl bold py-2'>${product?.price}</p>
-        <div className='flex flex-col py-2'>
-          <div className='flex gap-2'>
-            <p className='text-sm bold'>Select Size</p>
-            <Link className='text-sm text-gray-500 hover:text-gray-900' to={'https://en.wikipedia.org/wiki/Clothing_sizes'} target='_blank'>{'Size Guide ->'}</Link>
-          </div>
-        </div>
-        <div className='mt-2'><SizeFilter onChange={(values)=>{
-          setSelectedSize(values?.[0] ?? '')
-        }} sizes={sizes} hidleTitle multi={false}/></div>
-        <div>
-          <p className='text-lg bold'>Colors Available</p>
-          <ProductColors colors={colors} />
-        </div>
-        <div className='flex py-4'>
-         <button onClick={addItemToCart} className='bg-black rounded-lg hover:bg-gray-700'><div className='flex h-[42px] rounded-lg w-[150px] px-2 items-center justify-center bg-black text-white hover:bg-gray-700'><svg width="17" height="16" className='' viewBox="0 0 17 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M1.5 1.33325H2.00526C2.85578 1.33325 3.56986 1.97367 3.6621 2.81917L4.3379 9.014C4.43014 9.8595 5.14422 10.4999 5.99474 10.4999H13.205C13.9669 10.4999 14.6317 9.98332 14.82 9.2451L15.9699 4.73584C16.2387 3.68204 15.4425 2.65733 14.355 2.65733H4.5M4.52063 13.5207H5.14563M4.52063 14.1457H5.14563M13.6873 13.5207H14.3123M13.6873 14.1457H14.3123M5.66667 13.8333C5.66667 14.2935 5.29357 14.6666 4.83333 14.6666C4.3731 14.6666 4 14.2935 4 13.8333C4 13.373 4.3731 12.9999 4.83333 12.9999C5.29357 12.9999 5.66667 13.373 5.66667 13.8333ZM14.8333 13.8333C14.8333 14.2935 14.4602 14.6666 14 14.6666C13.5398 14.6666 13.1667 14.2935 13.1667 13.8333C13.1667 13.373 13.5398 12.9999 14 12.9999C14.4602 12.9999 14.8333 13.373 14.8333 13.8333Z" stroke="white" strokeWidth="1.5" strokeLinecap="round" />
-          </svg>Add to cart</div></button>
-        </div>
-        {error && <p className='text-lg text-red-600'>{error}</p>}
-        <div className='grid md:grid-cols-2 gap-4 pt-4'>
-          {/*  */}
-          {
-            extraSections?.map((section,index)=>(
-              <div key={index} className='flex items-center'>
-                {section?.icon}
-                <p className='px-2'>{section?.label}</p>
-              </div>
-            ))
-          }    
+            {/* Thumbnail Strip */}
+            <Stack
+              direction="row"
+              spacing={2}
+              justifyContent="center"
+              sx={{ px: 2 }}
+            >
+              {product?.images.map((image, index) => (
+                <Paper
+                  key={index}
+                  elevation={0}
+                  sx={{
+                    width: 80,
+                    height: 80,
+                    borderRadius: 1,
+                    overflow: 'hidden',
+                    cursor: 'pointer',
+                    border: '2px solid',
+                    borderColor: selectedImage === image ? 'primary.main' : 'transparent',
+                    '&:hover': {
+                      borderColor: 'primary.light'
+                    }
+                  }}
+                  onClick={() => setSelectedImage(image)}
+                >
+                  <Box
+                    component="img"
+                    src={image}
+                    alt={`View ${index + 1}`}
+                    sx={{
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'cover'
+                    }}
+                  />
+                </Paper>
+              ))}
+            </Stack>
+          </Stack>
+        </Grid>
 
-        </div>
-      </div>
+        {/* Right: Product Info */}
+        <Grid item xs={12} md={6}>
+          <Stack spacing={3}>
+            <Box>
+              <Typography variant="h4" gutterBottom fontWeight="bold">
+                {product?.productName}
+              </Typography>
 
-      
-    </div>
-    {/* Product Description */}
-    <SectionHeading title={'Product Description'}/>
-    <div className='md:w-[50%] w-full p-2'>
-    
-    <p className='px-8'>{product?.description}</p>
-    </div>
+              <Stack direction="row" spacing={2} alignItems="center">
+                <Rating
+                  value={demoProduct.rating}
+                  precision={0.5}
+                  readOnly
+                />
+                <Typography color="text.secondary">
+                  {demoProduct.rating} rating
+                </Typography>
+              </Stack>
 
-    <SectionHeading title={'Similar Products'}/>
-    <div className='flex px-10'>
-    
-    <div className='pt-4 grid grid-cols-1 lg:grid-cols-4 md:grid-cols-3 gap-8 px-2 pb-10'>
-                {similarProduct?.map((item,index)=>(
-                  <ProductCard key={index} {...item}/>
+              <Stack direction="row" alignItems="center" spacing={2} sx={{ mt: 2 }}>
+                {product?.currentPrice > 0 ? (
+                  <>
+                    <Typography
+                      variant="h5"
+                      fontWeight="bold"
+                      style={{ textDecoration: 'line-through', color: 'gray', marginRight: '8px' }}
+                    >
+                      ₹{product?.regularPrice}
+                    </Typography>
+                    <Typography variant="h5" fontWeight="bold" color="primary">
+                      ₹{product?.currentPrice}
+                    </Typography>
+                  </>
+                ) : (
+                  <Typography variant="h5" fontWeight="bold">
+                    ₹{product?.regularPrice || 'N/A'}
+                  </Typography>
+                )}
+                <Chip
+                  label="10% OFF"
+                  color="error"
+                  size="small"
+                />
+              </Stack>
+            </Box>
+
+            <Divider />
+
+            {/* Size Selection */}
+            <Box>
+              <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
+                <Typography variant="subtitle1" fontWeight="medium">
+                  Select Size
+                </Typography>
+                <Link href="#size-guide" underline="hover">
+                  Size Guide
+                </Link>
+              </Stack>
+
+              <Grid container spacing={2}>
+                {product?.variants?.map((variant) => (
+                  <Grid item xs={3} key={variant?.size}>
+                    <Button
+                      fullWidth
+                      variant={selectedSize === variant?.size ? "contained" : "outlined"}
+                      onClick={() => {
+                        setSelectedSize(variant?.size);
+                      }}
+                      disabled={variant?.stock === 0} // Disable button if out of stock
+                      sx={{
+                        height: 48,
+                        borderRadius: 1,
+                        backgroundColor: variant?.stock === 0 ? "#f8d7da" : undefined, // Highlight out-of-stock variants
+                        color: variant?.stock === 0 ? "#721c24" : undefined, // Adjust text color for out-of-stock
+                      }}
+                    >
+                      {variant?.size} ({variant?.stock > 0 ? `${variant?.stock} ` : "Out of stock"})
+                    </Button>
+                  </Grid>
                 ))}
-                {!similarProduct?.length && <p>No Products Found!</p>}
-                </div>
-    </div>
-    </>
-  )
-}
+              </Grid>
 
-export default ProductDetails
+              {error && (
+                <Typography color="error" variant="caption" sx={{ mt: 1 }}>
+                  {error}
+                </Typography>
+              )}
+            </Box>
+
+            {/* Add to Cart */}
+            <Stack direction="row" spacing={2}>
+              <Button
+                variant="contained"
+                size="large"
+                fullWidth
+                startIcon={<ShoppingCart />}
+                onClick={() => {
+                  if (!selectedSize) {
+                    setError("Please select a size");
+                    return;
+                  }
+
+                  const selectedVariant = product?.variants?.find(
+                    (variant) => variant?.size === selectedSize
+                  );
+
+                  if (selectedVariant?.stock === 0) {
+                    setError("Selected size is out of stock");
+                    return;
+                  }
+
+                  // Add to cart logic
+                  addToCart(selectedVariant);
+                  setError(""); // Clear errors if successfully added
+                }}
+                disabled={!selectedSize || product?.variants?.find((variant) => variant?.size === selectedSize)?.stock === 0}
+              >
+                {selectedSize &&
+                  product?.variants?.find((variant) => variant?.size === selectedSize)?.stock === 0
+                  ? "Out of Stock"
+                  : "Add to Cart"}
+              </Button>
+
+              <IconButton
+                sx={{
+                  border: "1px solid",
+                  borderColor: "divider",
+                }}
+              >
+                <Heart />
+              </IconButton>
+            </Stack>
+
+
+            {/* Extra Features */}
+            <Grid container spacing={3}>
+              {extraFeatures.map((feature, index) => (
+                <Grid item xs={6} key={index}>
+                  <Stack direction="row" spacing={2}>
+                    <Box sx={{ color: 'text.secondary' }}>
+                      {feature.icon}
+                    </Box>
+                    <Box>
+                      <Typography variant="subtitle2">
+                        {feature.label}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        {feature.description}
+                      </Typography>
+                    </Box>
+                  </Stack>
+                </Grid>
+              ))}
+            </Grid>
+
+            {/* Description */}
+            <Box>
+              <Typography variant="h6" gutterBottom>
+                Description
+              </Typography>
+              <Typography color="text.secondary">
+                {product?.description}
+              </Typography>
+            </Box>
+          </Stack>
+        </Grid>
+      </Grid>
+    </Container>
+  );
+};
+
+export default ProductDetails;

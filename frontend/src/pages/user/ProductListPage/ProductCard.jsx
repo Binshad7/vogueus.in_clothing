@@ -1,5 +1,5 @@
 import React from 'react'
-import SvgFavourite from '../../../components/common/SvgFavourite'
+import SvgFavourite from '../../../components/user/common/SvgFavourite'
 import { Link } from 'react-router-dom'
 
 const ProductCard = ({id,title,description,price,discoutnt,rating,brand,thumbnail,slug}) => {

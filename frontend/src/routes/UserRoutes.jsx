@@ -7,6 +7,7 @@ import Home from '../pages/user/Home/Home'
 import Navigation from '../components/user/Navigation'
 import Account from '../pages/user/Account/Account'
 import OTPVerification from '../pages/user/OTP/OTPVerification'
+import ProductDetails from '../pages/user/ProductDetailPage/ProductDetails'
 function UserRoutes() {
 
     return (
@@ -18,7 +19,8 @@ function UserRoutes() {
                 {/* <Route path='/shop' element={<Shop />} />
                 <Route path='/about' element={<About />} />
                 <Route path='/contact' element={<Contact />} />
-                <Route path='/product/:productId' element={<Product />} /> */}
+                */}
+                <Route path='/product/:productId' element={<ProductDetails />} />
 
                 {/* Protected Route */}
                 <Route path='/account-details/profile' element={<UserProtectedRoute element={<Account />}/>}/>
