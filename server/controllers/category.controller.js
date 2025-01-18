@@ -1,5 +1,6 @@
-const category = require('../models/category')
+const category = require('../models/category');
 const subCategory = require('../models/subcategory');
+const product = require('../models/productSchema')
 const fetchCategoriesWithSubcategories = require('../utils/fetchCategoriesWithSubcategories')
 
 
@@ -18,7 +19,7 @@ const fetchCategory = async (req, res) => {
 const addCategory = async (req, res) => {
     const { categoryName } = req.body;
     try {
-        const ExistCategory = await category.findOne({categoryName:{$regex:new RegExp(categoryName,'i')}});
+        const ExistCategory = await category.findOne({ categoryName: { $regex: new RegExp(categoryName, 'i') } });
         if (ExistCategory) {
             return res.status(401).json({ success: false, message: "Category is Already Exist" })
         }
@@ -41,9 +42,9 @@ const addCategory = async (req, res) => {
 const editCategory = async (req, res) => {
     try {
         const { categoryId, categoryName } = req.body;
-        const Exist = await category.findOne({categoryName:{$regex:new RegExp(categoryName,'i')}});
-        if(Exist){
-            return res.status(400).json({success:false,message:'Category is Already exist '})
+        const Exist = await category.findOne({ categoryName: { $regex: new RegExp(categoryName, 'i') } });
+        if (Exist) {
+            return res.status(400).json({ success: false, message: 'Category is Already exist ' })
         }
         const updatedCategory = await category.updateOne({ _id: categoryId }, { $set: { categoryName: categoryName, updatedBy: req.user._id } });
         if (!updatedCategory) {
@@ -63,20 +64,20 @@ const editCategory = async (req, res) => {
 const unlistCategory = async (req, res) => {
     try {
         const { deleteId } = req.params;
-
-        const deleteCategory = await category.updateOne({ _id: deleteId }, { $set: { isUnlist: true } })
+        console.log('delete id : ',deleteId)
+        const deleteCategory = await category.updateOne({ _id: deleteId }, { $set: { isUnlist: true } });
         if (!deleteCategory) {
             return res.status(401).json({ success: false, message: "category not find" })
         }
 
-
+       
         const catego = await fetchCategoriesWithSubcategories();
         const categorys = JSON.stringify(catego, null, 2);
 
         res.status(200).json({ success: true, message: 'category success fully', categorys })
     } catch (error) {
         console.log('category.controller  unlist  category error', error.message);
-        res.status(500).json({ success: false, message: 'server side error' })
+        res.status(500).json({ success: false, message: `server side error ${error.message}` })
     }
 }
 
@@ -88,8 +89,10 @@ const listCategory = async (req, res) => {
         if (!unlistCategory) {
             return res.status(401).json({ success: false, message: "category not find" })
         }
-
-
+        // const updateproduct = await product.updateMany({ category: categoryId }, { $set: { isBlocked: false } })
+        // if (updateproduct.modifiedCount < 0) {
+        //     return res.status(400).json({ success: false, message: 'Product unlist faild' })
+        // }
         const catego = await fetchCategoriesWithSubcategories();
         const categorys = JSON.stringify(catego, null, 2);
 
@@ -106,7 +109,7 @@ const listCategory = async (req, res) => {
 const addSubCategory = async (req, res) => {
     try {
         const { parentCategory, subcategoryName } = req.body;
-        const Exist_SubCategory = await subCategory.findOne({ subcategoryName:{$regex:new RegExp(subcategoryName,'i')} });
+        const Exist_SubCategory = await subCategory.findOne({ subcategoryName: { $regex: new RegExp(subcategoryName, 'i') } });
         console.log(Exist_SubCategory)
         if (
             Exist_SubCategory &&
@@ -156,7 +159,7 @@ const updateSubCategory = async (req, res) => {
 
     try {
         const Exist_SubCategory = await subCategory
-            .findOne({ subcategoryName: {$regex:new RegExp(subcategoryNewName,'i')}})
+            .findOne({ subcategoryName: { $regex: new RegExp(subcategoryNewName, 'i') } })
             .lean(); // Ensure a plain object is returned
 
 
@@ -213,6 +216,10 @@ const unlistSubCategory = async (req, res) => {
         if (!unlist_SubCategory) {
             return res.status(401).json({ success: false, message: 'some thing happend in ' })
         }
+        // const updateproduct = await product.updateMany({ subCategory: subCategoryId }, { $set: { isBlocked: true } })
+        // if (updateproduct.modifiedCount < 0) {
+        //     return res.status(400).json({ success: false, message: 'Product unlist faild' })
+        // }
         const catego = await fetchCategoriesWithSubcategories();
         const categorys = JSON.stringify(catego, null, 2);
         res.status(200).json({ success: true, message: 'unlist success fully completed', categorys })
@@ -221,7 +228,7 @@ const unlistSubCategory = async (req, res) => {
         return res.status(500).json({ success: false, message: 'server side error try again later' })
     }
 }
- 
+
 // list category 
 const listSubCategory = async (req, res) => {
     try {
@@ -230,6 +237,10 @@ const listSubCategory = async (req, res) => {
         if (!list_SubCategory) {
             return res.status(401).json({ success: false, message: 'some thing happend in ' })
         }
+        // const updateproduct = await product.updateMany({ subCategory: subCategoryId }, { $set: { isBlocked: false} })
+        // if (updateproduct.modifiedCount < 0) {
+        //     return res.status(400).json({ success: false, message: 'Product unlist faild' })
+        // }
         const catego = await fetchCategoriesWithSubcategories();
         const categorys = JSON.stringify(catego, null, 2);
         res.status(200).json({ success: true, message: 'list SubCategory success fully completed', categorys })
@@ -249,7 +260,7 @@ const addProductCategoryListing = async (req, res) => {
             const filteredSubCategories = cat.subcategories.filter((subCat) => subCat.isUnlist !== true);
             return { ...cat, subcategories: filteredSubCategories };
         });
-   
+
         res.status(200).json({ success: true, message: 'list SubCategory success fully completed', categorys: JSON.stringify(filteredCategories, null, 2) })
 
 

@@ -9,10 +9,10 @@ async function getProducts() {
         })
         .populate({
             path: 'subCategory', // Changed from 'subcategory' to 'subCategory' to match schema
-            select: 'subcategories isUnlist parentCategory' // Updated to match subcategory schema fields
+            select: 'subcategories isUnlist subcategoryName' // Updated to match subcategory schema fields
         })
         .lean();
-            // console.log(products);
+            console.log(products);
             
         return  products;
     } catch (error) {

@@ -8,6 +8,7 @@ import Navigation from '../components/user/Navigation'
 import Account from '../pages/user/Account/Account'
 import OTPVerification from '../pages/user/OTP/OTPVerification'
 import ProductDetails from '../pages/user/ProductDetailPage/ProductDetails'
+import Footer from '../components/user/Footer'
 function UserRoutes() {
 
     return (
@@ -49,7 +50,7 @@ function UserRoutes() {
 
                 {/* <Route path='*' element={<NotFound />} /> */}
             </Routes>
-            {/* <Footer/> */}
+            <Footer/>
         </>
     )
 }

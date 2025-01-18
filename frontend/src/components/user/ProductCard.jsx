@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import {  Heart } from 'lucide-react';
-const ProductCard = React.memo(({ images, productName, currentPrice, regularPrice }) => {
+import { useNavigate } from 'react-router-dom';
+const ProductCard = React.memo(({ _id,images, productName, currentPrice, regularPrice }) => {
   const [isHovered, setIsHovered] = useState(false);
-  
+  const navigate = useNavigate()
   return (
     <div 
       className="relative group w-64 mx-auto"
@@ -36,7 +37,9 @@ const ProductCard = React.memo(({ images, productName, currentPrice, regularPric
         <div className={`absolute bottom-4 left-1/2 -translate-x-1/2 transition-all duration-300 ${
           isHovered ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'
         }`}>
-          <button className="px-6 py-2 bg-white rounded-full shadow-lg hover:bg-gray-50 transition-colors text-sm font-medium">
+          <button 
+          onClick={()=>navigate(`/product/${_id}`)}
+          className="px-6 py-2 bg-white rounded-full shadow-lg hover:bg-gray-50 transition-colors text-sm font-medium">
             Quick View
           </button>
         </div>

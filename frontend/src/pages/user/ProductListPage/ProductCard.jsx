@@ -2,7 +2,7 @@ import React from 'react'
 import SvgFavourite from '../../../components/user/common/SvgFavourite'
 import { Link } from 'react-router-dom'
 
-const ProductCard = ({id,title,description,price,discoutnt,rating,brand,thumbnail,slug}) => {
+const ProductCard = ({id,title,description,price,brand,thumbnail,slug}) => {
   return (
     <div className='flex flex-col hover:scale-105 relative'>
       <Link to={`/product/${slug}`}>
