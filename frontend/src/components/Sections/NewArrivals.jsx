@@ -54,7 +54,8 @@ const NewArrivals = ({AllProducts}) => {
         className="flex gap-6 overflow-x-auto hide-scrollbar snap-x snap-mandatory"
       >
         {AllProducts.map((product) => (
-          <div key={product._id} className="flex-none snap-start">
+          <div key={product._id} className="flex-none snap-start"> 
+          
             <ProductCard {...product} />
           </div>
         ))}

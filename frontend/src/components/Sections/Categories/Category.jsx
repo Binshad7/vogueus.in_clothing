@@ -36,13 +36,13 @@ const Category = ({ title, AllProducts }) => {
       {/* Title Section with Category Navigation */}
       <div className="flex justify-between items-center mb-6">
         <div className="flex items-center gap-4">
-          <h2 
+          <h2
             className="text-2xl font-bold text-gray-800 hover:text-blue-600 cursor-pointer"
             onClick={handleCategoryClick}
           >
             {title}
           </h2>
-          <button 
+          <button
             onClick={handleCategoryClick}
             className="text-sm text-blue-600 hover:text-blue-800 hidden md:block"
           >
@@ -97,12 +97,9 @@ const Category = ({ title, AllProducts }) => {
 
                 {/* Quick View Overlay */}
                 <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                  <button 
+                  <button
                     className="bg-white text-gray-900 px-4 py-2 rounded-full flex items-center gap-2 hover:bg-gray-100 transition-colors"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      // Add quick view functionality
-                    }}
+                    onClick={() => handleProductClick(product._id)}
                   >
                     <Eye className="w-4 h-4" />
                     Quick View

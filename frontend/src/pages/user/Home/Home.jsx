@@ -6,6 +6,7 @@ import Category from '../../../components/Sections/Categories/Category'
 import Footer from '../../../components/user/Footer'
 import Spinner from '../../../components/user/Spinner'
 import { fetchAllProducts } from '../../../store/middlewares/user/products_handle';
+import Breadcrumb from '../../../components/user/Breadcrumb';
 const Home = () => {
   const dispatch = useDispatch();
   const { loading, AllProducts } = useSelector(state => state.AllProductManageSlice);
@@ -17,12 +18,13 @@ const Home = () => {
   return (
     <>
       {loading && <Spinner />}
+      <Breadcrumb/>
       <HeroSection />
       <NewArrivals AllProducts={AllProducts} />
       <Category title={'men'} AllProducts={AllProducts} />
       <Category title={'Women'} AllProducts={AllProducts} />
       <Category title={'Kids'} AllProducts={AllProducts} />
-      <Footer />
+      {/* <Footer /> */}
     </>
   )
 }

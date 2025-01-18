@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { fetchAllProducts } from '../../../store/middlewares/user/products_handle';
 import ProductCard from '../ProductListPage/ProductCard';
 import SectionHeading from '../../../components/Sections/SectionsHeading/SectionHeading';
@@ -31,15 +31,20 @@ import {
 } from 'lucide-react';
 import RelatedProductsSection from './RelatedProductsSection ';
 import ReviewsSection from './ReviewsSection';
-
+import Breadcrumb from '../../../components/user/Breadcrumb';
 const ProductDetails = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate()
   const [product, setProduct] = useState(null);
   const [pageLoading, setPageLoading] = useState(false);
   const [relatedProducts, setRelatedProducts] = useState([]);
   const { productId } = useParams();
   const { AllProducts, loading } = useSelector((state) => state.AllProductManageSlice);
-
+  useEffect(() => {
+    if (!productId) {
+      navigate('/')
+    }
+  })
   useEffect(() => {
     if (!AllProducts.length) {
       dispatch(fetchAllProducts());
@@ -50,8 +55,8 @@ const ProductDetails = () => {
     setPageLoading(true);
     const currentProduct = AllProducts?.find((item) => item?._id === productId);
     setProduct(currentProduct);
-    let relateProduct = AllProducts.filter((item) => 
-      item?.category?.categoryName === currentProduct?.category?.categoryName && 
+    let relateProduct = AllProducts.filter((item) =>
+      item?.category?.categoryName === currentProduct?.category?.categoryName &&
       item?.productName !== currentProduct?.productName
     );
     setRelatedProducts(relateProduct);
@@ -113,16 +118,17 @@ const ProductDetails = () => {
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
       {loading && <Spinner />}
-      
+
       {/* Breadcrumb */}
-      <Breadcrumbs
+      {/* <Breadcrumbs
         separator={<ChevronRight sx={{ fontSize: 16 }} />}
         sx={{ mb: 4 }}
       >
         <Link to={'/'} color="inherit" className='cursor-pointer' underline="hover">Home</Link>
         <Link to={'/men'} color="inherit" className='cursor-pointer' underline="hover">Men</Link>
         <Typography color="text.primary">Shirts</Typography>
-      </Breadcrumbs>
+      </Breadcrumbs> */}
+      <Breadcrumb />
 
       {/* Product Details Section */}
       <Box sx={{ mb: 6 }}>
@@ -363,14 +369,14 @@ const ProductDetails = () => {
 
       {/* Reviews Section */}
       <Box sx={{ mb: 6 }}>
-        <Paper 
-          elevation={0} 
-          sx={{ 
-            p: 3, 
-            borderRadius: 2, 
-            border: '1px solid', 
+        <Paper
+          elevation={0}
+          sx={{
+            p: 3,
+            borderRadius: 2,
+            border: '1px solid',
             borderColor: 'divider',
-            bgcolor: 'background.paper' 
+            bgcolor: 'background.paper'
           }}
         >
           <Typography variant="h5" gutterBottom sx={{ mb: 3 }}>

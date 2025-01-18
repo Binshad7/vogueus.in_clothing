@@ -9,13 +9,14 @@ import Account from '../pages/user/Account/Account'
 import OTPVerification from '../pages/user/OTP/OTPVerification'
 import ProductDetails from '../pages/user/ProductDetailPage/ProductDetails'
 import Footer from '../components/user/Footer'
+import NotFoundPage from '../components/NotFoundPage'
 function UserRoutes() {
 
     return (
         <>
                 <Navigation />
                 <Routes>
-                
+                <Route path='*' element={<NotFoundPage/>}/>
                 <Route path='/' element={<Home />} />
                 {/* <Route path='/shop' element={<Shop />} />
                 <Route path='/about' element={<About />} />
