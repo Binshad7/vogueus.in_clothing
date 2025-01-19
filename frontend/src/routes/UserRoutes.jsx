@@ -10,6 +10,9 @@ import OTPVerification from '../pages/user/OTP/OTPVerification'
 import ProductDetails from '../pages/user/ProductDetailPage/ProductDetails'
 import Footer from '../components/user/Footer'
 import NotFoundPage from '../components/NotFoundPage'
+import ForgotPassword from '../pages/user/forgotPassword/ForgotPassword'
+import PasswordResetConfirmation from '../pages/user/forgotPassword/PasswordResetConfirmation'
+import NewPassword from '../pages/user/forgotPassword/NewPassword'
 function UserRoutes() {
 
     return (
@@ -23,7 +26,7 @@ function UserRoutes() {
                 <Route path='/contact' element={<Contact />} />
                 */}
                 <Route path='/product/:productId' element={<ProductDetails />} />
-
+           
                 {/* Protected Route */}
                 <Route path='/account-details/profile' element={<UserProtectedRoute element={<Account />}/>}/>
                 {/* <Route path='/orders' element={   <UserProtectedRoute element={<Orders />}/>} />
@@ -46,7 +49,10 @@ function UserRoutes() {
                 <Route path='/login' element={<Login />} />
                 <Route path='/register' element={<Register />} />
                 <Route path='/verify-email' element={<OTPVerification />} />
-                {/* <Route path='/forgot-password' element={<ForgotPassword />} />
+                <Route path='/forgot-password' element={<ForgotPassword />} />
+                <Route path='/PasswordResetConfirmation' element={<PasswordResetConfirmation />} />
+                <Route path='/reset-password' element={<NewPassword />} />
+                {/*
                 <Route path='/reset-password' element={<ResetPassword />} /> */}
 
                 {/* <Route path='*' element={<NotFound />} /> */}

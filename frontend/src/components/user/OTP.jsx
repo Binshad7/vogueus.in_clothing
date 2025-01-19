@@ -16,14 +16,19 @@ const OTP = () => {
   const [timeLeft, setTimeLeft] = useState(60);
   const [isExpired, setIsExpired] = useState(false);
   const inputRefs = useRef([]);
-
+  const userData = JSON.parse(localStorage.getItem('demouser'))
 
   useEffect(() => {
     if (isAuthenticated) {
       dispatch(clearDemoUser());
       navigate('/')
+      return
     }
-  }, [isAuthenticated])
+    if (!userData) {
+      navigate('/login')
+      return
+    }
+  }, [isAuthenticated,userData])
 
 
   // time update

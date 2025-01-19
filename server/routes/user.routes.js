@@ -11,7 +11,8 @@ const {
     refreshToken,
     emailVerification,
     emailResendCode,
-    otpValidation
+    forgotPassowrd,
+    resetPassword
 } = require('../controllers/user.controller');
 // auth routes
 user_router.post('/register', register);
@@ -30,7 +31,12 @@ user_router.post('/email-verification', emailVerification);
 user_router.post('/email-resendcode', emailResendCode);
 user_router.get('/refresh', protectRoute, refreshToken)
 
+// /forgot-password
 
+user_router.post('/forgot-password',forgotPassowrd);
+// midleware for token check 
+const {verifyResetToken} = require('../middleware/verifyResetToken ')
+user_router.patch('/reset-passowrd',verifyResetToken,resetPassword);
 // user products 
 const { getAllProducts } = require('../controllers/userProducts.controller');                                   
 user_router.get('/product/fetchAllProducts', protectRoute, getAllProducts)

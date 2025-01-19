@@ -1,12 +1,12 @@
 import React from 'react';
-import { 
-  Box, 
+import {
+  Box,
   Grid,
   IconButton,
   Stack,
   Divider
 } from '@mui/material';
-import {  ChevronRight, ChevronLeft } from 'lucide-react';
+import { ChevronRight, ChevronLeft } from 'lucide-react';
 import SectionTitle from '../../../components/user/SectionTitle';
 import RelatedProductCard from './RelatedProductCard';
 
@@ -33,7 +33,7 @@ const RelatedProductsSection = ({ relatedProducts = [] }) => {
           </IconButton>
         </Stack>
       </Stack>
-      
+
       <Grid container spacing={3}>
         {relatedProducts.map((item) => (
           <Grid item xs={12} sm={6} md={3} key={item._id}>
@@ -41,7 +41,8 @@ const RelatedProductsSection = ({ relatedProducts = [] }) => {
               slug={item._id}
               title={item.productName}
               description={item.description}
-              price={item.currentPrice}
+              currentPrice={item.currentPrice}
+              regularPrice={item.regularPrice}
               thumbnail={item.images[0]}
             />
           </Grid>

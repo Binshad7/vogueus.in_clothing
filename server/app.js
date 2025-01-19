@@ -9,16 +9,21 @@ const session = require('express-session')
 // Middleware
 
 
-const { SECRET, PORT } = require('./config/ENV_VARS')
+const { SECRET, PORT,FRONTEND_URL,SECOND_FRONTEND_URL } = require('./config/ENV_VARS')
 app.use(session({
     secret: SECRET,
-    resave: true,
-    saveUninitialized: true
-}))
+    resave: false,
+    saveUninitialized: false,
+    cookie: { 
+        secure: process.env.NODE_ENV === 'production',
+        maxAge: 3600000 * 3, // 3 hour
+        httpOnly:true
+    }
+}));
 
 
 const corsOptions = {
-    origin: ['http://localhost:5173','http://localhost:5174'],
+    origin: [FRONTEND_URL,SECOND_FRONTEND_URL],
     credentials: true,
     optionsSuccessStatus: 200
 }

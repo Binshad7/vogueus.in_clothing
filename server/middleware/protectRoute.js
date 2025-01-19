@@ -26,7 +26,6 @@ const protectRoute = async (req, res, next) => {
         }
 
         const { password, googleId, ...user } = userDetails._doc
-
         req.user = user;
         next();
     } catch (error) {

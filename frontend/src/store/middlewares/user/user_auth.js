@@ -110,7 +110,21 @@ const tokenRefresh = createAsyncThunk(
 )
 
 
+//forgot password handle 
 
+// const forgotPassowrd = createAsyncThunk(
+//   'user/forgotPassowrd',
+//   async (email, { rejectWithValue }) => {
+//     try {
+//       const response = await userAxios.post('/forgot-password',email);
+//       toast.success(response?.data?.message);
+//       return 
+//     } catch (error) {
+//       toast.error(error?.response?.data?.message);
+//       rejectWithValue(error?.response?.data?.message)
+//     }
+//   }
+// )
 
 
 export {
@@ -120,4 +134,5 @@ export {
   userLoginWithGoogle,
   userLogout,
   tokenRefresh,
+  // forgotPassowrd
 }

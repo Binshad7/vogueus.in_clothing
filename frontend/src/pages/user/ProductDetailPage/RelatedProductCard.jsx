@@ -9,14 +9,14 @@ import {
 } from '@mui/material';
 import { Heart } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-const RelatedProductCard = ({ title, description, price, thumbnail, slug }) => {
- const navigate = useNavigate()
-return (
+const RelatedProductCard = ({ title, description, currentPrice, regularPrice, thumbnail, slug }) => {
+    const navigate = useNavigate()
+    return (
 
 
 
         <Card
-              onClick={()=>navigate(`/product/${slug}`)}
+            onClick={() => navigate(`/product/${slug}`)}
             sx={{
                 height: '100%',
                 display: 'flex',
@@ -61,13 +61,21 @@ return (
                 <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                     {description}
                 </Typography>
-                <Typography variant="h6" color="primary.main" fontWeight="bold">
-                    ₹{price}
-                </Typography>
+                {
+                    currentPrice > 0 ?
+
+                        <Typography variant="h6" color="primary.main" fontWeight="bold">
+                            ₹{currentPrice}
+                        </Typography>
+                        :
+                        <Typography variant="h6" color="primary.main" fontWeight="bold">
+                            ₹{regularPrice}
+                        </Typography>
+                }
             </CardContent>
         </Card>
 
-)
+    )
 }
 
 

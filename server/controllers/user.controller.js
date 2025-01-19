@@ -2,7 +2,7 @@ const User = require('../models/userSchema');
 const { hashPassword, comparePassword } = require('../utils/bcryptPassowrd');
 const generateToken = require('../utils/genarateToken');
 const sendEmail = require('../utils/nodemailer');
-
+const sendResetPassowrdMail = require('../utils/resetPasswordMail');
 
 
 // create new user
@@ -29,7 +29,7 @@ const register = async (req, res) => {
                 const newUser = await user.save();
                 await generateToken(newUser._id, res);
                 var { password, googleId, ...userDetails } = newUser._doc
-                    res.status(200).json({ success: true, message: 'User created successfully', user: userDetails });
+                res.status(200).json({ success: true, message: 'User created successfully', user: userDetails });
             } else {
                 return res.status(401).json({ success: false, message: 'OTP IS NOT VALID' })
             }
@@ -47,20 +47,20 @@ const register = async (req, res) => {
 
 const googleSignup = async (req, res) => {
     try {
-        const Emial_exist = await User.findOne({ email: req.body.email });
-
-        if (Emial_exist) {
+        const Email_exist = await User.findOne({ email: req.body.email });
+        console.log(req.body.googleId)
+        if (Email_exist) {
             // update the user with the google id
             let updateValues = {
                 googleId: req.body.googleId,
                 isVerified: true,
             }
             const { modifiedCount } = await User.updateOne(
-                { email: Emial_exist.email },
+                { email: Email_exist.email },
                 { $set: updateValues }
             );
-            if (modifiedCount) {
-                console.log('User updated successfully');
+            if (modifiedCount > 0) {
+                console.log('updated with googole id')
             }
             return res.status(409).json({ success: false, message: 'Email already exist' });
         }
@@ -185,10 +185,46 @@ const emailResendCode = async (req, res) => {
     try {
         sendEmail(email, userName, res, req);
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        res.status(500).json({ success: false, message: error.message });
     }
 }
 
+const forgotPassowrd = async (req, res) => {
+    const { email } = req.body
+    try {
+        console.log('ip', req.ip)
+        console.log(email)
+        const exist_user = await User.findOne({ email });
+        if (!exist_user) {
+            return res.status(400).json({ success: true, message: "Enter your user account's verified email address and we will send you a password reset link" })
+        }
+        const token = await generateToken(exist_user._id, null, 'forgot');
+
+        console.log(token);
+        await sendResetPassowrdMail(exist_user.email, exist_user.userName, res, req, token)
+    } catch (error) {
+        console.log(error)
+        res.status(500).json({ success: false, message: 'some thing wrong' });
+    }
+}
+
+const resetPassword = async (req, res) => {
+    const {password} = req.body
+    try {
+     if(!password.trim()){
+        return res.status(400).json({success:false,message:"New Passowrd is Required"})
+     }
+     const hashedPassword = hashPassword(password);
+     const updatedPassword = await User.updateOne({_id:req.user?.userID},{password:hashedPassword});
+     if(updatedPassword.modifiedCount<=0){
+        return res.status(400).json({success:false,message:'some thing wrong in update password try again latter '})
+     }
+     res.status(200).json({success:true,message:'Password Updated Login again'})
+    } catch (error) {
+     console.log(error.message);
+     res.status(500).json({success:false,message:`server side error ${error.message}`})
+    }
+}
 
 
 
@@ -201,4 +237,6 @@ module.exports = {
     refreshToken,
     emailVerification,
     emailResendCode,
+    forgotPassowrd,
+    resetPassword    
 }

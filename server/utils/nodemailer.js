@@ -1,6 +1,5 @@
 const nodeMailer = require('nodemailer')
 const { EMAIL, EMAIL_PASSWORD } = require('../config/ENV_VARS');
-const { token } = require('morgan');
 
 async function sendEmail(userEmail, userName, res ,req) {
     const otp = Math.floor(100000 + Math.random() * 900000);
@@ -50,7 +49,7 @@ async function sendEmail(userEmail, userName, res ,req) {
             req.session.otpExpiry  =  Date.now() + 70000
             res.status(200).json({ success: true, message: 'OTP sent to your email check your email' })
         } else {
-            res.status(500).json({ success: false, message: 'Failed to send OTP'})
+            res.status(400).json({ success: false, message: 'Failed to send OTP'})
         }
 
     } catch (error) {

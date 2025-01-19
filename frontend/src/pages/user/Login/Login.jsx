@@ -138,7 +138,9 @@ const Login = () => {
                     <Eye className="w-5 h-5" />
                   }
                 </button>
-                <Link className="absolute right-0 -bottom-6 text-xs text-gray-600 hover:text-black">
+                <Link 
+                to={'/forgot-password'}
+                className="absolute right-0 -bottom-6 text-xs text-gray-600 hover:text-black">
                   Forgot your password?
                 </Link>
               </div>
