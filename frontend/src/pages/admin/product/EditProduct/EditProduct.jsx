@@ -3,7 +3,7 @@ import Input from '../../../../components/admin/AddProduct/Input/Input';
 import Cropper from 'react-cropper';
 import 'cropperjs/dist/cropper.css';
 import { toast } from 'react-toastify';
-import {ArrowLeft} from 'lucide-react'
+import { ArrowLeft } from 'lucide-react'
 import { validate } from '../validation';
 import { useNavigate, useParams } from "react-router-dom";
 import { useDispatch, useSelector } from 'react-redux';
@@ -60,7 +60,7 @@ const EditProduct = () => {
 
   const { addProductListingCategory } = useSelector((state) => state.category);
   const { loading, Products } = useSelector((state) => state.AllProducts);
-        
+
   useEffect(() => {
     if (!productId) {
       navigate(-1);
@@ -78,43 +78,40 @@ const EditProduct = () => {
       const category = addProductListingCategory.find(
         cat => cat._id === currentProduct.category._id
       );
-       
+
       if (category) {
         setSelectedCategory(category.categoryName);
         setSubcategories(category.subcategories || []);
         setCategoryId(category._id);
         setSubCategoryId(currentProduct.subcategory?._id);
-          
         setFormData({
           productName: currentProduct.productName,
           description: currentProduct.description,
-          category: category.categoryName ,
-          subcategory: currentProduct.subcategory?.subcategoryName ,
-          regularPrice: currentProduct.regularPrice ,
-          currentPrice: currentProduct.currentPrice ,
+          category: currentProduct.category?.categoryName,
+          subcategory: currentProduct.subCategory?.subcategoryName,
+          regularPrice: currentProduct.regularPrice,
+          currentPrice: currentProduct.currentPrice,
           variant: currentProduct.variants
         });
 
         setStockItems(currentProduct.variants || DEFAULT_STOCK_ITEMS);
-        
+
         // Handle existing images
         setExistingImages(currentProduct.images || []);
-        
+
         const previews = currentProduct.images.map(img => img);
-        
+
         setImagePreviews([...previews, ...Array(3 - previews.length).fill(null)]);
-        
+
       }
     }
   }, [Products, addProductListingCategory, productId]);
-  //  console.log('user details : ',formData)
+
+  // category change
   const handleCategoryChange = useCallback((e) => {
-
     const categoryName = e.target.value;
-    console.log(categoryName);
-    
-    const category = addProductListingCategory.find(cat => cat.categoryName === categoryName);
 
+    const category = addProductListingCategory.find(cat => cat.categoryName === categoryName);
     if (category) {
       setCategoryId(category._id);
       setSelectedCategory(categoryName);
@@ -129,6 +126,7 @@ const EditProduct = () => {
     }
   }, [addProductListingCategory]);
 
+  //add new size 
   const handleAddSize = useCallback(() => {
     const trimmedSize = newSize.trim().toUpperCase();
     if (!trimmedSize) {
@@ -149,11 +147,11 @@ const EditProduct = () => {
     }]);
     setNewSize('');
   }, [newSize, stockItems]);
-
+  // handle remove size
   const handleRemoveSize = useCallback((sizeToRemove) => {
     setStockItems(prev => prev.filter(item => item.size !== sizeToRemove));
   }, []);
-
+  // handle on chage in stocks
   const handleStockChange = useCallback((index, value) => {
     const sanitizedValue = value.replace(/^0+(?=\d)/, '');
     const parsedValue = parseInt(sanitizedValue) || 0;
@@ -168,7 +166,7 @@ const EditProduct = () => {
       return newItems;
     });
   }, []);
-
+  // input change
   const handleInputChange = useCallback((field) => (e) => {
     if (field === 'subcategory') {
       console.log(e.target.value)
@@ -185,6 +183,8 @@ const EditProduct = () => {
     }));
   }, [selectedCategory, addProductListingCategory]);
 
+  // image upload 
+
   const handleImageChange = useCallback((e, index) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -196,6 +196,7 @@ const EditProduct = () => {
     }
 
     const reader = new FileReader();
+    console.log('result', reader.result)
     reader.onloadend = () => {
       setImagePreviews(prev => {
         const newPreviews = [...prev];
@@ -206,6 +207,8 @@ const EditProduct = () => {
     };
     reader.readAsDataURL(file);
   }, []);
+
+  // crop images
 
   const handleCrop = useCallback(() => {
     const cropper = cropperRefs[croppingIndex]?.current?.cropper;
@@ -244,7 +247,7 @@ const EditProduct = () => {
     e.preventDefault();
     console.log(formData.subcategory)
     setErrors(INITIAL_ERRORS_STATE);
-   
+
     if (!validate(formData, imagePreviews, setErrors)) return;
 
     const formDataToSend = new FormData();
@@ -255,19 +258,31 @@ const EditProduct = () => {
     formDataToSend.append('subCategory', subcategoryId);
     formDataToSend.append('description', formData.description);
     formDataToSend.append('variants', JSON.stringify(stockItems));
-   console.log('images',images)
     // Handle new images
     const newImages = images.filter(Boolean);
+    
+     console.log('updated ',imagePreviews)
+     console.log('old images',existingImages);
+     console.log('images',images);
+     console.log('new images ',newImages);
+     
+
     newImages.forEach((image, index) => {
       const imageFile = base64ToFile(image, `image${index}`);
+      console.log('image file : ',imageFile);
+      
       formDataToSend.append('images', imageFile);
     });
 
     // Include existing image IDs that weren't replaced
+    
     const existingImageIds = existingImages
       .filter((_, index) => !images[index])
       .map(img => img._id);
+    console.log('demo id ', existingImageIds);
+
     formDataToSend.append('existingImages', JSON.stringify(existingImageIds));
+    console.log('existing im', existingImageIds);
 
     try {
       const result = await dispatch(updateProduct({ id: productId, formData: formDataToSend }));
@@ -285,7 +300,7 @@ const EditProduct = () => {
     <div className="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow">
       {loading && <Spinner />}
       <div>
-         <ArrowLeft onClick={()=>navigate(-1)}/>
+        <ArrowLeft onClick={() => navigate(-1)} />
       </div>
       <h2 className="text-2xl ml-10 font-semibold mb-6">Edit Product</h2>
 
