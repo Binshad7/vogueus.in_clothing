@@ -3,6 +3,7 @@ const { EMAIL, EMAIL_PASSWORD, FRONTEND_URL } = require('../config/ENV_VARS');
 
 async function sendResetPasswordMail(userEmail, userName, res, req, resetToken) {
     try {
+        console.log(resetToken)
         const resetLink = `${FRONTEND_URL}/reset-password?token=${resetToken}`;
 
         // Set up the transporter
@@ -97,6 +98,8 @@ async function sendResetPasswordMail(userEmail, userName, res, req, resetToken) 
         if (sendMailResponse) {
             req.session.resetToken = resetToken;
             req.session.linkExpiry = Date.now() + 3 * 60 * 60 * 1000; // 3 hours
+            await req.session.save(); // Ensure the session is explicitly saved
+            console.log(req.session)
             res.status(200).json({ success: true, message: 'Reset password email sent successfully. Please check your inbox.' });
         } else {
             res.status(400).json({ success: false, message: 'Failed to send reset password email.' });

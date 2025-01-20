@@ -7,12 +7,10 @@ import {
   Button, 
   Box,
 } from '@mui/material';
-
+import { useNavigate } from 'react-router-dom';
 const PasswordResetConfirmation = () => {
-  const handleReturnToLogin = () => {
-    window.location.href = '/login';
-  };
-
+  
+ const navigate = useNavigate()
   return (
     <Box 
       sx={{ 
@@ -72,7 +70,7 @@ const PasswordResetConfirmation = () => {
             <Button 
               variant="contained"
               fullWidth
-              onClick={handleReturnToLogin}
+              onClick={()=>navigate('/login')}
               sx={{ 
                 marginTop: '0.5rem',
                 maxWidth: '16rem',

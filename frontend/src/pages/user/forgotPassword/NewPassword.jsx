@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { ArrowLeft } from 'lucide-react';
-import { useLocation,useNavigate } from 'react-router-dom';
+import { ArrowLeft, Eye, EyeOff } from 'lucide-react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import passwordStorng from '../../../utils/passwordStrong';
+import userAxios from '../../../api/userAxios';
+import { toast } from 'react-toastify';
 const NewPassword = () => {
     const [loading, setLoading] = useState(false);
     const [password, setPassword] = useState('');
@@ -8,28 +11,48 @@ const NewPassword = () => {
     const [error, setError] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-    const navigate = useNavigate()
+    const [passwordStrong, setPasswordStrong] = useState(null);
+    const navigate = useNavigate();
     const location = useLocation();
-    const qureySearch = new URLSearchParams(location.search);
-    const token = qureySearch.get('token')
-    console.log(token);
 
-    useEffect(()=>{
-      if(!token){
-        navigate('/login')
-      }
-    },[token])
-    const handleSubmit = (e) => {
+    const querySearch = new URLSearchParams(location.search);
+    const token = querySearch.get('token');
+
+    useEffect(() => {
+        if (!token) {
+            navigate('/login');
+        }
+    }, [token, navigate]);
+
+    useEffect(() => {
+        // Assuming passwordStrong is imported from utils
+        const passwordStrength = passwordStorng(password);
+        setPasswordStrong(passwordStrength);
+    }, [password]);
+
+    const handleSubmit =async (e) => {
         e.preventDefault();
-        setLoading(true)
-        if (password !== confirmPassword) {
-            setError('Passwords do not match');
+        setLoading(true);
+        if (passwordStrong?.status !== 'strong') {
+            setError('Password must be strong');
+            setLoading(false);
             return;
         }
-        // Add your password reset logic here
+        if (password !== confirmPassword) {
+            setError('Passwords do not match');
+            setLoading(false);
+            return;
+        }
+        try {
+         const response = await userAxios.patch('/reset-passowrd',{password,token});
+         navigate('/passwordChangeSuccess')
+         setLoading(false);
 
-        // Simulate API call
-        setTimeout(() => setLoading(false), 1000);
+        } catch (error) {
+          toast.error(error.response.data.message)
+          setLoading(false);
+
+        }
     };
 
     return (
@@ -56,24 +79,39 @@ const NewPassword = () => {
                             <label className="block text-sm font-medium text-gray-700">
                                 Password
                             </label>
-                            <div className="relative">
-                                <input
-                                    type={showPassword ? "text" : "password"}
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-gray-200 focus:border-gray-400 transition-all"
-                                    placeholder="Enter new password"
-                                    required
-                                />
-                                <button
-                                    type="button"
-                                    onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
-                                >
-                                    {showPassword ? "Hide" : "Show"}
-                                </button>
+                            <div className="space-y-2">
+                                {passwordStrong ? (
+                                    <p className={passwordStrong.statusClass}>
+                                        Password is {passwordStrong.status}
+                                    </p>
+                                ) : (
+                                    <p className="text-sm text-gray-600">
+                                        Password must include 1 special character, 1 uppercase, 1 number, and 1 lowercase
+                                    </p>
+                                )}
+                                <div className="relative">
+                                    <input
+                                        type={showPassword ? "text" : "password"}
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
+                                        className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-gray-200 focus:border-gray-400 transition-all"
+                                        placeholder="Enter new password"
+                                        required
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                                    >
+                                        {showPassword ? (
+                                            <EyeOff className="w-5 h-5" />
+                                        ) : (
+                                            <Eye className="w-5 h-5" />
+                                        )}
+                                    </button>
+                                </div>
+                                {passwordStrong?.class && <div className={passwordStrong.class} />}
                             </div>
-                            <p className="text-sm text-gray-500">Use 8 or more characters with a mix of letters, numbers & symbols</p>
                         </div>
 
                         {/* Confirm Password Field */}
@@ -95,7 +133,11 @@ const NewPassword = () => {
                                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                                     className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
                                 >
-                                    {showConfirmPassword ? "Hide" : "Show"}
+                                    {showConfirmPassword ? (
+                                        <EyeOff className="w-5 h-5" />
+                                    ) : (
+                                        <Eye className="w-5 h-5" />
+                                    )}
                                 </button>
                             </div>
                         </div>

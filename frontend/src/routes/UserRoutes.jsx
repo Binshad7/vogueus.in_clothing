@@ -13,6 +13,7 @@ import NotFoundPage from '../components/NotFoundPage'
 import ForgotPassword from '../pages/user/forgotPassword/ForgotPassword'
 import PasswordResetConfirmation from '../pages/user/forgotPassword/PasswordResetConfirmation'
 import NewPassword from '../pages/user/forgotPassword/NewPassword'
+import PasswordSuccess from '../pages/user/forgotPassword/PasswordSuccess'
 function UserRoutes() {
 
     return (
@@ -52,6 +53,7 @@ function UserRoutes() {
                 <Route path='/forgot-password' element={<ForgotPassword />} />
                 <Route path='/PasswordResetConfirmation' element={<PasswordResetConfirmation />} />
                 <Route path='/reset-password' element={<NewPassword />} />
+                <Route path='/passwordChangeSuccess' element={<PasswordSuccess/>}/>
                 {/*
                 <Route path='/reset-password' element={<ResetPassword />} /> */}
 

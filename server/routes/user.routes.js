@@ -39,7 +39,7 @@ const {verifyResetToken} = require('../middleware/verifyResetToken ')
 user_router.patch('/reset-passowrd',verifyResetToken,resetPassword);
 // user products 
 const { getAllProducts } = require('../controllers/userProducts.controller');                                   
-user_router.get('/product/fetchAllProducts', protectRoute, getAllProducts)
+user_router.get('/product/fetchAllProducts', getAllProducts)
 
 
 module.exports = user_router;

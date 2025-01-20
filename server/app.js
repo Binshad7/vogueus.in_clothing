@@ -1,24 +1,24 @@
 const express = require('express');
 const app = express();
-
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 const morgan = require('morgan');
-const session = require('express-session')
 // Middleware
 
+const session = require('express-session');
+// const MongoStore = require('connect-mongo');
+const { FRONTEND_URL,SECOND_FRONTEND_URL,PORT,SECRET,MONGO_URL } = require('./config/ENV_VARS');
 
-const { SECRET, PORT,FRONTEND_URL,SECOND_FRONTEND_URL } = require('./config/ENV_VARS')
 app.use(session({
     secret: SECRET,
     resave: false,
     saveUninitialized: false,
-    cookie: { 
-        secure: process.env.NODE_ENV === 'production',
-        maxAge: 3600000 * 3, // 3 hour
-        httpOnly:true
-    }
+    cookie: {
+        secure: false, // Change to true in production with HTTPS
+        httpOnly: true,
+        maxAge: 3 * 60 * 60 * 1000, // 3 hours
+    },
 }));
 
 

@@ -192,15 +192,14 @@ const emailResendCode = async (req, res) => {
 const forgotPassowrd = async (req, res) => {
     const { email } = req.body
     try {
+
         console.log('ip', req.ip)
-        console.log(email)
         const exist_user = await User.findOne({ email });
         if (!exist_user) {
             return res.status(400).json({ success: true, message: "Enter your user account's verified email address and we will send you a password reset link" })
         }
         const token = await generateToken(exist_user._id, null, 'forgot');
 
-        console.log(token);
         await sendResetPassowrdMail(exist_user.email, exist_user.userName, res, req, token)
     } catch (error) {
         console.log(error)
@@ -214,14 +213,14 @@ const resetPassword = async (req, res) => {
      if(!password.trim()){
         return res.status(400).json({success:false,message:"New Passowrd is Required"})
      }
-     const hashedPassword = hashPassword(password);
+     const hashedPassword = await hashPassword(password);
      const updatedPassword = await User.updateOne({_id:req.user?.userID},{password:hashedPassword});
      if(updatedPassword.modifiedCount<=0){
         return res.status(400).json({success:false,message:'some thing wrong in update password try again latter '})
      }
      res.status(200).json({success:true,message:'Password Updated Login again'})
     } catch (error) {
-     console.log(error.message);
+     console.log(error);
      res.status(500).json({success:false,message:`server side error ${error.message}`})
     }
 }
