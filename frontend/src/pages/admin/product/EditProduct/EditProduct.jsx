@@ -1,445 +1,504 @@
-import React, { useState, useRef } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
+import Input from '../../../../components/admin/AddProduct/Input/Input';
 import Cropper from 'react-cropper';
-import axios from 'axios'
-const CLOUDINARY_URL = 'https://api.cloudinary.com/v1_1/YOUR_CLOUD_NAME/image/upload';
-const CLOUDINARY_UPLOAD_PRESET = 'wL7wUcULdXgc55qs4MC4fj-tCN8';
-// Error Message Component
-const ErrorMessage = ({ error }) => {
-  if (!error) return null;
-  return <p className="text-red-500 text-sm mt-1">{error}</p>;
+import 'cropperjs/dist/cropper.css';
+import { toast } from 'react-toastify';
+import {ArrowLeft} from 'lucide-react'
+import { validate } from '../validation';
+import { useNavigate, useParams } from "react-router-dom";
+import { useDispatch, useSelector } from 'react-redux';
+import { addProductListCategory } from '../../../../store/middlewares/admin/categoryHandle';
+// import { updateProduct } from '../../../../store/middlewares/admin/ProductRelate';
+import Spinner from '../../../../components/user/Spinner';
+const DEFAULT_STOCK_ITEMS = [
+  { size: 'S', stock: 0, isBlocked: false, status: 'available' },
+  { size: 'M', stock: 0, isBlocked: false, status: 'available' },
+  { size: 'L', stock: 0, isBlocked: false, status: 'available' },
+  { size: 'XL', stock: 0, isBlocked: false, status: 'available' },
+  { size: 'XXL', stock: 0, isBlocked: false, status: 'available' },
+];
+
+const INITIAL_FORM_STATE = {
+  productName: '',
+  description: '',
+  category: '',
+  subcategory: '',
+  regularPrice: '',
+  currentPrice: '',
+  variant: []
 };
 
-// Loading Spinner Component
-const LoadingSpinner = () => (
-  <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50">
-    <div className="animate-spin rounded-full h-8 w-8 border-4 border-white border-t-transparent"></div>
-  </div>
-);
-
-// Stock Manager Component
-const StockManager = ({ stock, onChange, error }) => {
-  const handleQuantityChange = (index, newQuantity) => {
-    const newStock = [...stock];
-    newStock[index].quantity = parseInt(newQuantity) || 0;
-    onChange(newStock);
-  };
-
-  const handleAddSize = () => {
-    onChange([...stock, { size: '', quantity: 0 }]);
-  };
-
-  const handleRemoveSize = (index) => {
-    const newStock = stock.filter((_, i) => i !== index);
-    onChange(newStock);
-  };
-
-  const handleSizeChange = (index, newSize) => {
-    const newStock = [...stock];
-    newStock[index].size = newSize;
-    onChange(newStock);
-  };
-
-  return (
-    <div className="space-y-4">
-      {stock.map((item, index) => (
-        <div key={index} className="flex gap-4 items-center">
-          <select
-            value={item.size}
-            onChange={(e) => handleSizeChange(index, e.target.value)}
-            className="p-2 border rounded"
-          >
-            <option value="">Select Size</option>
-            {['XS', 'S', 'M', 'L', 'XL', 'XXL'].map(size => (
-              <option key={size} value={size}>{size}</option>
-            ))}
-          </select>
-          <input
-            type="number"
-            value={item.quantity}
-            onChange={(e) => handleQuantityChange(index, e.target.value)}
-            className="p-2 border rounded"
-            min="0"
-            placeholder="Quantity"
-          />
-          <button
-            onClick={() => handleRemoveSize(index)}
-            className="p-2 text-red-500 hover:text-red-700"
-            type="button"
-          >
-            Remove
-          </button>
-        </div>
-      ))}
-      <ErrorMessage error={error} />
-      <button
-        onClick={handleAddSize}
-        className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-        type="button"
-      >
-        Add Size
-      </button>
-    </div>
-  );
+const INITIAL_ERRORS_STATE = {
+  productName: '',
+  description: '',
+  regularPrice: '',
+  category: '',
+  subcategory: '',
+  variant: '',
+  images: '',
+  addSize: ''
 };
-const ImageEditor = ({ image, onSave, onClose }) => {
-  const cropperRef = useRef(null);
-  const [isLoading, setIsLoading] = useState(false);
 
-  const handleCrop = async () => {
-    const imageElement = cropperRef?.current;
-    const cropper = imageElement?.cropper;
+const EditProduct = () => {
+  const { productId } = useParams();
+  const [images, setImages] = useState(Array(3).fill(null));
+  const [imagePreviews, setImagePreviews] = useState(Array(3).fill(null));
+  const [existingImages, setExistingImages] = useState([]);
+  const [croppingIndex, setCroppingIndex] = useState(null);
+  const [cropperRefs] = useState(() => Array(3).fill(null).map(() => React.createRef()));
+  const [selectedCategory, setSelectedCategory] = useState('');
+  const [subcategories, setSubcategories] = useState([]);
+  const [categoryId, setCategoryId] = useState(null);
+  const [subcategoryId, setSubCategoryId] = useState(null);
+  const [stockItems, setStockItems] = useState(DEFAULT_STOCK_ITEMS);
+  const [formData, setFormData] = useState(INITIAL_FORM_STATE);
+  const [newSize, setNewSize] = useState('');
+  const [errors, setErrors] = useState(INITIAL_ERRORS_STATE);
 
-    if (cropper) {
-      setIsLoading(true);
-      try {
-        const croppedCanvas = cropper.getCroppedCanvas();
-        const blob = await new Promise(resolve => croppedCanvas.toBlob(resolve, 'image/jpeg'));
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  const { addProductListingCategory } = useSelector((state) => state.category);
+  const { loading, Products } = useSelector((state) => state.AllProducts);
         
-        const formData = new FormData();
-        formData.append('file', blob);
-        formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+  useEffect(() => {
+    if (!productId) {
+      navigate(-1);
+      return;
+    }
+    dispatch(addProductListCategory());
+  }, [dispatch, productId, navigate]);
 
-        const response = await axios.post(CLOUDINARY_URL, formData);
-        onSave(response.data.secure_url);
-      } catch (error) {
-        console.error('Image cropping/upload failed:', error);
-      } finally {
-        setIsLoading(false);
-        onClose();
+  // Initialize form with product data
+  useEffect(() => {
+    if (Products && addProductListingCategory) {
+      const currentProduct = Products.find(item => item._id === productId);
+      if (!currentProduct) return;
+
+      const category = addProductListingCategory.find(
+        cat => cat._id === currentProduct.category._id
+      );
+       
+      if (category) {
+        setSelectedCategory(category.categoryName);
+        setSubcategories(category.subcategories || []);
+        setCategoryId(category._id);
+        setSubCategoryId(currentProduct.subcategory?._id);
+          
+        setFormData({
+          productName: currentProduct.productName,
+          description: currentProduct.description,
+          category: category.categoryName ,
+          subcategory: currentProduct.subcategory?.subcategoryName ,
+          regularPrice: currentProduct.regularPrice ,
+          currentPrice: currentProduct.currentPrice ,
+          variant: currentProduct.variants
+        });
+
+        setStockItems(currentProduct.variants || DEFAULT_STOCK_ITEMS);
+        
+        // Handle existing images
+        setExistingImages(currentProduct.images || []);
+        
+        const previews = currentProduct.images.map(img => img);
+        
+        setImagePreviews([...previews, ...Array(3 - previews.length).fill(null)]);
+        
       }
     }
-  };
+  }, [Products, addProductListingCategory, productId]);
+  //  console.log('user details : ',formData)
+  const handleCategoryChange = useCallback((e) => {
 
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
-      <div className="bg-white p-4 rounded-lg max-w-4xl w-full relative">
-        {isLoading && <LoadingSpinner />}
-        <Cropper
-          ref={cropperRef}
-          src={image}
-          className="h-96"
-          aspectRatio={1}
-          guides={true}
-          preview=".preview"
-        />
-        <div className="mt-4 flex justify-end gap-2">
-          <button 
-            onClick={onClose}
-            className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
-            disabled={isLoading}
-            type="button"
-          >
-            Cancel
-          </button>
-          <button 
-            onClick={handleCrop}
-            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50"
-            disabled={isLoading}
-            type="button"
-          >
-            {isLoading ? 'Processing...' : 'Crop & Upload'}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
+    const categoryName = e.target.value;
+    console.log(categoryName);
+    
+    const category = addProductListingCategory.find(cat => cat.categoryName === categoryName);
 
-// Enhanced Image Manager Component
-const ImageManager = ({ images, onChange, error }) => {
-  const [showCropper, setShowCropper] = useState(false);
-  const [selectedImage, setSelectedImage] = useState(null);
-  const [editingIndex, setEditingIndex] = useState(null);
-  const [loadingStates, setLoadingStates] = useState({});
-  const fileInputRef = useRef(null);
+    if (category) {
+      setCategoryId(category._id);
+      setSelectedCategory(categoryName);
+      setSubcategories(category.subcategories || []);
+      setSubCategoryId(category.subcategories[0]?._id);
 
-  const handleFileSelect = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const imageUrl = URL.createObjectURL(file);
-      setSelectedImage(imageUrl);
-      setShowCropper(true);
+      setFormData(prev => ({
+        ...prev,
+        category: categoryName,
+        subcategory: category.subcategories[0]?.subcategoryName || ''
+      }));
     }
-    e.target.value = '';
-  };
+  }, [addProductListingCategory]);
 
-  const handleSaveCroppedImage = (cloudinaryUrl) => {
-    const newImages = [...images];
-    console.log(newImages,"new images", cloudinaryUrl," cloudinary")
-    newImages[editingIndex] = cloudinaryUrl;
-    onChange(newImages);
-  };
-
-  const handleAddImage = () => {
-    if (images.length < 3) {
-      setEditingIndex(images.length);
-      fileInputRef.current?.click();
-    }
-  };
-
-  const handleReplaceImage = (index) => {
-    setEditingIndex(index);
-    fileInputRef.current?.click();
-  };
-
-  const handleRemoveImage = (index) => {
-    const newImages = images.filter((_, i) => i !== index);
-    onChange(newImages);
-  };
-
-  return (
-    <div className="space-y-4">
-      <div className="grid grid-cols-3 gap-4">
-        {images.map((image, index) => (
-          <div key={index} className="relative group">
-            <img 
-              src={image} 
-              alt={`Product ${index + 1}`} 
-              className="w-full h-40 object-cover rounded"
-            />
-            {loadingStates[index] && <LoadingSpinner />}
-            <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-              <button
-                onClick={() => handleReplaceImage(index)}
-                className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm"
-                type="button"
-              >
-                Replace
-              </button>
-              <button
-                onClick={() => handleRemoveImage(index)}
-                className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 text-sm"
-                type="button"
-              >
-                Remove
-              </button>
-            </div>
-          </div>
-        ))}
-        {images.length < 5 && (
-          <button
-            onClick={handleAddImage}
-            className="h-40 border-2 border-dashed border-gray-300 rounded flex items-center justify-center hover:border-gray-400 transition-colors"
-            type="button"
-          >
-            <span className="text-gray-500">Add Image</span>
-          </button>
-        )}
-      </div>
-      
-      <input
-        type="file"
-        ref={fileInputRef}
-        className="hidden"
-        accept="image/*"
-        onChange={handleFileSelect}
-      />
-      
-      <ErrorMessage error={error} />
-      
-      {showCropper && selectedImage && (
-        <ImageEditor
-          image={selectedImage}
-          onSave={handleSaveCroppedImage}
-          onClose={() => {
-            setShowCropper(false);
-            setSelectedImage(null);
-          }}
-        />
-      )}
-    </div>
-  );
-};
-
-// Main Product Editor Modal Component
-const ProductEditorModal = ({ isOpen, onClose, initialData }) => {
-  const [formData, setFormData] = useState({
-    productName: initialData?.name || '',
-    description: initialData?.description || '',
-    currentPrice: initialData?.currentPrice || '',
-    regularPrice: initialData?.regularPrice || '',
-    category: initialData?.category || '',
-    subcategory: initialData?.subcategory || '',
-    quantity: initialData?.quantity || 0,
-    status: initialData?.status || true,
-    stock: initialData?.stock || []
-  });
-
-  const [images, setImages] = useState(initialData?.images || [
-    '/api/placeholder/400/300',
-    '/api/placeholder/400/300',
-    '/api/placeholder/400/300'
-  ]);
-
-  const [errors, setErrors] = useState({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const validate = (formData, images) => {
-    const newErrors = {};
-
-    if (!formData.productName || formData.productName.length < 3) {
-      newErrors.productName = 'Product name must be at least 3 characters long';
+  const handleAddSize = useCallback(() => {
+    const trimmedSize = newSize.trim().toUpperCase();
+    if (!trimmedSize) {
+      toast.error('Please enter a size');
+      return;
     }
 
-    if (!formData.description || formData.description.length < 10) {
-      newErrors.description = 'Description must be at least 10 characters long';
+    if (stockItems.some(item => item.size.toUpperCase() === trimmedSize)) {
+      toast.error('This size already exists');
+      return;
     }
 
-    if (!formData.category) {
-      newErrors.category = 'Please select a category';
+    setStockItems(prev => [...prev, {
+      size: trimmedSize,
+      stock: 0,
+      isBlocked: false,
+      status: 'available'
+    }]);
+    setNewSize('');
+  }, [newSize, stockItems]);
+
+  const handleRemoveSize = useCallback((sizeToRemove) => {
+    setStockItems(prev => prev.filter(item => item.size !== sizeToRemove));
+  }, []);
+
+  const handleStockChange = useCallback((index, value) => {
+    const sanitizedValue = value.replace(/^0+(?=\d)/, '');
+    const parsedValue = parseInt(sanitizedValue) || 0;
+
+    setStockItems(prev => {
+      const newItems = [...prev];
+      newItems[index] = {
+        ...newItems[index],
+        stock: parsedValue,
+        status: parsedValue > 0 ? 'available' : 'out of stock'
+      };
+      return newItems;
+    });
+  }, []);
+
+  const handleInputChange = useCallback((field) => (e) => {
+    if (field === 'subcategory') {
+      console.log(e.target.value)
+      const category = addProductListingCategory.find(cat => cat.categoryName === selectedCategory);
+      const subcategory = category?.subcategories?.find(
+        subCat => subCat.subcategoryName === e.target.value
+      );
+      setSubCategoryId(subcategory?._id);
     }
 
-    if (!formData.regularPrice || parseFloat(formData.regularPrice) <= 0) {
-      newErrors.regularPrice = 'Regular price must be greater than 0';
+    setFormData(prev => ({
+      ...prev,
+      [field]: e.target.value
+    }));
+  }, [selectedCategory, addProductListingCategory]);
+
+  const handleImageChange = useCallback((e, index) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const validTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+    if (!validTypes.includes(file.type)) {
+      toast.error('Only PNG, JPG, and JPEG images are allowed');
+      return;
     }
 
-    if (formData.currentPrice && parseFloat(formData.currentPrice) >= parseFloat(formData.regularPrice)) {
-      newErrors.currentPrice = 'Current price must be less than regular price';
-    }
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setImagePreviews(prev => {
+        const newPreviews = [...prev];
+        newPreviews[index] = reader.result;
+        return newPreviews;
+      });
+      setCroppingIndex(index);
+    };
+    reader.readAsDataURL(file);
+  }, []);
 
-    return newErrors;
+  const handleCrop = useCallback(() => {
+    const cropper = cropperRefs[croppingIndex]?.current?.cropper;
+    if (!cropper) return;
+
+    const croppedImage = cropper.getCroppedCanvas().toDataURL();
+
+    setImages(prev => {
+      const newImages = [...prev];
+      newImages[croppingIndex] = croppedImage;
+      return newImages;
+    });
+
+    setImagePreviews(prev => {
+      const newPreviews = [...prev];
+      newPreviews[croppingIndex] = croppedImage;
+      return newPreviews;
+    });
+
+    setCroppingIndex(null);
+  }, [croppingIndex, cropperRefs]);
+
+  const base64ToFile = (base64String, filename) => {
+    const arr = base64String.split(',');
+    const mime = arr[0].match(/:(.*?);/)[1];
+    const bstr = atob(arr[1]);
+    let n = bstr.length;
+    const u8arr = new Uint8Array(n);
+    while (n--) {
+      u8arr[n] = bstr.charCodeAt(n);
+    }
+    return new File([u8arr], filename, { type: mime });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const validationErrors = validate(formData, images);
-    setErrors(validationErrors);
+    console.log(formData.subcategory)
+    setErrors(INITIAL_ERRORS_STATE);
+   
+    if (!validate(formData, imagePreviews, setErrors)) return;
 
-    if (Object.keys(validationErrors).length === 0) {
-      setIsSubmitting(true);
-      try {
-        // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        onClose();
-      } catch (error) {
-        setErrors(prev => ({
-          ...prev,
-          submit: 'Failed to save product. Please try again.'
-        }));
-      } finally {
-        setIsSubmitting(false);
+    const formDataToSend = new FormData();
+    formDataToSend.append('productName', formData.productName);
+    formDataToSend.append('regularPrice', formData.regularPrice);
+    formDataToSend.append('currentPrice', formData.currentPrice || '0');
+    formDataToSend.append('category', categoryId);
+    formDataToSend.append('subCategory', subcategoryId);
+    formDataToSend.append('description', formData.description);
+    formDataToSend.append('variants', JSON.stringify(stockItems));
+   console.log('images',images)
+    // Handle new images
+    const newImages = images.filter(Boolean);
+    newImages.forEach((image, index) => {
+      const imageFile = base64ToFile(image, `image${index}`);
+      formDataToSend.append('images', imageFile);
+    });
+
+    // Include existing image IDs that weren't replaced
+    const existingImageIds = existingImages
+      .filter((_, index) => !images[index])
+      .map(img => img._id);
+    formDataToSend.append('existingImages', JSON.stringify(existingImageIds));
+
+    try {
+      const result = await dispatch(updateProduct({ id: productId, formData: formDataToSend }));
+      if (updateProduct.fulfilled.match(result)) {
+        navigate('/admin/product');
       }
+    } catch (error) {
+      toast.error('Failed to update product. Please try again.');
     }
   };
 
-  if (!isOpen) return null;
 
+  // Rest of the component remains similar to AddProduct
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-40 flex items-center justify-center overflow-y-auto">
-      <div className="bg-white rounded-lg p-6 max-w-4xl w-full m-4 max-h-[90vh] overflow-y-auto relative">
-        {isSubmitting && (
-          <div className="absolute inset-0 bg-white bg-opacity-75 z-50 flex items-center justify-center">
-            <LoadingSpinner />
-            <span className="ml-2">Saving changes...</span>
-          </div>
-        )}
-        
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold">Edit Product</h2>
-          <button
-            onClick={onClose}
-            className="text-gray-500 hover:text-gray-700"
-            disabled={isSubmitting}
-            type="button"
-          >
-            ×
-          </button>
+    <div className="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow">
+      {loading && <Spinner />}
+      <div>
+         <ArrowLeft onClick={()=>navigate(-1)}/>
+      </div>
+      <h2 className="text-2xl ml-10 font-semibold mb-6">Edit Product</h2>
+
+      <form className="space-y-6">
+        <Input
+          label="Product Name"
+          value={formData.productName}
+          onChange={handleInputChange('productName')}
+          placeholder="Enter product name"
+          onError={errors?.productName}
+        />
+
+        <Input
+          label="Description"
+          type="textarea"
+          value={formData.description}
+          onChange={handleInputChange('description')}
+          placeholder="Enter product description"
+          onError={errors?.description}
+        />
+
+        <div className="grid grid-cols-2 gap-4">
+          <Input
+            label="Category"
+            type="select"
+            value={formData.category}
+            onChange={handleCategoryChange}
+            placeholder="Select Category"
+            options={addProductListingCategory || []}
+            categoryError={errors.category}
+          />
+          <Input
+            label="Subcategory"
+            type="Subcategory"
+            value={formData.subcategory}
+            onChange={handleInputChange('subcategory')}
+            placeholder="Select Subcategory"
+            options={subcategories || []}
+            subCategoryError={errors.subcategory}
+          />
+
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium mb-1">Product Name</label>
+            <Input
+              label="Regular Price"
+              type="number"
+              value={formData.regularPrice}
+              onChange={handleInputChange('regularPrice')}
+              placeholder="Enter regular price"
+            />
+            {errors.regularPrice && (
+              <p className="text-red-500 text-sm">{errors.regularPrice}</p>
+            )}
+          </div>
+
+          <div>
+            <Input
+              label="Current Price"
+              type="number"
+              value={formData.currentPrice}
+              onChange={handleInputChange('currentPrice')}
+              placeholder="Enter current price"
+            />
+            {errors.currentPrice && (
+              <p className="text-red-500 text-sm">{errors.currentPrice}</p>
+            )}
+          </div>
+        </div>
+
+
+        {/* Stock Management Section */}
+        <div>
+          <div className="flex gap-2 mb-4">
             <input
               type="text"
-              value={formData.productName}
-              onChange={(e) => setFormData({...formData, productName: e.target.value})}
-              className="w-full p-2 border rounded"
-              placeholder="Enter product name"
+              value={newSize}
+              onChange={(e) => setNewSize(e.target.value.toUpperCase())}
+              placeholder="Enter new size (e.g., XXL)"
+              className="flex-1 p-2 border rounded-md"
             />
-            <ErrorMessage error={errors.productName} />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-1">Description</label>
-            <textarea
-              value={formData.description}
-              onChange={(e) => setFormData({...formData, description: e.target.value})}
-              className="w-full p-2 border rounded"
-              rows="3"
-              placeholder="Enter product description"
-            />
-            <ErrorMessage error={errors.description} />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium mb-1">Regular Price</label>
-              <input
-                type="number"
-                value={formData.regularPrice}
-                onChange={(e) => setFormData({...formData, regularPrice: e.target.value})}
-                className="w-full p-2 border rounded"
-                placeholder="0.00"
-                step="0.01"
-                min="0"
-              />
-              <ErrorMessage error={errors.regularPrice} />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-1">Current Price (Optional)</label>
-              <input
-                type="number"
-                value={formData.currentPrice}
-                onChange={(e) => setFormData({...formData, currentPrice: e.target.value})}
-                className="w-full p-2 border rounded"
-                placeholder="0.00"
-                step="0.01"
-                min="0"
-              />
-              <ErrorMessage error={errors.currentPrice} />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-1">Stock Management</label>
-            <StockManager
-              stock={formData.stock}
-              onChange={(newStock) => setFormData({...formData, stock: newStock})}
-              error={errors.stock}
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-1">Product Images</label>
-            <ImageManager
-              images={images}
-              onChange={setImages}
-              error={errors.images}
-            />
-          </div>
-
-          <div className="flex justify-end gap-4">
             <button
               type="button"
-              onClick={onClose}
-              className="px-4 py-2 border rounded hover:bg-gray-50"
-              disabled={isSubmitting}
+              onClick={handleAddSize}
+              className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600"
             >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50"
-              disabled={isSubmitting}
-            >
-              Save Changes
+              Add Size
             </button>
           </div>
-        </form>
-      </div>
+          {errors?.variant && <p className='text-red-700'>{errors?.variant}</p>}
+
+          {/* Size Grid */}
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            {stockItems.map((item, index) => (
+              <div key={item.size} className="relative p-4 border rounded-lg">
+                <button
+                  type="button"
+                  onClick={() => handleRemoveSize(item.size)}
+                  className="absolute top-2 right-2 text-red-500 hover:text-red-700"
+                >
+                  ×
+                </button>
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium">Size {item.size}</label>
+                  <input
+                    type="number"
+                    value={item.stock}
+                    onChange={(e) => handleStockChange(index, e.target.value)}
+                    min="0"
+                    className="w-full p-2 border rounded-md"
+                    placeholder="Quantity"
+                  />
+                  <div className="flex items-center mt-2">
+                    <input
+                      type="checkbox"
+                      checked={item.isBlocked}
+                      onChange={(e) => {
+                        const newStockItems = [...stockItems];
+                        newStockItems[index] = {
+                          ...newStockItems[index],
+                          isBlocked: e.target.checked
+                        };
+                        setStockItems(newStockItems);
+                        setFormData(prev => ({
+                          ...prev,
+                          variant: newStockItems
+                        }));
+                      }}
+                      className="mr-2"
+                    />
+                    <label className="text-sm">Unlist</label>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+
+
+
+        {/* Image Upload Section */}
+        < div >
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Product Images
+            {errors.images && (
+              <p className="text-red-500 text-sm">{errors.images}</p>
+            )}
+          </label>
+          <div className="grid grid-cols-3 gap-4">
+            {croppingIndex !== null ? (
+              <div>
+                <Cropper
+                  ref={cropperRefs[croppingIndex]}
+                  src={imagePreviews[croppingIndex]}
+                  style={{ height: 400, width: 300 }}
+                  aspectRatio={1}
+                  guides={false}
+                  scalable={true}
+                  cropBoxResizable={true}
+                />
+                <button
+                  type="button"
+                  className="mt-2 px-4 py-2 bg-blue-500 text-white rounded"
+                  onClick={handleCrop}
+                >
+                  Crop Image
+                </button>
+              </div>
+            ) : (
+              [0, 1, 2].map((index) => (
+                <div key={index} className="relative">
+                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 h-40 flex items-center justify-center">
+                    {imagePreviews[index] ? (
+                      <img
+
+                        src={imagePreviews[index]}
+                        alt={`Preview ${index + 1}`}
+                        className="max-h-full max-w-full object-contain"
+                      />
+                    ) : (
+                      <span>Upload Image</span>
+                    )}
+                    <input
+                      type="file"
+                      accept="image/png,image/jpg,image/jpeg"
+                      onChange={(e) => handleImageChange(e, index)}
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                    />
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div >
+
+        {croppingIndex === null && (
+          <div className="flex justify-end">
+            <button
+              onClick={handleSubmit}
+              className="px-6 py-2 bg-blue-200 text-blue-700 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-800"
+            >
+              Update Product
+            </button>
+          </div>
+        )}
+      </form >
+
+
+
     </div>
   );
 };
 
-export default ProductEditorModal;
+export default EditProduct;

@@ -28,7 +28,7 @@ const Sidebar = ({ }) => {
       path: '/product',
       submenu: [
         { title: 'Product List', path: '/product' },
-        { title: 'Add Product', path: '/addproduct' }
+        { title: 'Add Product', path: '/addproduct' },
       ]
     },
     {

@@ -149,7 +149,7 @@ const AddProduct = () => {
       );
       setSubCategoryId(subcategory?._id);
     }
-
+    
     setFormData(prev => ({
       ...prev,
       [field]: e.target.value
@@ -201,6 +201,8 @@ const AddProduct = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    console.log(formData.subcategory);
+    
     setErrors(INITIAL_ERRORS_STATE);
 
     setFormData(prev => ({
@@ -420,13 +422,6 @@ const AddProduct = () => {
                 >
                   Crop Image
                 </button>
-                {/* <button
-                    type="button"
-                    className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
-                    onClick={handleCropCancel}
-                  >
-                    Cancel Crop
-                  </button> */}
               </div>
             ) : (
               [0, 1, 2].map((index) => (

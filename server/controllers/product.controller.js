@@ -2,6 +2,8 @@ const {imageUploadToCloudinary} = require('../utils/cloudinary')
 const productSchema = require('../models/productSchema'); 
 const {getProducts} = require('../utils/getProducts')
 
+
+  // addProduct
   const addProduct = async (req, res) => {
     const { productName, regularPrice, currentPrice, category, subCategory, description, variants } = req.body;
     const imageFiles = req.files;
@@ -13,9 +15,6 @@ const {getProducts} = require('../utils/getProducts')
     if (!regularPrice.trim() || regularPrice <= 0) {
         return res.status(400).json({ success: false, message: 'RegularPrice must be greater than 0' });
     }    
-    // if (Number(currentPrice) > 0 &&  Number(currentPrice)>Number(regularPrice)) {
-    //     return res.status(400).json({ success: false, message: 'CurrentPrice must be less than RegularPrice' });
-    // }
     if (parseFloat(currentPrice) > 0 && parseFloat(regularPrice)<parseFloat(currentPrice)) {
         return res.status(400).json({ success: false, message: 'CurrentPrice must be less than RegularPrice' });
     }
@@ -50,7 +49,6 @@ const {getProducts} = require('../utils/getProducts')
     }
 
     try {
-        // Save product to the database
         const productData = productSchema({
             productName,
             regularPrice,
@@ -77,7 +75,7 @@ const {getProducts} = require('../utils/getProducts')
     }
 };
 
-
+//fetch all products
 const fetchProduct = async (req,res)=>{
     try {
      const AllProduct = await getProducts();
@@ -87,6 +85,7 @@ const fetchProduct = async (req,res)=>{
     }
 }
 
+ // products is blocked
 const updateProductStatus =async (req,res)=>{
     const {proId} = req.params;
     try{
@@ -108,7 +107,16 @@ const updateProductStatus =async (req,res)=>{
         res.status(500).json({ success:false,message: `An error occurred  ${error.message} `, error: error.message });
     }
 }
+   // edit Product
 
+   const editProduct =  async (req,res)=>{
+    try{
+
+    }catch(error){
+        console.log(`server side error  ${error.message}`);
+        res.status(500).json({success:false,message:`server side error. you can report this issues   ${error.message}`})
+    }
+   }
 module.exports = { 
     addProduct,
     fetchProduct,

@@ -1,7 +1,8 @@
 import React from 'react';
 import { AlertCircle } from 'lucide-react';
-
+import { useNavigate } from 'react-router-dom';
 const NotFoundPage = () => {
+  const navigate = useNavigate()
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-gray-50">
       <div className="bg-white rounded-lg shadow-lg w-full max-w-lg mx-4 p-8">
@@ -22,13 +23,13 @@ const NotFoundPage = () => {
 
           <div className="flex flex-col sm:flex-row gap-4">
             <button 
-              onClick={() => window.history.back()}
+              onClick={() => navigate(-1)}
               className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors min-w-[120px]"
             >
               Go Back
             </button>
             <button 
-              onClick={() => window.location.href = '/'}
+              onClick={() =>  navigate('/')}
               className="px-6 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors min-w-[120px]"
             >
               Home Page

@@ -19,8 +19,7 @@ function AdminRoutes() {
 
         <Route path='/product' element={<ProductList />} />
         <Route path='/addproduct' element={<AddProduct />} />
-        <Route path='/updateProduct/:id' element={<EditProduct />} />
-
+        <Route path='/updateProduct/:productId' element={<EditProduct />} />
 
         <Route path='/orders' element={<DashBboard />} />
         <Route path='/allusers' element={<UserManagement />} />

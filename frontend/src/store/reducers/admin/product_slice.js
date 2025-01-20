@@ -7,7 +7,7 @@ import {
 
 const initialState = {
     loading: false,
-    Products: [],
+    Products: []
 }
 const handlePending = (state) => {
     state.loading = true

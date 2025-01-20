@@ -49,8 +49,8 @@ const AdminProductList = () => {
     dispatch(fetchProduct());
   }, [dispatch]);
 
-  const HandleEdit = (product) => {
-    setEditedProduct(product);
+  const HandleEdit = (productID) => {
+      navigate(`/admin/updateProduct/${productID}`)
   };
 
   const handleOpenModal = useCallback((productId, productName, actionType) => {
@@ -209,7 +209,7 @@ const AdminProductList = () => {
                       <IconButton
                         color="success"
                         size="small"
-                        onClick={() => HandleEdit(product)}
+                        onClick={()=>HandleEdit(product._id)}
                         sx={{ ml: 1 }}
                       >
                         <EditIcon />
