@@ -5,7 +5,9 @@ async function emailVerification(userData, resend = null) {
         const { email, userName } = userData;
         console.log(email, userName)
         if (resend) {
-            await userAxios.post("/email-resendcode", { email, userName });
+
+        const response = await userAxios.post("/email-resendcode", { email, userName });
+        toast.success(response?.data?.message)
             return true;
         }
         const response = await userAxios.post("/email-verification", { email, userName })

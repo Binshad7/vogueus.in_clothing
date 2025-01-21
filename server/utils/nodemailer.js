@@ -44,9 +44,10 @@ async function sendEmail(userEmail, userName, res ,req) {
 
         const send_Mail = await transporter.sendMail(mailOptions);
         if (send_Mail) {
-            console.log('current time :',Date.now(),',   expiry time :', Date.now() + 60000)
             req.session.otp =  otp;
-            req.session.otpExpiry  =  Date.now() + 70000
+            req.session.otpExpiry  =  Date.now() + 80000
+            req.session.save()
+            console.log(req.session)
             res.status(200).json({ success: true, message: 'OTP sent to your email check your email' })
         } else {
             res.status(400).json({ success: false, message: 'Failed to send OTP'})

@@ -12,6 +12,7 @@ const register = async (req, res) => {
     const currentTime = Date.now()
     const expiryTime = req.session.otpExpiry
     const otp = req.session.otp
+    console.log(req.session)
 
     try {
 
@@ -197,7 +198,7 @@ const forgotPassowrd = async (req, res) => {
             return res.status(400).json({ success: true, message: "Enter your user account's verified email address and we will send you a password reset link" })
         }
         const token = genarateResetPasswordToken(exist_user)
-        await sendResetPassowrdMail(exist_user.email, exist_user.userName, res, token)
+        await sendResetPassowrdMail(exist_user.email, exist_user.userName, res, token,req)
     } catch (error) {
         console.log(error)
         res.status(500).json({ success: false, message: 'some thing wrong' });

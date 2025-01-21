@@ -111,13 +111,13 @@ const OTP = () => {
     const userData = JSON.parse(localStorage.getItem('demouser'));
     const newOtp = emailVerification(userData, 'resend');
     console.log(userData)
-    if (newOtp) {
-      toast.success('OTP sent successfully');
+    if(newOtp){
+
+      setTimeLeft(60);
+      setIsExpired(false);
+      setOtp(new Array(6).fill(''));
+      inputRefs.current[0].focus();
     }
-    setTimeLeft(60);
-    setIsExpired(false);
-    setOtp(new Array(6).fill(''));
-    inputRefs.current[0].focus();
   };
 
   return (

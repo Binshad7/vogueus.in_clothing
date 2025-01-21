@@ -7,24 +7,22 @@ const morgan = require('morgan');
 const bodyParser = require('body-parser');
 // Middleware
 
-const { FRONTEND_URL, SECOND_FRONTEND_URL, PORT, SECRET, MONGO_URL, NODE_ENV } = require('./config/ENV_VARS');
-app.use(cookieParser());
+const { FRONTEND_URL, SECOND_FRONTEND_URL, PORT, SECRET } = require('./config/ENV_VARS');
+
 app.use(session({
-    secret: SECRET,
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-        secure: NODE_ENV === 'production', // Adjust this for local or production
-        httpOnly: true,
-        maxAge: 3 * 60 * 60 * 1000, // 3 hours in milliseconds 
-    },
+  secret: SECRET,
+  resave: false,
+  saveUninitialized: true,
+  cookie: { secure: false } // Set to true if using HTTPS
 }));
+
 
 const corsOptions = {
     origin: [FRONTEND_URL, SECOND_FRONTEND_URL],
     credentials: true,
     optionsSuccessStatus: 200
 }
+app.use(cookieParser());
 app.use(cors(corsOptions));
 app.use(bodyParser.json());
 app.use(morgan('dev'));
