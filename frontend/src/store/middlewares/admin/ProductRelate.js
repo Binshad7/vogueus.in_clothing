@@ -35,7 +35,7 @@ const blockAndUnBlock = createAsyncThunk(
     'admin/blockAndUnBlock',
     async (proID, { rejectWithValue }) => {
         try {
-          
+
             const response = await adminProductAxios.patch(`/updateProductStatus/${proID}`);
             toast.success(response.data.message || 'Product Status Changed');
             return response.data.product
@@ -46,11 +46,15 @@ const blockAndUnBlock = createAsyncThunk(
     }
 )
 
-const EditProduct = createAsyncThunk(
-    'admin/EditProduct',
+
+const updateProduct = createAsyncThunk(
+    'admin/updateProduct',
     async (product, { rejectWithValue }) => {
         try {
-
+            console.log(product)
+            const response = await adminProductAxios.patch(`/updateProduct/${product.id}`, product.formData);
+            toast.success(response.data.message || 'Product Updated');
+            return response.data.product
         } catch (error) {
             toast.error(error?.response?.data?.message || error.message);
             return rejectWithValue()
@@ -58,10 +62,9 @@ const EditProduct = createAsyncThunk(
     }
 )
 
-
 export {
     addProdcut,
     fetchProduct,
-    EditProduct,
     blockAndUnBlock,
+    updateProduct
 }

@@ -49,14 +49,15 @@ admin_router.get('/category/addProductListCategory', addProductCategoryListing);
 const {
     addProduct,
     fetchProduct,
-    updateProductStatus
+    updateProductStatus,
+    updateProduct
 } = require('../controllers/product.controller');
 
 const upload = require('../middleware/multer')
 admin_router.post('/product/addProduct', upload.array('images', 3), protectRoute, addProduct);
 admin_router.get('/product/fetchProduct', protectRoute, fetchProduct)
 admin_router.patch('/product/updateProductStatus/:proId', protectRoute, updateProductStatus)
-
+admin_router.patch('/product/updateProduct/:proId',upload.array('images', 3), protectRoute, updateProduct)
 
 
 

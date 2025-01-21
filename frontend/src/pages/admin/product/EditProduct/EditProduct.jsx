@@ -10,6 +10,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { addProductListCategory } from '../../../../store/middlewares/admin/categoryHandle';
 // import { updateProduct } from '../../../../store/middlewares/admin/ProductRelate';
 import Spinner from '../../../../components/user/Spinner';
+import { updateProduct } from '../../../../store/middlewares/admin/ProductRelate';
 const DEFAULT_STOCK_ITEMS = [
   { size: 'S', stock: 0, isBlocked: false, status: 'available' },
   { size: 'M', stock: 0, isBlocked: false, status: 'available' },
@@ -83,7 +84,8 @@ const EditProduct = () => {
         setSelectedCategory(category.categoryName);
         setSubcategories(category.subcategories || []);
         setCategoryId(category._id);
-        setSubCategoryId(currentProduct.subcategory?._id);
+        setSubCategoryId(currentProduct.subCategory?._id);
+        
         setFormData({
           productName: currentProduct.productName,
           description: currentProduct.description,
@@ -196,7 +198,6 @@ const EditProduct = () => {
     }
 
     const reader = new FileReader();
-    console.log('result', reader.result)
     reader.onloadend = () => {
       setImagePreviews(prev => {
         const newPreviews = [...prev];
@@ -246,6 +247,7 @@ const EditProduct = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     console.log(formData.subcategory)
+    console.log(subcategoryId)
     setErrors(INITIAL_ERRORS_STATE);
 
     if (!validate(formData, imagePreviews, setErrors)) return;
@@ -258,31 +260,27 @@ const EditProduct = () => {
     formDataToSend.append('subCategory', subcategoryId);
     formDataToSend.append('description', formData.description);
     formDataToSend.append('variants', JSON.stringify(stockItems));
+    formDataToSend.append('updatedImagesPosstion', JSON.stringify(imagePreviews));
     // Handle new images
     const newImages = images.filter(Boolean);
+
+    const updatedImgesPosstion = []
+    imagePreviews.forEach((image, index) => {
+      if (image !== existingImages[index]) {
+        updatedImgesPosstion.push(index)
+      }
+    })
     
-     console.log('updated ',imagePreviews)
-     console.log('old images',existingImages);
-     console.log('images',images);
-     console.log('new images ',newImages);
-     
+    formDataToSend.append('updatedImagesPosstion', JSON.stringify(updatedImgesPosstion));
+      newImages.forEach((image, index) => {
+        const imageFile = base64ToFile(image, `image${index}`);
+        formDataToSend.append('images', imageFile);
+        console.log(index, '   ', imageFile);
 
-    newImages.forEach((image, index) => {
-      const imageFile = base64ToFile(image, `image${index}`);
-      console.log('image file : ',imageFile);
-      
-      formDataToSend.append('images', imageFile);
-    });
-
-    // Include existing image IDs that weren't replaced
+      });
     
-    const existingImageIds = existingImages
-      .filter((_, index) => !images[index])
-      .map(img => img._id);
-    console.log('demo id ', existingImageIds);
 
-    formDataToSend.append('existingImages', JSON.stringify(existingImageIds));
-    console.log('existing im', existingImageIds);
+
 
     try {
       const result = await dispatch(updateProduct({ id: productId, formData: formDataToSend }));

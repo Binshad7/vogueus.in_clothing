@@ -117,10 +117,28 @@ const updateProductStatus =async (req,res)=>{
         res.status(500).json({success:false,message:`server side error. you can report this issues   ${error.message}`})
     }
    }
+ 
+    // update Product
+    const updateProduct = async (req,res)=>{
+        try {
+             const {proId} = req.params;;
+             const { productName, regularPrice, currentPrice, category, subCategory, description, variants,updatedImagesPosstion } = req.body;
+             const updatedImgIndex = JSON.parse(updatedImagesPosstion);
+              console.log(updatedImgIndex.length<=0);
+             console.log(updatedImgIndex);
+// console.log(productName, regularPrice, currentPrice, category, subCategory, description, JSON.parse(variants)); 
+
+        } catch(error){
+            console.log(`server side error  ${error.message}`);
+            res.status(500).json({success:false,message:`server side error. you can report this issues   ${error.message}`})
+        }
+    }
+
 module.exports = { 
     addProduct,
     fetchProduct,
-    updateProductStatus
+    updateProductStatus,
+    updateProduct
 };
 
 // // Function to delete images from Cloudinary
