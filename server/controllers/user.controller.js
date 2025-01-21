@@ -3,7 +3,6 @@ const { hashPassword, comparePassword } = require('../utils/bcryptPassowrd');
 const generateToken = require('../utils/genarateToken');
 const sendEmail = require('../utils/nodemailer');
 const sendResetPassowrdMail = require('../utils/resetPasswordMail');
-const {genarateResetPasswordToken} = require('../utils/genarateTokenResetPassowrd')
 // create new user
 
 const register = async (req, res) => {
@@ -197,7 +196,7 @@ const forgotPassowrd = async (req, res) => {
         if (!exist_user) {
             return res.status(400).json({ success: true, message: "Enter your user account's verified email address and we will send you a password reset link" })
         }
-        const token = genarateResetPasswordToken(exist_user)
+        const token = generateToken(exist_user._id,null,'forgot');
         await sendResetPassowrdMail(exist_user.email, exist_user.userName, res, token,req)
     } catch (error) {
         console.log(error)
@@ -212,7 +211,7 @@ const resetPassword = async (req, res) => {
         return res.status(400).json({success:false,message:"New Passowrd is Required"})
      }
      const hashedPassword = await hashPassword(password);
-     const updatedPassword = await User.updateOne({_id:req._id},{password:hashedPassword});
+     const updatedPassword = await User.updateOne({_id:req.user},{password:hashedPassword});
      if(updatedPassword.modifiedCount<=0){
         return res.status(400).json({success:false,message:'some thing wrong in update password try again latter '})
      }

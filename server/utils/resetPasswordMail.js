@@ -1,7 +1,7 @@
 const nodemailer = require('nodemailer');
 const { EMAIL, EMAIL_PASSWORD, FRONTEND_URL } = require('../config/ENV_VARS');
 
-async function sendResetPasswordMail(userEmail, userName, res, resetToken,req) {
+async function sendResetPasswordMail(userEmail, userName, res, resetToken, req) {
   try {
     console.log(resetToken)
     const resetLink = `${FRONTEND_URL}/reset-password?token=${resetToken}`;
@@ -96,9 +96,9 @@ async function sendResetPasswordMail(userEmail, userName, res, resetToken,req) {
     // Send the email
     const sendMailResponse = await transporter.sendMail(mailOptions);
     if (sendMailResponse) {
-           req.session.tokenExpairy = Date.now() + 3*60*60*1000
-           req.session.token = resetToken
-           res.status(200).json({ success: true, message: 'Reset password email sent successfully. Please check your inbox.' });
+      req.session.linkExpiry = Date.now() + 3 * 60 * 60 * 1000
+      req.session.resetToken = resetToken
+      res.status(200).json({ success: true, message: 'Reset password email sent successfully. Please check your inbox.' });
     } else {
       res.status(400).json({ success: false, message: 'Failed to send reset password email.' });
     }
