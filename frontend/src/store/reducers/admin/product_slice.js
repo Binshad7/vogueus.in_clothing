@@ -2,7 +2,8 @@ import { createSlice } from "@reduxjs/toolkit";
 import {
     addProdcut,
     fetchProduct,
-    blockAndUnBlock
+    blockAndUnBlock,
+    updateProduct
 } from '../../middlewares/admin/ProductRelate'
 
 const initialState = {
@@ -40,6 +41,10 @@ const AllProducts = createSlice({
             .addCase(blockAndUnBlock.pending, handlePending)
             .addCase(blockAndUnBlock.fulfilled, handleFulfilled)
             .addCase(blockAndUnBlock.rejected, handleReject)
+            // updateProduct
+            .addCase(updateProduct.pending, handlePending)
+            .addCase(updateProduct.fulfilled, handleFulfilled)
+            .addCase(updateProduct.rejected, handleReject)
 
     }
 })

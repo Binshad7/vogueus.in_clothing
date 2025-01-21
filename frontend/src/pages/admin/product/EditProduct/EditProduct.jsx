@@ -260,10 +260,9 @@ const EditProduct = () => {
     formDataToSend.append('subCategory', subcategoryId);
     formDataToSend.append('description', formData.description);
     formDataToSend.append('variants', JSON.stringify(stockItems));
-    formDataToSend.append('updatedImagesPosstion', JSON.stringify(imagePreviews));
+    formDataToSend.append('oldImages', JSON.stringify(existingImages));
     // Handle new images
     const newImages = images.filter(Boolean);
-
     const updatedImgesPosstion = []
     imagePreviews.forEach((image, index) => {
       if (image !== existingImages[index]) {

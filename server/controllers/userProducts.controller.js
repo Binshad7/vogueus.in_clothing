@@ -11,7 +11,6 @@ const getAllProducts = async (req, res) => {
             !item.subCategory?.isUnlist &&
             !item.category?.isUnlist
         );
-        console.log(filterBlockProduct.length);
         const filterBlockedVariants = filterBlockProduct.map(item => {
             const filteredVariants = item.variants.filter(variant => !variant.isBlocked);
             return { ...item, variants: filteredVariants };

@@ -120,49 +120,110 @@ const updateProductStatus =async (req,res)=>{
  
     // update Product
     const updateProduct = async (req,res)=>{
+        const {proId} = req.params;
+        const { productName, regularPrice, currentPrice, category, subCategory, description, variants,updatedImagesPosstion,oldImages } = req.body;
         try {
-             const {proId} = req.params;;
-             const { productName, regularPrice, currentPrice, category, subCategory, description, variants,updatedImagesPosstion } = req.body;
+            let updatedDetails = {};
+             const Exist_Product = await productSchema.findOne({productName});
+                if(Exist_Product?._id.toString()!==proId){ 
+                    return res.status(400).json({success:false,message:'Product Name already exist'})
+                 }
+                 
              const updatedImgIndex = JSON.parse(updatedImagesPosstion);
-              console.log(updatedImgIndex.length<=0);
-             console.log(updatedImgIndex);
-// console.log(productName, regularPrice, currentPrice, category, subCategory, description, JSON.parse(variants)); 
+             const oldImagesArray = JSON.parse(oldImages);  
+            // image upload to cloudinary
+            let uplodedImages ;
+            console.log('before upating with ',oldImagesArray)
+            if(updatedImgIndex.length>0){
+            try{
+                uplodedImages = await imageUploadToCloudinary(req.files);
+                console.log(uplodedImages);
+                for(let i=0;i<updatedImgIndex.length;i++){
+                    oldImagesArray[updatedImgIndex] = uplodedImages[i];
+                 }
+                 console.log(oldImagesArray);
+            }catch(error){
+                console.log(`server side error  ${error.message}`);
+                res.status(500).json({success:false,message:`server side error. you can report this issues   ${error.message}`})
+            }
+        }
+           
+        // updateimges array 
+     
+        // delete images from cloudinary
+        updatedDetails.productName = productName;
+        updatedDetails.regularPrice = regularPrice;
+        updatedDetails.currentPrice = currentPrice;
+        updatedDetails.category = category;
+        updatedDetails.subCategory = subCategory;
+        updatedDetails.description = description;
+        updatedDetails.variants = JSON.parse(variants);
+        updatedDetails.images = oldImagesArray;
+        updatedDetails.updatedBy = req.user._id;
+        const updatedProduct = await productSchema.updateOne({_id:proId},{$set:updatedDetails});
+        if(updatedProduct.modifiedCount == 0){
+            return res.status(400).json({success:false,message:'some thing wrong in update Product'})
+        }
+        const AllProduct = await getProducts();
+        res.status(200).json({success:true,message:'success fully updated status',product:AllProduct})
+        
 
-        } catch(error){
-            console.log(`server side error  ${error.message}`);
+    } catch(error){
+        console.log(`server side error  ${error.message}`);
             res.status(500).json({success:false,message:`server side error. you can report this issues   ${error.message}`})
         }
     }
-
-module.exports = { 
-    addProduct,
-    fetchProduct,
-    updateProductStatus,
-    updateProduct
-};
-
-// // Function to delete images from Cloudinary
+    
+    module.exports = { 
+        addProduct,
+        fetchProduct,
+        updateProductStatus,
+        updateProduct
+    };
+    
+    // // Function to delete images from Cloudinary
 // const deleteImages = async (urls) => {
-//     try {
-//         const publicIds = urls.map(url => {
+    //     try {
+        //         const publicIds = urls.map(url => {
 //             const parts = url.split('/');
 //             const filename = parts[parts.length - 1];
 //             return 'products/' + filename.split('.')[0];
 //         });
 
 //         const deletePromises = publicIds.map(publicId => 
-//             cloudinary.uploader.destroy(publicId)
-//         );
+    //             cloudinary.uploader.destroy(publicId)
+    //         );
         
-//         await Promise.all(deletePromises);
-//     } catch (error) {
-//         throw new Error(`Failed to delete images: ${error.message}`);
+    //         await Promise.all(deletePromises);
+    //     } catch (error) {
+        //         throw new Error(`Failed to delete images: ${error.message}`);
 //     }
 // };
 
 // module.exports = {
-//     uploadImage,
-//     uploadImages,
+    //     uploadImage,
+    //     uploadImages,
 //     deleteImages
 // };
 // */
+// if(productName){
+//   updatedDetails.productName = productName;
+// }   
+// if(regularPrice){
+//   updatedDetails.regularPrice = regularPrice;
+// }
+// if(currentPrice){
+//   updatedDetails.currentPrice = currentPrice;   
+// }
+// if(category){
+//   updatedDetails.category = category;
+// }
+// if(subCategory){
+//   updatedDetails.subCategory = subCategory;
+// }
+// if(description){
+//   updatedDetails.description = description;
+// }
+// if(variants){
+//   updatedDetails.variants = JSON.parse(variants);
+// }   

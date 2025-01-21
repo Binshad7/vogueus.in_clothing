@@ -12,7 +12,6 @@ async function getProducts() {
             select: 'subcategories isUnlist subcategoryName' // Updated to match subcategory schema fields
         })
         .lean();
-            console.log(products);
             
         return  products;
     } catch (error) {
