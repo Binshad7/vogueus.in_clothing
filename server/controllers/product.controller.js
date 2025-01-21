@@ -109,14 +109,6 @@ const updateProductStatus =async (req,res)=>{
 }
    // edit Product
 
-   const editProduct =  async (req,res)=>{
-    try{
-
-    }catch(error){
-        console.log(`server side error  ${error.message}`);
-        res.status(500).json({success:false,message:`server side error. you can report this issues   ${error.message}`})
-    }
-   }
  
     // update Product
     const updateProduct = async (req,res)=>{
@@ -132,16 +124,16 @@ const updateProductStatus =async (req,res)=>{
              const updatedImgIndex = JSON.parse(updatedImagesPosstion);
              const oldImagesArray = JSON.parse(oldImages);  
             // image upload to cloudinary
-            let uplodedImages ;
-            console.log('before upating with ',oldImagesArray)
+            console.log('before upating with oldImagesArrya ',oldImagesArray)
+            console.log('updatedImgIndex',updatedImgIndex);
             if(updatedImgIndex.length>0){
             try{
-                uplodedImages = await imageUploadToCloudinary(req.files);
-                console.log(uplodedImages);
+                let uplodedImages = await imageUploadToCloudinary(req.files);
+                console.log('result from cloudinary',uplodedImages);
                 for(let i=0;i<updatedImgIndex.length;i++){
-                    oldImagesArray[updatedImgIndex] = uplodedImages[i];
+                    oldImagesArray[updatedImgIndex[i]] = uplodedImages[i];
                  }
-                 console.log(oldImagesArray);
+                 console.log('after upating with oldImagesArrya ',oldImagesArray);
             }catch(error){
                 console.log(`server side error  ${error.message}`);
                 res.status(500).json({success:false,message:`server side error. you can report this issues   ${error.message}`})
@@ -150,9 +142,8 @@ const updateProductStatus =async (req,res)=>{
            
         // updateimges array 
      
-        // delete images from cloudinary
         updatedDetails.productName = productName;
-        updatedDetails.regularPrice = regularPrice;
+        updatedDetails.regularPrice = regularPrice; 
         updatedDetails.currentPrice = currentPrice;
         updatedDetails.category = category;
         updatedDetails.subCategory = subCategory;

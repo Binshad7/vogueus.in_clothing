@@ -1,28 +1,28 @@
 const nodemailer = require('nodemailer');
 const { EMAIL, EMAIL_PASSWORD, FRONTEND_URL } = require('../config/ENV_VARS');
 
-async function sendResetPasswordMail(userEmail, userName, res, req, resetToken) {
-    try {
-        console.log(resetToken)
-        const resetLink = `${FRONTEND_URL}/reset-password?token=${resetToken}`;
+async function sendResetPasswordMail(userEmail, userName, res, resetToken) {
+  try {
+    console.log(resetToken)
+    const resetLink = `${FRONTEND_URL}/reset-password?token=${resetToken}`;
 
-        // Set up the transporter
-        const transporter = nodemailer.createTransport({
-            service: 'gmail',
-            port: 587,
-            secure: false,
-            auth: {
-                user: EMAIL,
-                pass: EMAIL_PASSWORD,
-            },
-        });
+    // Set up the transporter
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      port: 587,
+      secure: false,
+      auth: {
+        user: EMAIL,
+        pass: EMAIL_PASSWORD,
+      },
+    });
 
-        // Define email content
-        const mailOptions = {
-            from: `"Vogeues Team " <${EMAIL}>`,
-            to: userEmail,
-            subject: 'Password Reset Request',
-            html: `
+    // Define email content
+    const mailOptions = {
+      from: `"Vogeues Team " <${EMAIL}>`,
+      to: userEmail,
+      subject: 'Password Reset Request',
+      html: `
                 <!DOCTYPE html>
                 <html>
                 <head>
@@ -91,23 +91,19 @@ async function sendResetPasswordMail(userEmail, userName, res, req, resetToken) 
                 </body>
                 </html>
             `,
-        };
+    };
 
-        // Send the email
-        const sendMailResponse = await transporter.sendMail(mailOptions);
-        if (sendMailResponse) {
-            req.session.resetToken = resetToken;
-            req.session.linkExpiry = Date.now() + 3 * 60 * 60 * 1000; // 3 hours
-            await req.session.save(); // Ensure the session is explicitly saved
-            console.log(req.session)
-            res.status(200).json({ success: true, message: 'Reset password email sent successfully. Please check your inbox.' });
-        } else {
-            res.status(400).json({ success: false, message: 'Failed to send reset password email.' });
-        }
-    } catch (error) {
-        console.error('Error sending reset password email:', error);
-        res.status(500).json({ success: false, message: 'Internal server error. Please try again later.' });
+    // Send the email
+    const sendMailResponse = await transporter.sendMail(mailOptions);
+    if (sendMailResponse) {
+           res.status(200).json({ success: true, message: 'Reset password email sent successfully. Please check your inbox.' });
+    } else {
+      res.status(400).json({ success: false, message: 'Failed to send reset password email.' });
     }
+  } catch (error) {
+    console.error('Error sending reset password email:', error);
+    res.status(500).json({ success: false, message: 'Internal server error. Please try again later.' });
+  }
 }
 
 module.exports = sendResetPasswordMail;
