@@ -16,7 +16,7 @@ const getAllProducts = async (req, res) => {
             return { ...item, variants: filteredVariants };
         });
 
-        res.status(200).json({ success: true, message: 'product Success fully completed', products: filterBlockedVariants })
+        res.status(200).json({ success: true, message: 'product Successfuly completed', products: filterBlockedVariants })
 
     } catch (error) {
         console.log('error in userProduct Controllers : ', error.message)

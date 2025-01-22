@@ -27,19 +27,24 @@ import {
   RotateCcw,
   CreditCard,
   Ruler,
-  ChevronRight
 } from 'lucide-react';
 import RelatedProductsSection from './RelatedProductsSection ';
 import ReviewsSection from './ReviewsSection';
 import Breadcrumb from '../../../components/user/Breadcrumb';
+import { wishlistAddAndRemovemanage } from '../../../store/middlewares/user/wishlist';
 const ProductDetails = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate()
   const [product, setProduct] = useState(null);
   const [pageLoading, setPageLoading] = useState(false);
+  const [existProductInWishlist, setExistProduct] = useState(false);
   const [relatedProducts, setRelatedProducts] = useState([]);
   const { productId } = useParams();
+
+
   const { AllProducts, loading } = useSelector((state) => state.AllProductManageSlice);
+
+
   useEffect(() => {
     if (!productId) {
       navigate('/')
@@ -49,11 +54,24 @@ const ProductDetails = () => {
     if (!AllProducts.length) {
       dispatch(fetchAllProducts());
     }
-  }, [AllProducts.length, dispatch]);
+  }, [AllProducts, dispatch]);
 
+
+  // in here checking that  product already in wishlist
+  const { wishlistItems } = useSelector((state) => state.wishlist);
+  useEffect(() => {
+    const existProductInWishlist = wishlistItems?.some((item) =>
+      item._id.toString() === productId
+    );
+    setExistProduct(existProductInWishlist || false);
+  }, [wishlistItems, productId]);
   useEffect(() => {
     setPageLoading(true);
     const currentProduct = AllProducts?.find((item) => item?._id === productId);
+    if(!currentProduct){
+      navigate(-1)
+      return
+    }
     setProduct(currentProduct);
     let relateProduct = AllProducts.filter((item) =>
       item?.category?.categoryName === currentProduct?.category?.categoryName &&
@@ -95,6 +113,11 @@ const ProductDetails = () => {
     { icon: <RotateCcw className="w-6 h-6" />, label: 'Easy Returns', description: '30-day return policy' }
   ];
 
+
+  const handleAddToWishlist = () => {
+    dispatch(wishlistAddAndRemovemanage(productId))
+  }
+
   const handleAddToCart = () => {
     if (!selectedSize) {
       setError("Please select a size");
@@ -120,14 +143,7 @@ const ProductDetails = () => {
       {loading && <Spinner />}
 
       {/* Breadcrumb */}
-      {/* <Breadcrumbs
-        separator={<ChevronRight sx={{ fontSize: 16 }} />}
-        sx={{ mb: 4 }}
-      >
-        <Link to={'/'} color="inherit" className='cursor-pointer' underline="hover">Home</Link>
-        <Link to={'/men'} color="inherit" className='cursor-pointer' underline="hover">Men</Link>
-        <Typography color="text.primary">Shirts</Typography>
-      </Breadcrumbs> */}
+
       <Breadcrumb />
 
       {/* Product Details Section */}
@@ -327,8 +343,12 @@ const ProductDetails = () => {
                     border: "1px solid",
                     borderColor: "divider",
                   }}
+                  onClick={handleAddToWishlist}
                 >
-                  <Heart />
+                  <Heart
+                    fill={existProductInWishlist ? "#ff0000" : "none"}
+                    color={existProductInWishlist ? "#ff0000" : "currentColor"}
+                  />
                 </IconButton>
               </Stack>
 

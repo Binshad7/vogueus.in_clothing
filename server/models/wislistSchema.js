@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const wislistSchama = new mongoose.Schema({
+const wishlistSchama = new mongoose.Schema({
     userId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'user',
@@ -14,4 +14,4 @@ const wislistSchama = new mongoose.Schema({
 }, { timestamps: true });
 
 
-module.exports = mongoose.model('wislist',wislistSchama)
+module.exports = mongoose.model('wishlist ',wishlistSchama)

@@ -10,7 +10,7 @@ const {
     adminLogout,
     adminRefresh,
 
-} = require('../controllers/admin.controller');
+} = require('../controllers/admin/admin.controller');
 // auth routes
 admin_router.post('/login', adminLogin);
 admin_router.get('/logout', adminLogout);
@@ -29,7 +29,7 @@ const {
     unlistSubCategory,
     listSubCategory,
     addProductCategoryListing
-} = require('../controllers/category.controller');
+} = require('../controllers/admin/category.controller');
 
 admin_router.post('/category/addCategory', protectRoute, addCategory);
 admin_router.get('/category/fetch', protectRoute, fetchCategory);
@@ -51,7 +51,7 @@ const {
     fetchProduct,
     updateProductStatus,
     updateProduct
-} = require('../controllers/product.controller');
+} = require('../controllers/admin/product.controller');
 
 const upload = require('../middleware/multer')
 admin_router.post('/product/addProduct', upload.array('images', 3), protectRoute, addProduct);
@@ -62,7 +62,7 @@ admin_router.patch('/product/updateProduct/:proId',upload.array('images', 3), pr
 
 
 // admin users handle 
-const { fetchAllUsers, updateUserStatus } = require('../controllers/adminManageUser.controller')
+const { fetchAllUsers, updateUserStatus } = require('../controllers/admin/adminManageUser.controller')
 admin_router.get('/usersHandle/fetchUsers', protectRoute, fetchAllUsers)
 admin_router.patch('/usersHandle/blockAndUnBlock/:userID', protectRoute, updateUserStatus)
 

@@ -1,51 +1,116 @@
-import React from 'react';
-import { Trash2 } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { Trash2, ShoppingBag } from 'lucide-react';
 import {
   Typography,
   Paper,
   IconButton,
   Stack,
-  Box
+  Box,
+  Button,
+  Container,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions
 } from '@mui/material';
+import { useSelector, useDispatch } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
+import { fetchwishlist, removeProductFromWishlist } from '../../../store/middlewares/user/wishlist';
 
 const WishlistPage = () => {
-  // Sample data - replace with your actual data
-  const wishlistItems = [
-    {
-      id: 1,
-      image: "/api/placeholder/150/150",
-      name: "ZEBRONICS Pure Pixel 60.96 cm (24 inch) Full HD VA Panel with 250 nits brightness, HDMI, VGA, Ultra Sl...",
-      currentPrice: 6999,
-      originalPrice: 24999,
-      discount: 72,
-      assured: true
-    },
-    {
-      id: 2,
-      image: "/api/placeholder/150/150",
-      name: "NikkFashionista Typography Men Round Neck Black T-Shirt",
-      currentPrice: 274,
-      originalPrice: 999,
-      discount: 72,
-      assured: false
-    },
-    {
-      id: 3,
-      image: "/api/placeholder/150/150",
-      name: "EVOFOX Fireblade LED Backlit Wired USB Gaming Keyboard",
-      currentPrice: 951,
-      originalPrice: 1299,
-      discount: 26,
-      assured: true
-    }
-  ];
+  const dispatch = useDispatch();
+  const { wishlistItems, loading } = useSelector((state) => state.wishlist);
+  const [deleteModal, setDeleteModal] = useState(false);
+  const [selectedItem, setSelectedItem] = useState(null);
+  const naviagate = useNavigate()
+  useEffect(() => {
+    dispatch(fetchwishlist());
+  }, [dispatch]);
+
+  const handleDeleteClick = (item) => {
+    setSelectedItem(item);
+    setDeleteModal(true);
+  };
+
+  const handleConfirmDelete = () => {
+    // Add your delete logic here
+    dispatch(removeProductFromWishlist(selectedItem._id))
+    setDeleteModal(false);
+    setSelectedItem(null);
+  };
+
+  const handleCloseModal = () => {
+    setDeleteModal(false);
+    setSelectedItem(null);
+  };
+
+  if (loading) {
+    return (
+      <Box
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        minHeight="400px"
+      >
+        <Box
+          sx={{
+            width: 40,
+            height: 40,
+            borderRadius: '50%',
+            border: '2px solid #f3f3f3',
+            borderTop: '2px solid #3498db',
+            animation: 'spin 1s linear infinite',
+            '@keyframes spin': {
+              '0%': { transform: 'rotate(0deg)' },
+              '100%': { transform: 'rotate(360deg)' }
+            }
+          }}
+        />
+      </Box>
+    );
+  }
+
+  if (wishlistItems.length === 0) {
+    return (
+      <Container maxWidth="lg" sx={{ py: 4 }}>
+        <Paper
+          sx={{
+            textAlign: 'center',
+            py: 6,
+            px: 4,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: 2
+          }}
+        >
+          <ShoppingBag size={64} color="#9e9e9e" />
+          <Typography variant="h5" sx={{ fontWeight: 600, color: '#212121' }}>
+            Your wishlist is empty
+          </Typography>
+          <Typography color="text.secondary" sx={{ mb: 3 }}>
+            Save items you love in your wishlist and review them anytime
+          </Typography>
+          <Button
+            variant="contained"
+            sx={{
+              bgcolor: '#2874f0',
+              '&:hover': { bgcolor: '#1a5fb4' }
+            }}
+          >
+            Continue Shopping
+          </Button>
+        </Paper>
+      </Container>
+    );
+  }
 
   return (
     <Box sx={{ maxWidth: '1200px', margin: '0 auto', padding: '16px' }}>
-      <Typography 
-        variant="h6" 
-        sx={{ 
-          fontWeight: 600, 
+      <Typography
+        variant="h6"
+        sx={{
+          fontWeight: 600,
           marginBottom: 2,
           color: '#212121'
         }}
@@ -55,9 +120,11 @@ const WishlistPage = () => {
 
       <Stack spacing={2}>
         {wishlistItems.map((item) => (
-          <Paper 
-            key={item.id}
-            sx={{ 
+
+          <Paper
+
+            key={item._id}
+            sx={{
               p: 2,
               display: 'flex',
               alignItems: 'flex-start',
@@ -67,76 +134,74 @@ const WishlistPage = () => {
           >
             <Box sx={{ width: 150, flexShrink: 0 }}>
               <img
-                src={item.image}
-                alt={item.name}
+                src={item.images[0]}
+                alt={item.productName}
                 style={{ width: '100%', height: 'auto' }}
               />
             </Box>
+            <div onClick={() => naviagate(`/product/${item._id}`)}>
 
-            <Box sx={{ flex: 1 }}>
-              <Typography 
-                sx={{ 
-                  color: '#212121',
-                  fontSize: '14px',
-                  marginBottom: 1,
-                  '&:hover': {
-                    color: '#2874f0',
-                    cursor: 'pointer'
-                  }
-                }}
-              >
-                {item.name}
-              </Typography>
+              <Box sx={{ flex: 1 }}>
+                <Typography
+                  sx={{
+                    color: '#212121',
+                    fontSize: '16px',
+                    marginBottom: 1,
+                    '&:hover': {
+                      color: '#2874f0',
+                      cursor: 'pointer'
+                    }
+                  }}
+                >
+                  {item.productName}
+                </Typography>
 
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, marginBottom: 1 }}>
-                {item.assured && (
-                  <Typography 
-                    component="span"
+                <Typography
+                  sx={{
+                    fontSize: '14px',
+                    color: '#757575',
+                    marginBottom: 1
+                  }}
+                >
+                  {item.description}
+                </Typography>
+
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Typography
                     sx={{
-                      backgroundColor: '#2874f0',
-                      color: 'white',
-                      padding: '2px 6px',
-                      borderRadius: '2px',
-                      fontSize: '12px'
+                      fontSize: '20px',
+                      fontWeight: 500,
+                      color: '#212121'
                     }}
                   >
-                    Assured
+                    ₹{item.currentPrice.toLocaleString()}
                   </Typography>
-                )}
+                  <Typography
+                    sx={{
+                      fontSize: '14px',
+                      color: '#878787',
+                      textDecoration: 'line-through'
+                    }}
+                  >
+                    ₹{item.regularPrice.toLocaleString()}
+                  </Typography>
+                  <Typography
+                    sx={{
+                      fontSize: '14px',
+                      color: '#388e3c'
+                    }}
+                  >
+                    {Math.round(
+                      ((item.regularPrice - item.currentPrice) / item.regularPrice) * 100
+                    )}% off
+                  </Typography>
+                </Box>
               </Box>
+            </div>
 
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Typography 
-                  sx={{ 
-                    fontSize: '20px',
-                    fontWeight: 500,
-                    color: '#212121'
-                  }}
-                >
-                  ₹{item.currentPrice.toLocaleString()}
-                </Typography>
-                <Typography 
-                  sx={{ 
-                    fontSize: '14px',
-                    color: '#878787',
-                    textDecoration: 'line-through'
-                  }}
-                >
-                  ₹{item.originalPrice.toLocaleString()}
-                </Typography>
-                <Typography 
-                  sx={{ 
-                    fontSize: '14px',
-                    color: '#388e3c'
-                  }}
-                >
-                  {item.discount}% off
-                </Typography>
-              </Box>
-            </Box>
-
-            <IconButton 
-              sx={{ 
+            <IconButton
+              onClick={() => handleDeleteClick(item)}
+              sx={{
                 position: 'absolute',
                 top: 8,
                 right: 8,
@@ -147,7 +212,42 @@ const WishlistPage = () => {
             </IconButton>
           </Paper>
         ))}
+
       </Stack>
+
+      {/* Delete Confirmation Modal */}
+      <Dialog
+        open={deleteModal}
+        onClose={handleCloseModal}
+        aria-labelledby="delete-dialog-title"
+      >
+        <DialogTitle id="delete-dialog-title">
+          Remove from Wishlist
+        </DialogTitle>
+        <DialogContent>
+          <Typography>
+            Are you sure you want to remove "<span className='text-red-700 text-xl'> {selectedItem?.productName}  </span>  " from your wishlist?
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={handleCloseModal}
+            sx={{ color: '#616161' }}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleConfirmDelete}
+            variant="contained"
+            sx={{
+              bgcolor: '#ff3d00',
+              '&:hover': { bgcolor: '#dd2c00' }
+            }}
+          >
+            Remove
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };

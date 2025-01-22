@@ -19,6 +19,6 @@ async function getProducts() {
         throw error;
     }
 }
-module.exports = {
+module.exports = { 
     getProducts
 }

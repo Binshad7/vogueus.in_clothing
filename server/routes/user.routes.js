@@ -13,7 +13,7 @@ const {
     emailResendCode,
     forgotPassowrd,
     resetPassword
-} = require('../controllers/user.controller');
+} = require('../controllers/user/user.controller');
 // auth routes
 user_router.post('/register', register);
 user_router.post('/login', login);
@@ -38,8 +38,13 @@ user_router.post('/forgot-password',forgotPassowrd);
 const {verifyResetToken} = require('../middleware/verifyResetToken ')
 user_router.patch('/reset-passowrd',verifyResetToken,resetPassword);
 // user products 
-const { getAllProducts } = require('../controllers/userProducts.controller');                                   
+const { getAllProducts } = require('../controllers/user/userProducts.controller');                                   
 user_router.get('/product/fetchAllProducts', getAllProducts)
 
 
-module.exports = user_router;
+// wislist addProduct and delete from the wislist and remove also
+const {productAddTowishlist,removeProductFromwishlist,fetchWislist} = require('../controllers/user/wislist.controller');
+user_router.get('/product/fetchwishlist',protectRoute,fetchWislist);
+user_router.post('/product/wislistManage/:productId',protectRoute,productAddTowishlist);
+user_router.delete('/product/removeitemWislist/:productId',protectRoute,removeProductFromwishlist);
+module.exports = user_router;  
