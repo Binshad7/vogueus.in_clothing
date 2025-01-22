@@ -1,6 +1,6 @@
-const {imageUploadToCloudinary} = require('../utils/cloudinary')
-const productSchema = require('../models/productSchema'); 
-const {getProducts} = require('../utils/getProducts')
+const {imageUploadToCloudinary} = require('../../utils/cloudinary')
+const productSchema = require('../../models/productSchema'); 
+const {getProducts} = require('../../utils/getProducts')
 
 
   // addProduct
@@ -32,7 +32,7 @@ const {getProducts} = require('../utils/getProducts')
         return res.status(400).json({ success: false, message: 'At least 3 images are required' });
     }
 
-    const existProduct = await productSchema.findOne({ productName });
+    const existProduct = await productSchema.findOne({ productName : { $regex: new RegExp(productName, 'i') } });
     if (existProduct) {
         return res.status(400).json({ success: false, message: 'This Product Name already exists' });
     }
@@ -90,7 +90,6 @@ const updateProductStatus =async (req,res)=>{
     const {proId} = req.params;
     try{
       const Exist_Product = await productSchema.findOne({_id:proId});
-      
       if(!Exist_Product){
         return res.status(400).json({success:false,message:'Product Not Found'})
       }
@@ -116,10 +115,14 @@ const updateProductStatus =async (req,res)=>{
         const { productName, regularPrice, currentPrice, category, subCategory, description, variants,updatedImagesPosstion,oldImages } = req.body;
         try {
             let updatedDetails = {};
-             const Exist_Product = await productSchema.findOne({productName});
-                if(Exist_Product?._id.toString()!==proId){ 
-                    return res.status(400).json({success:false,message:'Product Name already exist'})
-                 }
+            console.log(productName)
+             const Exist_Product = await productSchema.findOne({productName : { $regex: new RegExp(productName, 'i') }});
+             console.log(Exist_Product)
+             if(Exist_Product){
+                 if(   Exist_Product?._id.toString()!==proId){ 
+                     return res.status(400).json({success:false,message:'Product Name already exist'})
+                    }
+                }
                  
              const updatedImgIndex = JSON.parse(updatedImagesPosstion);
              const oldImagesArray = JSON.parse(oldImages);  
@@ -133,7 +136,6 @@ const updateProductStatus =async (req,res)=>{
                 for(let i=0;i<updatedImgIndex.length;i++){
                     oldImagesArray[updatedImgIndex[i]] = uplodedImages[i];
                  }
-                 console.log('after upating with oldImagesArrya ',oldImagesArray);
             }catch(error){
                 console.log(`server side error  ${error.message}`);
                 res.status(500).json({success:false,message:`server side error. you can report this issues   ${error.message}`})
@@ -156,7 +158,7 @@ const updateProductStatus =async (req,res)=>{
             return res.status(400).json({success:false,message:'some thing wrong in update Product'})
         }
         const AllProduct = await getProducts();
-        res.status(200).json({success:true,message:'success fully updated status',product:AllProduct})
+        res.status(200).json({success:true,message:'success fully updated ',product:AllProduct})
         
 
     } catch(error){

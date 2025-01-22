@@ -3,7 +3,6 @@ import { useDispatch, useSelector } from 'react-redux';
 import HeroSection from '../../../components/user/HeroSection'
 import NewArrivals from '../../../components/Sections/NewArrivals'
 import Category from '../../../components/Sections/Categories/Category'
-import Footer from '../../../components/user/Footer'
 import Spinner from '../../../components/user/Spinner'
 import { fetchAllProducts } from '../../../store/middlewares/user/products_handle';
 import Breadcrumb from '../../../components/user/Breadcrumb';

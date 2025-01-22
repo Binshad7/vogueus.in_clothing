@@ -4,6 +4,11 @@ import { useNavigate } from 'react-router-dom';
 const ProductCard = React.memo(({ _id,images, productName, currentPrice, regularPrice }) => {
   const [isHovered, setIsHovered] = useState(false);
   const navigate = useNavigate()
+
+
+  const  addToWishlist = (productID)=>{
+    console.log('Product Added TO wislist',productID)
+  }
   return (
     <div 
       className="relative group w-64 mx-auto"
@@ -28,7 +33,9 @@ const ProductCard = React.memo(({ _id,images, productName, currentPrice, regular
         <div className={`absolute top-4 right-4 transition-transform duration-300 ${
           isHovered ? 'translate-x-0' : 'translate-x-12'
         }`}>
-          <button className="p-2 bg-white rounded-full shadow-lg hover:bg-gray-50 transition-colors">
+          <button
+           onClick={()=>addToWishlist(_id)}
+           className="p-2 bg-white rounded-full shadow-lg hover:bg-gray-50 transition-colors">
             <Heart size={20} className="text-gray-600" />
           </button>
         </div>

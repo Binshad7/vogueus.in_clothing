@@ -1,6 +1,6 @@
 
-const Admin = require('../models/userSchema');
-const generateToken = require('../utils/genarateToken');
+const Admin = require('../../models/userSchema');
+const generateToken = require('../../utils/genarateToken');
 const bcrypt = require('bcrypt');
 // create new user
 const adminLogin = async (req, res) => {

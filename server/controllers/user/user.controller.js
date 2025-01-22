@@ -1,8 +1,8 @@
-const User = require('../models/userSchema');
-const { hashPassword, comparePassword } = require('../utils/bcryptPassowrd');
-const generateToken = require('../utils/genarateToken');
-const sendEmail = require('../utils/nodemailer');
-const sendResetPassowrdMail = require('../utils/resetPasswordMail');
+const User = require('../../models/userSchema');
+const { hashPassword, comparePassword } = require('../../utils/bcryptPassowrd');
+const generateToken = require('../../utils/genarateToken');
+const sendEmail = require('../../utils/nodemailer');
+const sendResetPassowrdMail = require('../../utils/resetPasswordMail');
 // create new user
 
 const register = async (req, res) => {

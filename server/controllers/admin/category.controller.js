@@ -1,7 +1,7 @@
-const category = require('../models/category');
-const subCategory = require('../models/subcategory');
-const product = require('../models/productSchema')
-const fetchCategoriesWithSubcategories = require('../utils/fetchCategoriesWithSubcategories')
+const category = require('../../models/category');
+const subCategory = require('../../models/subcategory');
+const product = require('../../models/productSchema')
+const fetchCategoriesWithSubcategories = require('../../utils/fetchCategoriesWithSubcategories')
 
 
 // fetch Category
