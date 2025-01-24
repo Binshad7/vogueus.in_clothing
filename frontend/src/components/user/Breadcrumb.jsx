@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { ChevronRight, Home, Circle, ExternalLink } from 'lucide-react';
 
-const ModernBreadcrumb = () => {
+const Breadcrumb = () => {
     const { pathname } = useLocation();
     const pathnames = pathname.split('/').filter((x) => x);
     const [hoveredIndex, setHoveredIndex] = useState(null);
@@ -118,4 +118,4 @@ const styleSheet = document.createElement('style');
 styleSheet.textContent = styles;
 document.head.appendChild(styleSheet);
 
-export default ModernBreadcrumb;
+export default Breadcrumb;

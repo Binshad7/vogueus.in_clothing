@@ -28,7 +28,7 @@ const OTP = () => {
       navigate('/login')
       return
     }
-  }, [isAuthenticated,userData])
+  }, [isAuthenticated, userData])
 
 
   // time update
@@ -99,7 +99,10 @@ const OTP = () => {
     console.log(user_Otp)
     demouser.user_Otp = user_Otp
     try {
-      dispatch(userRegister(demouser))
+      const result = await dispatch(userRegister(demouser));
+      if (userRegister.fulfilled.match(result)) {
+        dispatch(clearDemoUser())
+      }
     } catch (error) {
       toast.error('some thing wrong')
     }
@@ -111,7 +114,7 @@ const OTP = () => {
     const userData = JSON.parse(localStorage.getItem('demouser'));
     const newOtp = emailVerification(userData, 'resend');
     console.log(userData)
-    if(newOtp){
+    if (newOtp) {
 
       setTimeLeft(60);
       setIsExpired(false);

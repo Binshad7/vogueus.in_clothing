@@ -1,18 +1,21 @@
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import ProductCard from '../user/ProductCard';
-
-const NewArrivals = ({AllProducts}) => {
+import { useDispatch } from 'react-redux';
+import { fetchwishlist } from '../../store/middlewares/user/wishlist';
+const NewArrivals = ({ AllProducts }) => {
   const [scrollPosition, setScrollPosition] = useState(0);
   const containerRef = React.useRef(null);
-  
+  const dispatch = useDispatch();
 
 
+  useEffect(() => {
+    dispatch(fetchwishlist())
+  }, [dispatch])
 
   const scroll = (direction) => {
     const container = containerRef.current;
-    console.log(container.offsetWidth)
     if (container) {
       const scrollAmount = direction === 'left' ? -container.offsetWidth : container.offsetWidth;
       container.scrollBy({ left: scrollAmount, behavior: 'smooth' });
@@ -54,8 +57,8 @@ const NewArrivals = ({AllProducts}) => {
         className="flex gap-6 overflow-x-auto hide-scrollbar snap-x snap-mandatory"
       >
         {AllProducts.map((product) => (
-          <div key={product._id} className="flex-none snap-start"> 
-          
+          <div key={product._id} className="flex-none snap-start">
+
             <ProductCard {...product} />
           </div>
         ))}

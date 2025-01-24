@@ -6,7 +6,6 @@ const fetchWislist = async (req, res) => {
     const userId = req.user._id;
     try {
         const wishlistProducts = await fetchWishlistProducts(userId);
-        console.log(wishlistProducts)
         return res.status(200).json({ success: true, message: "New wishlist created and product added.", wishlistProducts: JSON.stringify(wishlistProducts.products) })
     } catch (error) {
         console.log(`error in wishlist fetchCategory ${error.message}`);
@@ -21,9 +20,23 @@ const productAddTowishlist = async (req, res) => {
         return res.status(400).json({ success: false, message: "ProductId is requied " })
     }
     try {
-        const productValidation = await productSchema.findOne({ _id: productId });
+        const productValidation = await productSchema.findOne({ _id: productId }).populate({
+            path: 'category',
+            select: 'categoryName isUnlist'
+        })
+            .populate({
+                path: 'subCategory',
+                select: 'subcategories isUnlist subcategoryName'
+            })
+            .lean();
         console.log(productValidation)
         if (productValidation.isBlocked) {
+            return res.status(403).json({ success: false, message: 'This product is blocked and cannot be added or remove to the wishlist.' });
+        }
+        if (productValidation.category.isUnlist) {
+            return res.status(403).json({ success: false, message: 'This product is blocked and cannot be added or remove to the wishlist.' });
+        }
+        if (productValidation.subCategory.isUnlist) {
             return res.status(403).json({ success: false, message: 'This product is blocked and cannot be added or remove to the wishlist.' });
         }
         const userWishlist = await wishlist.findOne({ userId });

@@ -22,7 +22,6 @@ const fetchwishlist = createAsyncThunk(
             const response = await userAxios.get("/product/fetchwishlist");
             return JSON.parse(response?.data?.wishlistProducts);
         } catch (error) {
-            toast.error(error?.response?.data?.message);
             return rejectWithValue(error?.response?.data?.message); // Fixed typo
         }
     }

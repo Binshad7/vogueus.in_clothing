@@ -2,13 +2,10 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { fetchAllProducts } from '../../../store/middlewares/user/products_handle';
-import ProductCard from '../ProductListPage/ProductCard';
-import SectionHeading from '../../../components/Sections/SectionsHeading/SectionHeading';
 import Spinner from '../../../components/user/Spinner';
-import Category from '../../../components/Sections/Categories/Category';
+import { addToCart, GetCart } from '../../../store/middlewares/user/cart';
 import {
   Box,
-  Breadcrumbs,
   Typography,
   Button,
   Paper,
@@ -43,7 +40,10 @@ const ProductDetails = () => {
 
 
   const { AllProducts, loading } = useSelector((state) => state.AllProductManageSlice);
-
+ 
+  useEffect(()=>{
+    dispatch(GetCart())
+  })
 
   useEffect(() => {
     if (!productId) {
@@ -59,17 +59,19 @@ const ProductDetails = () => {
 
   // in here checking that  product already in wishlist
   const { wishlistItems } = useSelector((state) => state.wishlist);
+
   useEffect(() => {
     const existProductInWishlist = wishlistItems?.some((item) =>
       item._id.toString() === productId
     );
     setExistProduct(existProductInWishlist || false);
   }, [wishlistItems, productId]);
+  // fetching the product from AllProducts
   useEffect(() => {
     setPageLoading(true);
     const currentProduct = AllProducts?.find((item) => item?._id === productId);
-    if(!currentProduct){
-      navigate(-1)
+    if (!currentProduct) {
+      // navigate(-1)
       return
     }
     setProduct(currentProduct);
@@ -132,6 +134,15 @@ const ProductDetails = () => {
       setError("Selected size is out of stock");
       return;
     }
+    console.log('user selected size is this ', selectedVariant)
+    console.log('user selected product id ', productId)
+
+
+    dispatch(addToCart({
+      productId,
+      size: selectedVariant.size,
+      quantity: 1
+    }))
 
     // Add to cart logic here
     // addToCart(selectedVariant);

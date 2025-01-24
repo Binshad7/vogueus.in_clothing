@@ -17,7 +17,7 @@ const {
 // auth routes
 user_router.post('/register', register);
 user_router.post('/login', login);
-user_router.get('/logout', protectRoute, logout);
+user_router.post('/logout', protectRoute, logout);
 
 // google auth routes
 
@@ -33,18 +33,25 @@ user_router.get('/refresh', protectRoute, refreshToken)
 
 // /forgot-password
 
-user_router.post('/forgot-password',forgotPassowrd);
+user_router.post('/forgot-password', forgotPassowrd);
 // midleware for token check 
-const {verifyResetToken} = require('../middleware/verifyResetToken ')
-user_router.patch('/reset-passowrd',verifyResetToken,resetPassword);
+const { verifyResetToken } = require('../middleware/verifyResetToken ')
+user_router.patch('/reset-passowrd', verifyResetToken, resetPassword);
 // user products 
-const { getAllProducts } = require('../controllers/user/userProducts.controller');                                   
+const { getAllProducts } = require('../controllers/user/userProducts.controller');
 user_router.get('/product/fetchAllProducts', getAllProducts)
 
 
 // wislist addProduct and delete from the wislist and remove also
-const {productAddTowishlist,removeProductFromwishlist,fetchWislist} = require('../controllers/user/wislist.controller');
-user_router.get('/product/fetchwishlist',protectRoute,fetchWislist);
-user_router.post('/product/wislistManage/:productId',protectRoute,productAddTowishlist);
-user_router.delete('/product/removeitemWislist/:productId',protectRoute,removeProductFromwishlist);
+const { productAddTowishlist, removeProductFromwishlist, fetchWislist } = require('../controllers/user/wislist.controller');
+user_router.get('/product/fetchwishlist', protectRoute, fetchWislist);
+user_router.post('/product/wislistManage/:productId', protectRoute, productAddTowishlist);
+user_router.delete('/product/removeitemWislist/:productId', protectRoute, removeProductFromwishlist);
+
+
+// cart management 
+const { addToCart,deleteItemFromCart,listCart } = require('../controllers/user/cart.controller')
+user_router.post('/product/addToCart', protectRoute, addToCart);
+user_router.delete('/product/removeItemCart',protectRoute,deleteItemFromCart)
+user_router.get('/product/getCartItems',protectRoute,listCart)
 module.exports = user_router;  

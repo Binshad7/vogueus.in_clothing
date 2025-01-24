@@ -4,7 +4,6 @@ import { NavLink, Outlet } from "react-router-dom";
 import { User, ShoppingBag, Settings, LogOut } from "lucide-react";
 import { Box, Typography, List, ListItem, ListItemIcon, ListItemText, Divider, Paper } from "@mui/material";
 import { userLogout } from "../../../store/middlewares/user/user_auth";
-
 const Account = () => {
   const { user } = useSelector((state) => state.user);
   const dispatch = useDispatch();
@@ -27,8 +26,8 @@ const Account = () => {
     },
   ];
 
-  const handleLogout = async () => {
-    const result = await dispatch(userLogout())
+  const handleLogout = () => {
+    dispatch(userLogout());
   };
 
   return (

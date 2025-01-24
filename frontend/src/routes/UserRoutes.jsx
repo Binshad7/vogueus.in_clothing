@@ -15,6 +15,7 @@ import PasswordResetConfirmation from '../pages/user/forgotPassword/PasswordRese
 import NewPassword from '../pages/user/forgotPassword/NewPassword'
 import PasswordSuccess from '../pages/user/forgotPassword/PasswordSuccess'
 import WishlistPage from '../pages/user/wislist/WishlistPage'
+import CartPage from '../pages/user/Cart/CartPage'
 function UserRoutes() {
 
     return (
@@ -42,7 +43,7 @@ function UserRoutes() {
 
                 <Route path='/wishlist' element={<UserProtectedRoute element={<WishlistPage />} />} />
                 {/* 
-                <Route path='/cart-items' element={<Cart />} />
+                <Route path='/cart-items' element={<CartPage />} />
                 <Route path='/support' element={<Support />} />
                 <Route path='/checkout' element={<Checkout />} />
                 <Route path='/orderConfirmed' element={<OrderConfirmed />} /> */}

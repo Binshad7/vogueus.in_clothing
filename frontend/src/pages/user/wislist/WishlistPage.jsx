@@ -29,7 +29,7 @@ const WishlistPage = () => {
 
   const handleDeleteClick = (item) => {
     setSelectedItem(item);
-    setDeleteModal(true);
+    setDeleteModal(true);  
   };
 
   const handleConfirmDelete = () => {
@@ -167,34 +167,45 @@ const WishlistPage = () => {
                 </Typography>
 
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <Typography
-                    sx={{
-                      fontSize: '20px',
-                      fontWeight: 500,
-                      color: '#212121'
-                    }}
-                  >
-                    ₹{item.currentPrice.toLocaleString()}
-                  </Typography>
-                  <Typography
-                    sx={{
-                      fontSize: '14px',
-                      color: '#878787',
-                      textDecoration: 'line-through'
-                    }}
-                  >
-                    ₹{item.regularPrice.toLocaleString()}
-                  </Typography>
-                  <Typography
-                    sx={{
-                      fontSize: '14px',
-                      color: '#388e3c'
-                    }}
-                  >
-                    {Math.round(
-                      ((item.regularPrice - item.currentPrice) / item.regularPrice) * 100
-                    )}% off
-                  </Typography>
+                  {
+
+                    item.currentPrice > 0 ?
+                      (
+                        <div>
+
+                          <Typography
+                            sx={{
+                              fontSize: '14px',
+                              color: '#878787',
+                              textDecoration: 'line-through'
+                            }}
+                          >
+                            ₹{item.regularPrice.toLocaleString()}
+                          </Typography>
+                          <Typography
+                            sx={{
+                              fontSize: '14px',
+                              color: '#388e3c'
+                            }}
+                          >
+                            {Math.round(
+                              ((item.regularPrice - item.currentPrice) / item.regularPrice) * 100
+                            )}% off
+                          </Typography>
+                        </div>
+                      )
+                      :
+                      <Typography
+                        sx={{
+                          fontSize: '20px',
+                          fontWeight: 500,
+                          color: '#212121'
+                        }}
+                      >
+                        ₹{item.regularPrice.toLocaleString()}
+                      </Typography>
+
+                  }
                 </Box>
               </Box>
             </div>

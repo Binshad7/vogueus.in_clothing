@@ -8,8 +8,8 @@ async function getProducts() {
             select: 'categoryName isUnlist'
         })
         .populate({
-            path: 'subCategory', // Changed from 'subcategory' to 'subCategory' to match schema
-            select: 'subcategories isUnlist subcategoryName' // Updated to match subcategory schema fields
+            path: 'subCategory', 
+            select: 'subcategories isUnlist subcategoryName' 
         })
         .lean();
             
