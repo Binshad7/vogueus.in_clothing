@@ -42,8 +42,8 @@ function UserRoutes() {
 
 
                 <Route path='/wishlist' element={<UserProtectedRoute element={<WishlistPage />} />} />
-                {/* 
                 <Route path='/cart-items' element={<CartPage />} />
+                {/* 
                 <Route path='/support' element={<Support />} />
                 <Route path='/checkout' element={<Checkout />} />
                 <Route path='/orderConfirmed' element={<OrderConfirmed />} /> */}

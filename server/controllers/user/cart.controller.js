@@ -9,7 +9,7 @@ const listCart = async (req, res) => {
             return res.status(200).json({ success: false, message: 'Cart is Empty', })
         }
         const CartItems = await fetchCartWithProductDetails(userId)
-        console.log(CartItems)
+        // console.log(CartItems)
         res.status(200).json({ success: true, message: 'Cart items Fetched', CartItems })
     } catch (error) {
         console.log(`error in addToCart  ${error}`);
