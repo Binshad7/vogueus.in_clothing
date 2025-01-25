@@ -40,10 +40,13 @@ const ProductDetails = () => {
 
 
   const { AllProducts, loading } = useSelector((state) => state.AllProductManageSlice);
- 
-  useEffect(()=>{
-    dispatch(GetCart())
-  })
+  const { cart } = useSelector((state) => state.Cart);
+
+  useEffect(() => {
+    if (!cart || cart.length == 0) {
+      dispatch(GetCart());
+    }
+  }, [])
 
   useEffect(() => {
     if (!productId) {
@@ -51,10 +54,11 @@ const ProductDetails = () => {
     }
   })
   useEffect(() => {
-    if (!AllProducts.length) {
+    if (!AllProducts.length && !loading) { // Ensure loading is also considered
       dispatch(fetchAllProducts());
     }
-  }, [AllProducts, dispatch]);
+  }, [AllProducts, dispatch, loading]);
+
 
 
   // in here checking that  product already in wishlist
@@ -64,16 +68,14 @@ const ProductDetails = () => {
     const existProductInWishlist = wishlistItems?.some((item) =>
       item._id.toString() === productId
     );
-    setExistProduct(existProductInWishlist || false);
+    setExistProduct(existProductInWishlist);
   }, [wishlistItems, productId]);
+
   // fetching the product from AllProducts
   useEffect(() => {
     setPageLoading(true);
     const currentProduct = AllProducts?.find((item) => item?._id === productId);
-    if (!currentProduct) {
-      // navigate(-1)
-      return
-    }
+    if (!currentProduct) return; // Return early if the product is not found
     setProduct(currentProduct);
     let relateProduct = AllProducts.filter((item) =>
       item?.category?.categoryName === currentProduct?.category?.categoryName &&
@@ -82,6 +84,7 @@ const ProductDetails = () => {
     setRelatedProducts(relateProduct);
     setPageLoading(false);
   }, [AllProducts, productId]);
+
 
   const demoProduct = {
     id: '1',
@@ -134,24 +137,22 @@ const ProductDetails = () => {
       setError("Selected size is out of stock");
       return;
     }
-    console.log('user selected size is this ', selectedVariant)
-    console.log('user selected product id ', productId)
-
-
     dispatch(addToCart({
       productId,
       size: selectedVariant.size,
       quantity: 1
     }))
-
-    // Add to cart logic here
-    // addToCart(selectedVariant);
-    setError(""); // Clear errors if successfully added
+    setError("");
   };
+
+
+  if (pageLoading || loading) {
+    return <Spinner />;
+  }
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
-      {loading && <Spinner />}
+
 
       {/* Breadcrumb */}
 

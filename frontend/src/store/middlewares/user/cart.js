@@ -8,7 +8,7 @@ const addToCart = createAsyncThunk(
         try {
             const response = await userAxios.post(`/product/addToCart`, { productDetails });
             toast.success(response.data.message)
-            return response.data.CartItems;
+            return JSON.parse(response.data.CartItems);
         } catch (error) {
             toast.error(error?.response?.data?.message)
             return rejectWithValue(error.response?.data || error.message)
@@ -20,9 +20,9 @@ const removeItemFromCart = createAsyncThunk(
     'user/removeItemFromCart',
     async (productId, { rejectWithValue }) => {
         try {
-            const response = await userAxios.delete(`/product/${productId}`);
+            const response = await userAxios.delete(`/product/removeItemCart/${productId}`);
             toast.success(response.data.message)
-            return response.data.CartItems;
+            return JSON.parse(response.data.CartItems);
         } catch (error) {
             toast.error(error?.response?.data?.message)
             return rejectWithValue(error.response?.data || error.message)
@@ -34,7 +34,7 @@ const GetCart = createAsyncThunk(
     async (_, { rejectWithValue }) => {
         try {
             const response = await userAxios.get('/product/getCartItems');
-            return response.data.CartItems;
+            return JSON.parse(response.data.CartItems);
         } catch (error) {
             return rejectWithValue(error.response?.data || error.message)
         }

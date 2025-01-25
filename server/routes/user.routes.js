@@ -52,6 +52,6 @@ user_router.delete('/product/removeitemWislist/:productId', protectRoute, remove
 // cart management 
 const { addToCart,deleteItemFromCart,listCart } = require('../controllers/user/cart.controller')
 user_router.post('/product/addToCart', protectRoute, addToCart);
-user_router.delete('/product/removeItemCart',protectRoute,deleteItemFromCart)
+user_router.delete('/product/removeItemCart/:productId',protectRoute,deleteItemFromCart)
 user_router.get('/product/getCartItems',protectRoute,listCart)
 module.exports = user_router;  

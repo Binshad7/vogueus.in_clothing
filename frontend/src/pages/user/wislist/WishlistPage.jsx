@@ -29,7 +29,7 @@ const WishlistPage = () => {
 
   const handleDeleteClick = (item) => {
     setSelectedItem(item);
-    setDeleteModal(true);  
+    setDeleteModal(true);
   };
 
   const handleConfirmDelete = () => {
@@ -181,6 +181,17 @@ const WishlistPage = () => {
                             }}
                           >
                             ₹{item.regularPrice.toLocaleString()}
+
+                          </Typography>
+                          <Typography
+                            sx={{
+                              fontSize: '20px',
+                              fontWeight: 500,
+                              color: '#212121'
+                            }}
+                          >
+
+                            ₹{item.currentPrice.toLocaleString()}
                           </Typography>
                           <Typography
                             sx={{
@@ -202,6 +213,7 @@ const WishlistPage = () => {
                           color: '#212121'
                         }}
                       >
+
                         ₹{item.regularPrice.toLocaleString()}
                       </Typography>
 

@@ -16,7 +16,7 @@ const GetCart = async (userId) => {
 const fetchCartWithProductDetails = async (userId) => {
     try {
         const userCart = await cartSchema.aggregate([
-            { $match: { userId:new mongoose.Types.ObjectId(userId) } }, // Ensure userId is an ObjectId
+            { $match: { userId: new mongoose.Types.ObjectId(userId) } }, // Ensure userId is an ObjectId
             { $unwind: "$items" },
             {
                 $lookup: {
@@ -69,6 +69,7 @@ const fetchCartWithProductDetails = async (userId) => {
                     _id: 1,
                     "items.size": 1,
                     "items.quantity": 1,
+                    "items._id": 1,
                     "productDetails._id": 1,
                     "productDetails.productName": 1,
                     "productDetails.currentPrice": 1,
@@ -82,9 +83,10 @@ const fetchCartWithProductDetails = async (userId) => {
         // Transform the data to fit the required structure
         const userCartModify = userCart.map((item) => ({
             itemDetails: {
-                _id:item._id,
+                _id: item._id,
                 size: item.items.size,
                 quantity: item.items.quantity,
+                cartItemsId:item.items._id
             },
             productDetails: {
                 productId: item.productDetails._id,
@@ -96,7 +98,6 @@ const fetchCartWithProductDetails = async (userId) => {
                 stock: item.productDetails.variants[0]?.stock,
             },
         }));
-
         return userCartModify;
     } catch (error) {
         console.error(`Error fetching cart details for user ${userId}: ${error.message}`);

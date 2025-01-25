@@ -2,14 +2,12 @@ import React, { useContext, useEffect, useState } from 'react';
 import { Home, Package, ShoppingCart, Users, Settings, ChevronDown, Menu } from 'lucide-react';
 import { SideBarContext } from '../../../../context/SideBarContext';
 import { useNavigate } from 'react-router-dom';
-
 const Sidebar = ({ }) => {
   // Use an object to track open/closed state of all submenus
   const [openMenus, setOpenMenus] = useState({});
   const [activeMenuItem, setActiveMenuItem] = useState('/');
   const { isToogle, updateToogle } = useContext(SideBarContext);
   const navigate = useNavigate();
-
   useEffect(() => {
     navigate(`/admin${activeMenuItem}`);
   }, [activeMenuItem]);
@@ -67,6 +65,7 @@ const Sidebar = ({ }) => {
       className={`bg-white min-h-screen fixed border-r transition-all ${isToogle ? 'w-64' : 'w-16'
         }`}
     >
+
       <nav className="p-4">
         {/* Toggle Button */}
         <button
