@@ -7,6 +7,7 @@ import { GetCart, removeItemFromCart } from '../../../store/middlewares/user/car
 
 const CartPage = () => {
   const { cart, loading } = useSelector((state) => state.Cart);
+  const [cartItems,setCartItems] = useState([])
   const dispatch = useDispatch();
   const [orderSummary, setOrderSummary] = useState({
     subtotal: 0,
@@ -15,41 +16,38 @@ const CartPage = () => {
   });
 
   useEffect(() => {
-    if (!cart) {
-      dispatch(GetCart());
-    }
-  }, [cart, dispatch]);
+    dispatch(GetCart());
+  }, [dispatch]);
+  const calculateOrderSummary = () => {
+    let subtotal = 0;
+    let shipping = 0;
 
+    cart.forEach((item) => {
+      const price =
+        item.productDetails.currentPrice > 0
+          ? item.productDetails.currentPrice
+          : item.productDetails.regularPrice;
 
-  const [quantities, setQuantities] = useState({})
-  useEffect(() => {
-    const newQuantities = cart?.reduce((acc, item) => ({ ...acc, [item.itemDetails.size]: item.itemDetails.quantity }), {});
-    setQuantities(newQuantities);
-  }, [cart]);
-
-
-  useEffect(() => {
-    const subtotal = cart?.reduce((sum, item) => sum + (item.productDetails.currentPrice * quantities[item.itemDetails.size] || 0), 0);
-    const shipping = subtotal > 100 ? 0 : 5.00;
-    const total = subtotal + shipping;
+      subtotal += price * item.itemDetails.quantity;
+      shipping += price > 500 ? 0 : 20;
+    });
 
     setOrderSummary({
-      subtotal: subtotal,
-      shipping: shipping,
-      total: total
+      subtotal,
+      shipping,
+      total: subtotal + shipping
     });
-  }, [cart, quantities]);
-
-  const handleQuantityChange = (item, operation) => {
-    const updatedQuantities = { ...quantities };
-    if (operation === 'increment') {
-      updatedQuantities[item.itemDetails.size] = updatedQuantities[item.itemDetails.size] + 1;
-    } else if (operation === 'decrement' && updatedQuantities[item.itemDetails.size] > 1) {
-      updatedQuantities[item.itemDetails.size] = updatedQuantities[item.itemDetails.size] - 1;
-    }
-    setQuantities(updatedQuantities);
   };
+  useEffect(() => {
+    if (!cart || cart.length === 0) return;
+    setCartItems(cart)
+    calculateOrderSummary();
+  }, [cart]);
 
+  const handleQuantityChange = (item, operation, i) => {
+    console.log(cart[i])
+    console.log(`${operation} quantity for`, item);
+  };
 
   const removeFromCart = (id) => {
     dispatch(removeItemFromCart(id));
@@ -84,43 +82,51 @@ const CartPage = () => {
               </tr>
             </thead>
             <tbody>
-              {cart?.map((item, i) => (
-                <tr key={item.productDetails.productId + i} className="border-b">
+              {cartItems?.map((item, i) => (
+                <tr key={item?.itemDetails?.cartItemsId} className="border-b">
                   <td className="py-4 flex items-center gap-4">
                     <img
-                      src={item.productDetails.image}
-                      alt={item.productDetails.productName}
+                      src={item?.productDetails?.image}
+                      alt={item?.productDetails?.productName}
                       className="w-16 h-16 rounded object-cover"
                     />
                     <div>
-                      <h3 className="font-semibold">{item.productDetails.productName}</h3>
-                      <p className="text-sm text-gray-500">
-                        Size: {item.itemDetails.size}
-                      </p>
+                      <h3 className="font-semibold">{item?.productDetails?.productName}</h3>
+                      <p className="text-sm text-gray-500">Size: {item?.itemDetails?.size}</p>
                     </div>
                   </td>
-                  <td className="py-4">₹{item.productDetails.currentPrice.toFixed(2)}</td>
+                  <td className="py-4">
+                    ₹
+                    {(item.productDetails.currentPrice > 0
+                      ? item.productDetails.currentPrice
+                      : item.productDetails.regularPrice
+                    ).toFixed(2)}
+                  </td>
                   <td className="py-4">
                     <div className="flex items-center">
                       <IconButton
-                        onClick={() => handleQuantityChange(item, 'decrement')}
-                        disabled={quantities[item.itemDetails.size] === 1}
+                        onClick={() => handleQuantityChange(item, 'decrement', i)}
+                        disabled={item?.itemDetails?.quantity === 1}
                       >
                         <Minus size={20} />
                       </IconButton>
-                      <span className="mx-2 font-medium">{quantities[item.itemDetails.size]}</span>
+                      <span className="mx-2 font-medium">{item?.itemDetails?.quantity}</span>
                       <IconButton
-                        onClick={() => handleQuantityChange(item, 'increment')}
+                        onClick={() => handleQuantityChange(item, 'increment', i)}
+                        disabled={item?.itemDetails?.quantity === item?.productDetails?.stock}
                       >
                         <Plus size={20} />
                       </IconButton>
                     </div>
                   </td>
-                  <td className="py-4 text-green-500">
-                    {item.productDetails.currentPrice > 100 ? 'FREE' : `₹${orderSummary.shipping.toFixed(2)}`}
-                  </td>
+                  <td className="py-4 text-green-500">FREE</td>
                   <td className="py-4 font-medium">
-                    ₹{((item.productDetails.currentPrice * quantities[item.itemDetails.size]) + (item.productDetails.currentPrice > 100 ? 0 : orderSummary.shipping)).toFixed(2)}
+                    ₹
+                    {(
+                      (item.productDetails.currentPrice > 0
+                        ? item.productDetails.currentPrice
+                        : item.productDetails.regularPrice) * item.itemDetails.quantity
+                    ).toFixed(2)}
                   </td>
                   <td className="py-4">
                     <IconButton onClick={() => removeFromCart(item.itemDetails.cartItemsId)}>
@@ -140,12 +146,7 @@ const CartPage = () => {
                 placeholder="Enter your coupon code if you have one"
                 className="w-full border px-4 py-2 rounded mb-4"
               />
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={applyCoupon}
-                className="w-full"
-              >
+              <Button variant="contained" color="primary" onClick={applyCoupon} className="w-full">
                 Apply Coupon
               </Button>
             </div>
@@ -164,11 +165,7 @@ const CartPage = () => {
                 <span>Grand Total:</span>
                 <span>₹{orderSummary.total.toFixed(2)}</span>
               </div>
-              <Button
-                variant="contained"
-                color="primary"
-                className="w-full mt-4 bg-black"
-              >
+              <Button variant="contained" color="primary" className="w-full mt-4 bg-black">
                 Checkout
               </Button>
             </div>
