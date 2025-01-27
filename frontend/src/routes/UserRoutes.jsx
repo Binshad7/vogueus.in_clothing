@@ -5,7 +5,6 @@ import Login from '../pages/user/Login/Login'
 import Register from '../pages/user/Register/Register'
 import Home from '../pages/user/Home/Home'
 import Navigation from '../components/user/Navigation'
-import Account from '../pages/user/Account/Account'
 import OTPVerification from '../pages/user/OTP/OTPVerification'
 import ProductDetails from '../pages/user/ProductDetailPage/ProductDetails'
 import Footer from '../components/user/Footer'
@@ -16,6 +15,11 @@ import NewPassword from '../pages/user/forgotPassword/NewPassword'
 import PasswordSuccess from '../pages/user/forgotPassword/PasswordSuccess'
 import WishlistPage from '../pages/user/wislist/WishlistPage'
 import CartPage from '../pages/user/Cart/CartPage'
+import AccountLayout from '../pages/user/Account/AccountLayout'
+import AddAddress from '../pages/user/Account/AddAddress'
+import Orders from '../pages/user/Account/Orders'
+import Settings from '../pages/user/Account/Settings'
+import Profile from '../pages/user/Account/Profile'
 function UserRoutes() {
 
     return (
@@ -28,16 +32,25 @@ function UserRoutes() {
                 <Route path='/about' element={<About />} />
                 <Route path='/contact' element={<Contact />} />
                 */}
+                {/* product Detail page */}
                 <Route path='/product/:productId' element={<ProductDetails />} />
 
+                {/* User Profile pages */}
+                {/* User Profile pages */}
+                <Route path='/account-details' element={<AccountLayout />}>
+                    <Route index element={<UserProtectedRoute element={<Profile />} />} />
+                    <Route path="profile" element={<UserProtectedRoute element={<Profile />} />} />
+                    <Route path="orders" element={<UserProtectedRoute element={<Orders />} />} />
+                    <Route path="address" element={<UserProtectedRoute element={<AddAddress />} />} />
+                    <Route path="settings" element={<UserProtectedRoute element={<Settings />} />} />
+                </Route>
+
+
                 {/* Protected Route */}
-                <Route path='/account-details/profile' element={<UserProtectedRoute element={<Account />} />} />
-                {/* <Route path='/orders' element={   <UserProtectedRoute element={<Orders />}/>} />
+                {/* 
                 <Route path='/order/:orderId' element={ <UserProtectedRoute element={<Order />}/>} />
-                <Route path='/address' element={<UserProtectedRoute element={<Address />}/>} />
                 <Route path='/wallet' element={<UserProtectedRoute element={<Wallet/>} />} />
                 <Route path='/Coupons' element={<UserProtectedRoute element={<Coupons />}/>} />
-                <Route path='/settings' element={<Settings />} /> */}
                 {/*  */}
 
 
@@ -47,6 +60,8 @@ function UserRoutes() {
                 <Route path='/support' element={<Support />} />
                 <Route path='/checkout' element={<Checkout />} />
                 <Route path='/orderConfirmed' element={<OrderConfirmed />} /> */}
+
+
                 {/* register and login  */}
 
                 <Route path='/login' element={<Login />} />
@@ -56,10 +71,8 @@ function UserRoutes() {
                 <Route path='/PasswordResetConfirmation' element={<PasswordResetConfirmation />} />
                 <Route path='/reset-password' element={<NewPassword />} />
                 <Route path='/passwordChangeSuccess' element={<PasswordSuccess />} />
-                {/*
-                <Route path='/reset-password' element={<ResetPassword />} /> */}
 
-                {/* <Route path='*' element={<NotFound />} /> */}
+
             </Routes>
             <Footer />
         </>

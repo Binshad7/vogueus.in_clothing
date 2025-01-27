@@ -54,5 +54,5 @@ const { addToCart, deleteItemFromCart, listCart, quantityChangeHandle } = requir
 user_router.post('/product/addToCart', protectRoute, addToCart);
 user_router.delete('/product/removeItemCart/:productId', protectRoute, deleteItemFromCart)
 user_router.get('/product/getCartItems', protectRoute, listCart)
-user_router.patch('/product/cartitemQuantityHandle', protectRoute, quantityChangeHandle)
+user_router.patch('/product/cartitemQuantityHandle/:cartId', protectRoute, quantityChangeHandle)
 module.exports = user_router;  

@@ -36,13 +36,28 @@ const GetCart = createAsyncThunk(
             const response = await userAxios.get('/product/getCartItems');
             return JSON.parse(response.data.CartItems);
         } catch (error) {
-            return rejectWithValue(error.response?.data || error.message)
+            return rejectWithValue(error.response?.data || error.messalge)
         }
     }
 );
+const handleQuantityChange = createAsyncThunk(
+    'user/cartQuantityChange',
+    async (updatingData, { rejectWithValue }) => {
+        try {
+            console.log('updating the cart', updatingData)
+            const response = await userAxios.patch(`/product/cartitemQuantityHandle/${updatingData.cartId}`, { operation: updatingData.operation, quantity: updatingData.quantity });
+            toast.success(response.data.message);
+            return response.data.updatedCart
+        } catch (error) {
+            toast.error(error?.response?.data?.message)
+            return rejectWithValue(error.response?.data || error.message)
+        }
+    }
+)
 
 export {
     addToCart,
     removeItemFromCart,
-    GetCart
+    GetCart,
+    handleQuantityChange
 }

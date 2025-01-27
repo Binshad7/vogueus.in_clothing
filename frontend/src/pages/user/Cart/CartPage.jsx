@@ -1,13 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardHeader, CardContent, Button, IconButton } from '@mui/material';
+import { Button, IconButton } from '@mui/material';
 import { Trash2, Plus, Minus } from 'lucide-react';
 import { useSelector, useDispatch } from 'react-redux';
 import Spinner from '../../../components/user/Spinner';
-import { GetCart, removeItemFromCart } from '../../../store/middlewares/user/cart';
+import {useNavigate} from 'react-router-dom'
+import { GetCart, removeItemFromCart, handleQuantityChange } from '../../../store/middlewares/user/cart';
+import { toast } from 'react-toastify';
 
 const CartPage = () => {
+  const navigate = useNavigate()
   const { cart, loading } = useSelector((state) => state.Cart);
-  const [cartItems,setCartItems] = useState([])
+  const [cartItems, setCartItems] = useState([])
   const dispatch = useDispatch();
   const [orderSummary, setOrderSummary] = useState({
     subtotal: 0,
@@ -44,9 +47,26 @@ const CartPage = () => {
     calculateOrderSummary();
   }, [cart]);
 
-  const handleQuantityChange = (item, operation, i) => {
-    console.log(cart[i])
-    console.log(`${operation} quantity for`, item);
+  const handleQuantity = (item, operation) => {
+    if (operation == 'increment') {
+      if (item?.itemDetails?.quantity + 1 > 5) {
+        toast.error('Maximum Quantity is  5 ');
+        return
+      }
+      if (item?.itemDetails?.quantity + 1 > item?.productDetails?.stock) {
+        console.log(item?.itemDetails?.quantity + 1, item?.productDetails?.stock)
+        toast.error('Stock is not Enough');
+        return
+      }
+      dispatch(handleQuantityChange({ cartId: item?.itemDetails?.cartItemsId, operation, quantity: item?.itemDetails?.quantity }))
+    }
+    if (operation == 'decrement') {
+      if (item?.itemDetails?.quantity - 1 < 1) {
+        toast.error('Quantity is  must be greter then 0');
+        return
+      }
+      dispatch(handleQuantityChange({ cartId: item?.itemDetails?.cartItemsId, operation, quantity: item?.itemDetails?.quantity }))
+    }
   };
 
   const removeFromCart = (id) => {
@@ -84,7 +104,9 @@ const CartPage = () => {
             <tbody>
               {cartItems?.map((item, i) => (
                 <tr key={item?.itemDetails?.cartItemsId} className="border-b">
-                  <td className="py-4 flex items-center gap-4">
+                  <td className="py-4 flex items-center gap-4"
+                    onClick={() => navigate(`/product/${item.productDetails.productId}`)}
+                  >
                     <img
                       src={item?.productDetails?.image}
                       alt={item?.productDetails?.productName}
@@ -105,15 +127,16 @@ const CartPage = () => {
                   <td className="py-4">
                     <div className="flex items-center">
                       <IconButton
-                        onClick={() => handleQuantityChange(item, 'decrement', i)}
+                        onClick={() => handleQuantity(item, 'decrement', i)}
                         disabled={item?.itemDetails?.quantity === 1}
                       >
                         <Minus size={20} />
                       </IconButton>
                       <span className="mx-2 font-medium">{item?.itemDetails?.quantity}</span>
                       <IconButton
-                        onClick={() => handleQuantityChange(item, 'increment', i)}
+                        onClick={() => handleQuantity(item, 'increment', i)}
                         disabled={item?.itemDetails?.quantity === item?.productDetails?.stock}
+                        className={item?.itemDetails?.quantity === item?.productDetails?.stock ? 'cursor-not-allowed' : ''}
                       >
                         <Plus size={20} />
                       </IconButton>

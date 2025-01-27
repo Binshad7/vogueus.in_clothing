@@ -96,9 +96,6 @@ const Sidebar = ({ }) => {
                 </div>
                 {item.submenu && isToogle && (
                   <ChevronDown
-                    onClick={() => {
-                      console.log('clicked')
-                    }}
                     className={`h-4 w-4  transition-transform ${openMenus[item.path] ? 'transform rotate-180 ' : ''
                       }`}
                   />

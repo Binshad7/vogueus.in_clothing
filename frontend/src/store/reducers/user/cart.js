@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { addToCart, removeItemFromCart, GetCart } from '../../middlewares/user/cart'
+import { addToCart, removeItemFromCart, GetCart, handleQuantityChange } from '../../middlewares/user/cart'
 import { userLogout } from '../../middlewares/user/user_auth'
 
 const initialState = {
@@ -37,6 +37,15 @@ const Cart = createSlice({
             .addCase(GetCart.pending, handlePendding)
             .addCase(GetCart.fulfilled, handleFulfiled)
             .addCase(GetCart.rejected, handleRejected)
+            // getCart quantity
+            .addCase(handleQuantityChange.pending, handlePendding)
+            .addCase(handleQuantityChange.fulfilled, (state, action) => {
+                const updateItemIndex = state.cart.findIndex((item)=>item?.itemDetails?.cartItemsId == action.payload._id)
+                console.log(updateItemIndex)
+                state.cart[updateItemIndex].itemDetails.quantity = action.payload.quantity 
+                state.loading = false;
+            })
+            .addCase(handleQuantityChange.rejected, handleRejected)
 
             // when user logot then clear the Cart
             .addCase(userLogout.fulfilled, (state) => {

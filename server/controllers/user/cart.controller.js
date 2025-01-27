@@ -66,14 +66,12 @@ const deleteItemFromCart = async (req, res) => {
 }
 const quantityChangeHandle = async (req, res) => {
     const userId = req.user._id;
-    const { action, cartId, quantity } = req.body;
-
+    const { operation, quantity } = req.body;
+    const { cartId } = req.params
     try {
-        if (!mongoose.Types.ObjectId.isValid(cartId)) {
-            return res.status(400).json({ success: false, message: "Invalid cart ID" });
-        }
-        if (!['increment', 'decrement'].includes(action)) {
-            return res.status(400).json({ success: false, message: "Invalid action" });
+        console.log("hit the  quantityChangeHandle ");
+        if (!['increment', 'decrement'].includes(operation)) {
+            return res.status(400).json({ success: false, message: "Invalid operation" });
         }
         if (quantity < 1) {
             return res.status(400).json({ success: false, message: "Quantity must be greater than 0" });
@@ -90,7 +88,7 @@ const quantityChangeHandle = async (req, res) => {
 
         const stock = productStock.items[0].stock;
 
-        if (action === 'increment') {
+        if (operation === 'increment') {
             if (quantity > stock) {
                 return res.status(400).json({ success: false, message: 'Stock is not enough' });
             }
@@ -99,18 +97,26 @@ const quantityChangeHandle = async (req, res) => {
                 { userId, 'items._id': cartId },
                 { $inc: { 'items.$.quantity': 1 } }
             );
-
+            const updatedValue = await cartSchema.findOne(
+                { userId, 'items._id': cartId },
+                { 'items.$': 1 }
+            );
+            console.log(updatedValue.items[0])
             if (updated.modifiedCount === 1) {
-                return res.status(200).json({ success: true, message: "Product quantity increased" });
+                return res.status(200).json({ success: true, message: "Product quantity increased", updatedCart: updatedValue.items[0] });
             }
-        } else if (action === 'decrement') {
+        } else if (operation === 'decrement') {
             const updated = await cartSchema.updateOne(
                 { userId, 'items._id': cartId },
                 { $inc: { 'items.$.quantity': -1 } }
             );
 
             if (updated.modifiedCount === 1) {
-                return res.status(200).json({ success: true, message: "Product quantity decreased" });
+                const updatedValue = await cartSchema.findOne(
+                    { userId, 'items._id': cartId },
+                    { 'items.$': 1 }
+                ); 
+                return res.status(200).json({ success: true, message: "Product quantity decreased", updatedCart: updatedValue.items[0] });
             }
         }
 
