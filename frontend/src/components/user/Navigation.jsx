@@ -21,7 +21,7 @@ const Navigation = () => {
   }, [cart]);
 
   // Memoize cart length to avoid unnecessary re-renders
-const cartCount = useMemo(() => (cart ? cart.length : 0), [cart]);
+  const cartCount = useMemo(() => (cart ? cart.length : 0), [cart]);
 
   return (
     <nav className="flex items-center py-6 px-16 justify-between gap-20 custom-nav">

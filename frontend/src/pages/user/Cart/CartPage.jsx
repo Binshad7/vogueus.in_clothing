@@ -32,7 +32,7 @@ const CartPage = () => {
           : item.productDetails.regularPrice;
 
       subtotal += price * item.itemDetails.quantity;
-      shipping += price > 500 ? 0 : 20;
+      shipping += price > 500 ? 0 : 5;
     });
 
     setOrderSummary({

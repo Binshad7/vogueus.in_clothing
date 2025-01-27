@@ -1,5 +1,26 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import moment from 'moment';
+import {
+  Box,
+  Card,
+  CardContent,
+  Typography,
+  Select,
+  MenuItem,
+  Grid,
+  Chip,
+  Button,
+  Collapse,
+  Divider,
+  FormControl
+} from '@mui/material';
+import {
+  Calendar,
+  Truck,
+  Package,
+  ChevronDown,
+  ChevronUp
+} from 'lucide-react';
 
 const Orders = () => {
   const [selectedFilter, setSelectedFilter] = useState('ACTIVE');
@@ -21,11 +42,7 @@ const Orders = () => {
             name: 'Wireless Mouse',
             price: 25.0,
             slug: 'wireless-mouse',
-            resources: [
-              {
-                url: 'https://via.placeholder.com/120',
-              },
-            ],
+            resources: [{ url: 'https://via.placeholder.com/120' }],
           },
         },
         {
@@ -35,11 +52,7 @@ const Orders = () => {
             name: 'Gaming Keyboard',
             price: 49.99,
             slug: 'gaming-keyboard',
-            resources: [
-              {
-                url: 'https://via.placeholder.com/120',
-              },
-            ],
+            resources: [{ url: 'https://via.placeholder.com/120' }],
           },
         },
       ],
@@ -57,11 +70,7 @@ const Orders = () => {
             name: 'Bluetooth Speaker',
             price: 75.0,
             slug: 'bluetooth-speaker',
-            resources: [
-              {
-                url: 'https://via.placeholder.com/120',
-              },
-            ],
+            resources: [{ url: 'https://via.placeholder.com/120' }],
           },
         },
         {
@@ -71,11 +80,7 @@ const Orders = () => {
             name: 'HDMI Cable',
             price: 25.0,
             slug: 'hdmi-cable',
-            resources: [
-              {
-                url: 'https://via.placeholder.com/120',
-              },
-            ],
+            resources: [{ url: 'https://via.placeholder.com/120' }],
           },
         },
       ],
@@ -108,89 +113,122 @@ const Orders = () => {
     setOrders(displayOrders);
   }, []);
 
-  const handleOnChange = useCallback((evt) => {
-    const value = evt.target.value;
-    setSelectedFilter(value);
+  const handleOnChange = useCallback((event) => {
+    setSelectedFilter(event.target.value);
   }, []);
 
-  return (
-    <div>
-      {orders.length > 0 && (
-        <div className="md:w-[70%] w-full">
-          <div className="flex justify-between">
-            <h1 className="text-2xl mb-4">My Orders</h1>
-            <select
-              className="border-2 rounded-lg mb-4 p-2"
-              value={selectedFilter}
-              onChange={handleOnChange}
-            >
-              <option value={"ACTIVE"}>Active</option>
-              <option value={"CANCELLED"}>Cancelled</option>
-              <option value={"COMPLETED"}>Completed</option>
-            </select>
-          </div>
-          {orders.map((order, index) => {
-            return (
-              order.status === selectedFilter && (
-                <div key={index}>
-                  <div className="bg-gray-200 p-4 mb-8">
-                    <p className="text-lg font-bold">Order no. #{order.id}</p>
-                    <div className="flex justify-between mt-2">
-                      <div className="flex flex-col text-gray-500 text-sm">
-                        <p>
-                          Order Date : {moment(order.orderDate).format('MMMM DD YYYY')}
-                        </p>
-                        <p>
-                          Expected Delivery Date: {moment(order.orderDate)
-                            .add(3, 'days')
-                            .format('MMMM DD YYYY')}
-                        </p>
-                      </div>
-                      <div className="flex flex-col text-gray-500 text-sm">
-                        <p>Order Status : {order.orderStatus}</p>
-                        <button
-                          onClick={() => setSelectedOrder(order.id)}
-                          className="text-blue-900 text-right rounded underline cursor-pointer"
-                        >
-                          View Details
-                        </button>
-                      </div>
-                    </div>
-                  </div>
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'PENDING':
+        return 'warning';
+      case 'DELIVERED':
+        return 'success';
+      case 'SHIPPED':
+        return 'info';
+      default:
+        return 'default';
+    }
+  };
 
-                  {selectedOrder === order.id && (
-                    <div>
-                      {order.items.map((orderItem, index) => (
-                        <div key={index} className="flex gap-4">
-                          <img
-                            src={orderItem.url}
-                            alt={orderItem.name}
-                            className="w-[120px] h-[120px] object-cover m-2 rounded"
-                          />
-                          <div className="flex flex-col text-sm py-2 text-gray-600">
-                            <p>{orderItem.name || 'Name'}</p>
-                            <p>Quantity {orderItem.quantity}</p>
-                          </div>
-                        </div>
-                      ))}
-                      <div className="flex justify-between">
-                        <p>Total : ${order.totalAmount}</p>
-                        <button
-                          onClick={() => setSelectedOrder('')}
-                          className="text-blue-900 text-right rounded underline cursor-pointer"
-                        >
-                          Hide Details
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )
-            );
-          })}
-        </div>
-      )}
-    </div>
+  return (
+    <Box sx={{ maxWidth: 1200, margin: '0 auto', p: 3 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+        <Typography variant="h5" component="h1">
+          My Orders
+        </Typography>
+        <FormControl sx={{ minWidth: 120 }}>
+          <Select
+            value={selectedFilter}
+            onChange={handleOnChange}
+            size="small"
+          >
+            <MenuItem value="ACTIVE">Active</MenuItem>
+            <MenuItem value="CANCELLED">Cancelled</MenuItem>
+            <MenuItem value="COMPLETED">Completed</MenuItem>
+          </Select>
+        </FormControl>
+      </Box>
+
+      {orders.map((order, index) => (
+        order.status === selectedFilter && (
+          <Card key={index} sx={{ mb: 2 }}>
+            <CardContent>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                <Typography variant="h6">
+                  Order #{order.id}
+                </Typography>
+                <Chip 
+                  label={order.orderStatus}
+                  color={getStatusColor(order.orderStatus)}
+                  size="small"
+                />
+              </Box>
+
+              <Grid container spacing={2}>
+                <Grid item xs={12} md={6}>
+                  <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                    <Calendar size={16} />
+                    <Typography variant="body2" color="text.secondary">
+                      Ordered on {moment(order.orderDate).format('MMMM DD YYYY')}
+                    </Typography>
+                  </Box>
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                    <Truck size={16} />
+                    <Typography variant="body2" color="text.secondary">
+                      Expected by {moment(order.orderDate).add(3, 'days').format('MMMM DD YYYY')}
+                    </Typography>
+                  </Box>
+                </Grid>
+              </Grid>
+
+              <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
+                <Button
+                  variant="text"
+                  onClick={() => setSelectedOrder(selectedOrder === order.id ? '' : order.id)}
+                  endIcon={selectedOrder === order.id ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                >
+                  {selectedOrder === order.id ? 'Hide Details' : 'View Details'}
+                </Button>
+              </Box>
+
+              <Collapse in={selectedOrder === order.id}>
+                <Divider sx={{ my: 2 }} />
+                {order.items.map((item, idx) => (
+                  <Box key={idx} sx={{ display: 'flex', gap: 2, mb: 2 }}>
+                    <img
+                      src={item.url}
+                      alt={item.name}
+                      style={{
+                        width: 120,
+                        height: 120,
+                        objectFit: 'cover',
+                        borderRadius: 8
+                      }}
+                    />
+                    <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                      <Typography variant="subtitle1">{item.name}</Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        Quantity: {item.quantity}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        Price: ${item.price}
+                      </Typography>
+                    </Box>
+                  </Box>
+                ))}
+                <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
+                  <Typography variant="h6">
+                    Total: ${order.totalAmount}
+                  </Typography>
+                </Box>
+              </Collapse>
+            </CardContent>
+          </Card>
+        )
+      ))}
+    </Box>
   );
 };
 

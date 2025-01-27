@@ -34,7 +34,7 @@ const addToCart = async (req, res) => {
         }
 
         Exist_cart?.items?.push({ productId, size, quantity });
-        Exist_cart?.save();
+        await Exist_cart?.save();
         const CartItems = await fetchCartWithProductDetails(userId)
         console.log(CartItems.length)
         return res.status(200).json({ success: true, message: 'product Added To Cart', CartItems: JSON.stringify(CartItems) })
@@ -115,7 +115,7 @@ const quantityChangeHandle = async (req, res) => {
                 const updatedValue = await cartSchema.findOne(
                     { userId, 'items._id': cartId },
                     { 'items.$': 1 }
-                ); 
+                );
                 return res.status(200).json({ success: true, message: "Product quantity decreased", updatedCart: updatedValue.items[0] });
             }
         }

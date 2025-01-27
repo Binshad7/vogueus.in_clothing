@@ -46,7 +46,7 @@ const handleQuantityChange = createAsyncThunk(
         try {
             console.log('updating the cart', updatingData)
             const response = await userAxios.patch(`/product/cartitemQuantityHandle/${updatingData.cartId}`, { operation: updatingData.operation, quantity: updatingData.quantity });
-            toast.success(response.data.message);
+            // toast.success(response.data.message);
             return response.data.updatedCart
         } catch (error) {
             toast.error(error?.response?.data?.message)
