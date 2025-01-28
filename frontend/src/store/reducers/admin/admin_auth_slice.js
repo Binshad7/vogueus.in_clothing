@@ -1,10 +1,10 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { adminLogin,  adminRefresh } from "../../middlewares/admin/admin_auth";
+import { adminLogin, adminRefresh, adminLogout } from "../../middlewares/admin/admin_auth";
 
 const handlePending = (state) => {
     state.loading = true
 }
-const handleFulfilled = (state,action) => {
+const handleFulfilled = (state, action) => {
     state.loading = false;
     state.admin = action.payload;
     state.isAuthenticated = true
@@ -34,6 +34,12 @@ const adminAuthSlice = createSlice({
             .addCase(adminRefresh.pending, handlePending)
             .addCase(adminRefresh.fulfilled, handleFulfilled)
             .addCase(adminRefresh.rejected, handleReject)
+
+            .addCase(adminLogout.fulfilled, (state) => {
+                state.admin = null;
+                state.isAuthenticated = false;
+                state.loading = false
+            })
     }
 })
 

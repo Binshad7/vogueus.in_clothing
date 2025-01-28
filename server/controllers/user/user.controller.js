@@ -146,14 +146,6 @@ const refreshToken = async (req, res) => {
 
 // user logout
 
-const logout = async (req, res) => {
-    try {
-        res.clearCookie("vogueusToken")
-        res.status(200).json({ success: true, message: 'User logged out successfully' });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-}
 
 
 // email verification 
@@ -196,8 +188,8 @@ const forgotPassowrd = async (req, res) => {
         if (!exist_user) {
             return res.status(400).json({ success: true, message: "Enter your user account's verified email address and we will send you a password reset link" })
         }
-        const token = generateToken(exist_user._id,null,'forgot');
-        await sendResetPassowrdMail(exist_user.email, exist_user.userName, res, token,req)
+        const token = generateToken(exist_user._id, null, 'forgot');
+        await sendResetPassowrdMail(exist_user.email, exist_user.userName, res, token, req)
     } catch (error) {
         console.log(error)
         res.status(500).json({ success: false, message: 'some thing wrong' });
@@ -205,25 +197,62 @@ const forgotPassowrd = async (req, res) => {
 }
 
 const resetPassword = async (req, res) => {
-    const {password} = req.body
+    const { password } = req.body
     try {
-     if(!password.trim()){
-        return res.status(400).json({success:false,message:"New Passowrd is Required"})
-     }
-     const hashedPassword = await hashPassword(password);
-     const updatedPassword = await User.updateOne({_id:req.user},{password:hashedPassword});
-     if(updatedPassword.modifiedCount<=0){
-        return res.status(400).json({success:false,message:'some thing wrong in update password try again latter '})
-     }
-     res.status(200).json({success:true,message:'Password Updated Login again'})
+        if (!password.trim()) {
+            return res.status(400).json({ success: false, message: "New Passowrd is Required" })
+        }
+        const hashedPassword = await hashPassword(password);
+        const updatedPassword = await User.updateOne({ _id: req.user }, { password: hashedPassword });
+        if (updatedPassword.modifiedCount <= 0) {
+            return res.status(400).json({ success: false, message: 'some thing wrong in update password try again latter ' })
+        }
+        res.status(200).json({ success: true, message: 'Password Updated Login again' })
     } catch (error) {
-     console.log(error);
-     res.status(500).json({success:false,message:`server side error ${error.message}`})
+        console.log(error);
+        res.status(500).json({ success: false, message: `server side error ${error.message}` })
+    }
+}
+
+const updateUserName = async (req, res) => {
+    const { userId } = req.params;
+    const { userName, email } = req.body
+    if (!userId) {
+        return res.status(400).json({ success: false, message: 'userId dont get' })
+    }
+    if (!userName?.trim()) {
+        return res.status(400).json({ success: false, message: 'name is Requierd' })
+    }
+    if (!email?.trim()) {
+        return res.status(400).json({ success: false, message: 'email is Requierd' })
+    }
+    if (req.user.email !== email) {
+        return res.status(400).json({ success: false, message: 'Email is not Valid' })
+    }
+    if (req.user._id.toString() !== userId) {
+        return res.status(400).json({ success: false, message: 'some thing wrong in userID' })
+    }
+    try {
+        const updatedUser = await User.updateOne({ _id: userId }, { $set: { userName } });
+        if (updatedUser.modifiedCount == 1) {
+            const user = await User.findOne({ _id: userId }).select('userName email role isVerified address createdAt updatedAt');
+            return res.status(200).json({ success: true, message: 'Name is Successfuly updated', user })
+        }
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ success: false, message: `server side error ${error.message}` })
     }
 }
 
 
-
+const logout = async (req, res) => {
+    try {
+        res.clearCookie("vogueusToken")
+        res.status(200).json({ success: true, message: 'User logged out successfully' });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+}
 module.exports = {
     register,
     login,
@@ -234,5 +263,6 @@ module.exports = {
     emailVerification,
     emailResendCode,
     forgotPassowrd,
-    resetPassword    
+    resetPassword,
+    updateUserName
 }

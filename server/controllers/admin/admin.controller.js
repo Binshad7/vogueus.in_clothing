@@ -40,7 +40,8 @@ const adminLogin = async (req, res) => {
 }
 const adminLogout = async (req, res) => {
     try {
-        req.clearcookie();
+        console.log('clearcookie')
+        res.clearCookie("vogueusToken")
         res.status(200).json({ success: true, message: "Admin Logged out success fully completed " })
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -61,22 +62,12 @@ const adminRefresh = (req, res) => {
     }
 }
 
+
+
 module.exports = {
     adminLogin,
     adminLogout,
     adminRefresh,
 }
 
-
-// const obj = {
-//     productName: 'shirt',
-//     description: 'good shirt',
-//     Subcategory:'ObjejetId',
-//     category :'ObjectId',
-//     variations:
-//         [
-//              {color:'red',img:['img-red-1.png','img-red-2.png','img-red-3.png'],stock:{s:2,m:3,l:5,xl:1},price: 400},
-//              {color:'black',img:['img-black-1.png','img-black-2.png','img-black-3.png'],stock:{s:3,m:4,l:1,xl:6},price: 500},
-//              {color:'white',img:['img-white-1.png','img-white-2.png','img-white-3.png'],stock:{s:1,m:3,l:2,xl:5},price: 500},
-//         ]
 // } rbac

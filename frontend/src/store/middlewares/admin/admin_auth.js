@@ -1,5 +1,5 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import {toast} from "react-toastify";
+import { toast } from "react-toastify";
 import adminAxios from "../../../api/adminAxios";
 
 
@@ -32,7 +32,23 @@ const adminRefresh = createAsyncThunk(
     }
 )
 
+const adminLogout = createAsyncThunk(
+    'admin/adminLogout',
+    async (_, { rejectWithValue }) => {
+        try {
+            const response = await adminAxios.post('/logout');
+            toast.success(response?.data?.message);
+            return
+        } catch (error) {
+            toast.success(error?.response?.data?.message);
+            return rejectWithValue(error.response?.data || error.message)
+
+        }
+    }
+)
+
 export {
     adminLogin,
-    adminRefresh
+    adminRefresh,
+    adminLogout
 }

@@ -12,7 +12,8 @@ const {
     emailVerification,
     emailResendCode,
     forgotPassowrd,
-    resetPassword
+    resetPassword,
+    updateUserName
 } = require('../controllers/user/user.controller');
 // auth routes
 user_router.post('/register', register);
@@ -30,6 +31,11 @@ user_router.post('/googleLogin', loginWIthGoogle);
 user_router.post('/email-verification', emailVerification);
 user_router.post('/email-resendcode', emailResendCode);
 user_router.get('/refresh', protectRoute, refreshToken)
+
+// update userProfiles userName and passowrds
+
+user_router.patch('/user/upddateProfile/:userId',protectRoute,updateUserName)
+
 
 // /forgot-password
 

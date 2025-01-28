@@ -7,10 +7,14 @@ import {
     userLogout,
     tokenRefresh,
 } from "../../middlewares/user/user_auth";
+import { updateUserProfile } from "../../middlewares/user/user_updates";
 
+// Initial state
 const initialState = {
-    isAuthenticated: JSON.parse(localStorage.getItem('isAuthenticated')) || false,
-    user: JSON.parse(localStorage.getItem('user')) || null,
+    isAuthenticated: localStorage.getItem('isAuthenticated') === 'true',
+    user: localStorage.getItem('user') && localStorage.getItem('user') !== 'undefined'
+        ? JSON.parse(localStorage.getItem('user'))
+        : null,
     loading: false,
 };
 
@@ -25,11 +29,11 @@ const handleAuthSuccess = (state, action) => {
     state.user = action.payload;
     state.isAuthenticated = true;
     localStorage.setItem('user', JSON.stringify(action.payload));
-    localStorage.setItem('isAuthenticated', 'true');  // No need to JSON.stringify boolean
+    localStorage.setItem('isAuthenticated', 'true');
 };
 
 // Helper function to handle rejection
-const handleRejection = (state, action) => {
+const handleRejection = (state) => {
     state.loading = false;
     state.user = null;
     state.isAuthenticated = false;
@@ -51,7 +55,7 @@ const userSlice = createSlice({
             localStorage.setItem('demouser', JSON.stringify(action.payload));
             state.user = action.payload;
         },
-        clearDemoUser: (state) => {
+        clearDemoUser: () => {
             localStorage.removeItem('demouser');
         }
     },
@@ -90,8 +94,7 @@ const userSlice = createSlice({
                 state.loading = false;
             })
 
-
-            // referesh token 
+            // Refresh token
             .addCase(tokenRefresh.pending, handlePending)
             .addCase(tokenRefresh.fulfilled, handleAuthSuccess)
             .addCase(tokenRefresh.rejected, (state) => {
@@ -102,8 +105,16 @@ const userSlice = createSlice({
                 localStorage.removeItem('isAuthenticated');
             })
 
-
-
+            // Update user profile
+            .addCase(updateUserProfile.pending, handlePending)
+            .addCase(updateUserProfile.fulfilled, (state, action) => {
+                state.loading = false;
+                state.user = action.payload;
+                localStorage.setItem('user', JSON.stringify(action.payload));
+            })
+            .addCase(updateUserProfile.rejected, (state) => {
+                state.loading = false
+            })
     },
 });
 

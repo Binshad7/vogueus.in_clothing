@@ -13,7 +13,7 @@ const {
 } = require('../controllers/admin/admin.controller');
 // auth routes
 admin_router.post('/login', adminLogin);
-admin_router.get('/logout', adminLogout);
+admin_router.post('/logout', protectRoute, adminLogout);
 admin_router.get('/refresh', protectRoute, adminRefresh);
 
 
@@ -57,7 +57,7 @@ const upload = require('../middleware/multer')
 admin_router.post('/product/addProduct', upload.array('images', 3), protectRoute, addProduct);
 admin_router.get('/product/fetchProduct', protectRoute, fetchProduct)
 admin_router.patch('/product/updateProductStatus/:proId', protectRoute, updateProductStatus)
-admin_router.patch('/product/updateProduct/:proId',upload.array('images', 3), protectRoute, updateProduct)
+admin_router.patch('/product/updateProduct/:proId', upload.array('images', 3), protectRoute, updateProduct)
 
 
 

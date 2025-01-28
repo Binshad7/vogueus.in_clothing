@@ -1,218 +1,71 @@
-import React, { useCallback, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import {
-  Box,
-  Container,
-  Typography,
-  Button,
-  Card,
-  CardContent,
-  Switch,
-  Divider,
-  List,
-  ListItem,
-  ListItemIcon,
-  ListItemText,
-  ListItemSecondaryAction,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions
-} from '@mui/material';
-import {
-  LogOut,
-  Bell,
-  Moon,
-  Shield,
-  Globe,
-  Mail,
-  Smartphone,
-  HelpCircle,
-  Info
-} from 'lucide-react';
-import { userLogout } from '../../../store/middlewares/user/user_auth';
-import { useDispatch } from 'react-redux';
+import React, { useState } from 'react';
+import { LogOut, Lock } from 'lucide-react';
+
 const Settings = () => {
-  const navigate = useNavigate();
-  const [openLogoutDialog, setOpenLogoutDialog] = useState(false);
-  const [settings, setSettings] = useState({
-    notifications: true,
-    darkMode: false,
-    twoFactorAuth: false,
-    emailUpdates: true,
-    mobileNotifications: true,
-  });
-  const dispatch = useDispatch();
-  const handleSettingChange = (setting) => {
-    setSettings(prev => ({
-      ...prev,
-      [setting]: !prev[setting]
-    }));
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false);
+
+  const handleLogout = () => {
+    // Add your logout logic here
+    console.log('Logging out...');
   };
 
-  const onLogOut = useCallback(() => {
-   const result =  dispatch(userLogout());
-   if(userLogout.fulfilled.match(result)){
-    navigate('/')
-   }
-  }, [navigate]);
-
-  const settingsList = [
-    {
-      title: 'Notifications',
-      description: 'Receive notifications about your account',
-      icon: <Bell size={20} />,
-      setting: 'notifications'
-    },
-    {
-      title: 'Dark Mode',
-      description: 'Switch between light and dark theme',
-      icon: <Moon size={20} />,
-      setting: 'darkMode'
-    },
-    {
-      title: 'Two-Factor Authentication',
-      description: 'Add an extra layer of security',
-      icon: <Shield size={20} />,
-      setting: 'twoFactorAuth'
-    },
-    {
-      title: 'Email Updates',
-      description: 'Receive email updates about our services',
-      icon: <Mail size={20} />,
-      setting: 'emailUpdates'
-    },
-    {
-      title: 'Mobile Notifications',
-      description: 'Receive notifications on your mobile device',
-      icon: <Smartphone size={20} />,
-      setting: 'mobileNotifications'
-    }
-  ];
+  const handleChangePassword = () => {
+    // Add your change password navigation/logic here
+    console.log('Navigate to change password...');
+  };
 
   return (
-    <Container maxWidth="md">
-      <Box sx={{ py: 4 }}>
-        <Typography variant="h4" gutterBottom>
-          Settings
-        </Typography>
-
-        <Card sx={{ mb: 4 }}>
-          <CardContent>
-            <Typography variant="h6" gutterBottom>
-              Account Preferences
-            </Typography>
-            <List>
-              {settingsList.map((item, index) => (
-                <React.Fragment key={item.setting}>
-                  <ListItem>
-                    <ListItemIcon>
-                      {item.icon}
-                    </ListItemIcon>
-                    <ListItemText
-                      primary={item.title}
-                      secondary={item.description}
-                    />
-                    <ListItemSecondaryAction>
-                      <Switch
-                        edge="end"
-                        checked={settings[item.setting]}
-                        onChange={() => handleSettingChange(item.setting)}
-                      />
-                    </ListItemSecondaryAction>
-                  </ListItem>
-                  {index < settingsList.length - 1 && <Divider />}
-                </React.Fragment>
-              ))}
-            </List>
-          </CardContent>
-        </Card>
-
-        <Card sx={{ mb: 4 }}>
-          <CardContent>
-            <Typography variant="h6" gutterBottom>
-              Help & Support
-            </Typography>
-            <List>
-              <ListItem button>
-                <ListItemIcon>
-                  <HelpCircle size={20} />
-                </ListItemIcon>
-                <ListItemText
-                  primary="FAQ"
-                  secondary="Frequently asked questions"
-                />
-              </ListItem>
-              <Divider />
-              <ListItem button>
-                <ListItemIcon>
-                  <Globe size={20} />
-                </ListItemIcon>
-                <ListItemText
-                  primary="Language"
-                  secondary="Choose your preferred language"
-                />
-              </ListItem>
-              <Divider />
-              <ListItem button>
-                <ListItemIcon>
-                  <Info size={20} />
-                </ListItemIcon>
-                <ListItemText
-                  primary="About"
-                  secondary="Learn more about our service"
-                />
-              </ListItem>
-            </List>
-          </CardContent>
-        </Card>
-
-        <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-          <Button
-            variant="contained"
-            color="error"
-            startIcon={<LogOut size={20} />}
-            onClick={() => setOpenLogoutDialog(true)}
-            sx={{
-              width: 200,
-              height: 48,
-              textTransform: 'none'
-            }}
+    <div className="max-w-2xl mx-auto p-6">
+      <h1 className="text-2xl font-bold mb-6">Settings</h1>
+      
+      <div className="bg-white rounded-lg shadow p-6">
+        <h2 className="text-xl font-semibold mb-4">Account Settings</h2>
+        
+        <div className="space-y-4">
+          <button 
+            onClick={handleChangePassword}
+            className="w-full flex items-center px-4 py-2 text-left border rounded-lg hover:bg-gray-50 transition-colors"
           >
+            <Lock className="mr-2 h-4 w-4" />
+            Change Password
+          </button>
+          
+          <button 
+            onClick={() => setShowLogoutDialog(true)}
+            className="w-full flex items-center px-4 py-2 text-left bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+          >
+            <LogOut className="mr-2 h-4 w-4" />
             Logout
-          </Button>
-        </Box>
+          </button>
+        </div>
+      </div>
 
-        {/* Logout Confirmation Dialog */}
-        <Dialog
-          open={openLogoutDialog}
-          onClose={() => setOpenLogoutDialog(false)}
-        >
-          <DialogTitle>Confirm Logout</DialogTitle>
-          <DialogContent>
-            <Typography>
+      {/* Logout Dialog */}
+      {showLogoutDialog && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <h3 className="text-lg font-semibold mb-4">Confirm Logout</h3>
+            <p className="mb-6">
               Are you sure you want to logout? You will need to login again to access your account.
-            </Typography>
-          </DialogContent>
-          <DialogActions>
-            <Button
-              onClick={() => setOpenLogoutDialog(false)}
-              sx={{ textTransform: 'none' }}
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={onLogOut}
-              variant="contained"
-              color="error"
-              sx={{ textTransform: 'none' }}
-            >
-              Logout
-            </Button>
-          </DialogActions>
-        </Dialog>
-      </Box>
-    </Container>
+            </p>
+            <div className="flex justify-end space-x-4">
+              <button
+                onClick={() => setShowLogoutDialog(false)}
+                className="px-4 py-2 border rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleLogout}
+                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+              >
+                Logout
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
   );
 };
 

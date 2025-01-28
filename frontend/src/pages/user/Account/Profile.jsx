@@ -11,14 +11,28 @@ import {
 import { User, Mail, Edit, Plus, } from 'lucide-react';
 import AddressCard from './AddresCard';
 import AddAddress from './AddAddress';
-import {useSelector} from 'react-redux'
+import { useSelector } from 'react-redux'
+import EditProfile from './modal/EditProfile';
+import Spinner from '../../../components/user/Spinner';
 const Profile = () => {
   const [addingAddress, setAddingAddress] = useState(false);
-  const {user} = useSelector((state)=>state.user);
+  const [editProfile, setEditProfile] = useState(false);
+  const { user, loading } = useSelector((state) => state.user);
 
 
   const onCancelAddAddress = () => {
     setAddingAddress(false)
+  }
+  const handleEditProfileOpen = () => {
+    setEditProfile(true);
+    setAddingAddress(false)
+  }
+  const handleEditProfileCancel = () => {
+    setEditProfile(false);
+  }
+
+  if (loading) {
+    return <Spinner />
   }
 
   return (
@@ -27,7 +41,16 @@ const Profile = () => {
         <Typography variant="h3" gutterBottom sx={{ fontSize: '2.5rem' }}> {/* Larger profile title */}
           My Info
         </Typography>
+        {
+          editProfile && <EditProfile
+            userName={user.userName}
+            userEmail={user.email}
+            userId={user._id}
+            modalIsOpen={editProfile}
+            closeModal={handleEditProfileCancel}
+          />
 
+        }
         {!addingAddress ? (
           <Box>
             {/* Contact Details Section */}
@@ -37,6 +60,7 @@ const Profile = () => {
                 <Button
                   startIcon={<Edit size={16} />}
                   variant="outlined"
+                  onClick={handleEditProfileOpen}
                 >
                   Edit
                 </Button>
@@ -51,7 +75,7 @@ const Profile = () => {
                         Full Name
                       </Typography>
                       <Typography>
-                        {user.userName}
+                        {user?.userName}
                       </Typography>
                     </Box>
                   </Box>
@@ -64,7 +88,7 @@ const Profile = () => {
                       <Typography color="text.secondary" variant="subtitle2">
                         Email
                       </Typography>
-                      <Typography>{user.email}</Typography>
+                      <Typography>{user?.email}</Typography>
                     </Box>
                   </Box>
                 </Grid>
@@ -86,13 +110,13 @@ const Profile = () => {
                 </Button>
               </Box>
 
-              {user.address.length === 0 ? (
+              {user?.address?.length === 0 ? (
                 <Typography textAlign="center" color="text.secondary" sx={{ py: 4 }}>
                   No addresses added yet
                 </Typography>
               ) : (
                 <Grid container spacing={3}>
-                  {user.address.map((address, index) => (
+                  {user?.address?.map((address, index) => (
                     <Grid item xs={12} sm={6} md={6} key={index}> {/* Changed to 2 cards per row */}
                       <AddressCard
                         address={address}
