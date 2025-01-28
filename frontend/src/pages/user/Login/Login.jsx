@@ -1,18 +1,22 @@
 import React, { useCallback, useEffect, useState } from 'react'
 import GoogleSignIn from '../../../components/user/GoogleSignIn'
 import { Link, useNavigate } from 'react-router-dom'
-import { useDispatch,useSelector } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { Eye, EyeOff } from 'lucide-react'
 import FormInput from '../../../utils/FormInput'
-import { userLogin } from '../../../store/middlewares/user/user_auth'
+import { userLogin, tokenRefresh } from '../../../store/middlewares/user/user_auth'
 const Login = () => {
   const navigate = useNavigate()
-  const isAuthenticated  = localStorage.getItem('isAuthenticated') || false
-  
-  useEffect(() => { 
-      if(isAuthenticated){
-          navigate('/')
-      }
+  const dispatch = useDispatch()
+  const isAuthenticated = localStorage.getItem('isAuthenticated') || false
+  useEffect(() => {
+    dispatch(tokenRefresh())
+  }, [])
+  console.log(isAuthenticated)
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/')
+    }
   }, [isAuthenticated])
 
 
@@ -22,34 +26,33 @@ const Login = () => {
   })
   const [showPassword, setShowPassword] = useState(false)
   const [errors, setErrors] = useState({})
-  const dispatch = useDispatch()
 
   const validateField = useCallback((userData) => {
     const errors = {}
     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
-    
+
     if (!userData.email) {
       errors.email = 'Email is required'
     } else if (!emailRegex.test(userData.email)) {
       errors.email = 'Please enter a valid email address'
     }
-    
+
     if (!userData.password) {
       errors.password = 'Password is required'
     }
-    
+
     return errors
   }, [])
 
   const onSubmit = useCallback((e) => {
     e.preventDefault()
     const validationErrors = validateField(values)
-    
+
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors)
       return
     }
-    
+
     dispatch(userLogin(values))
   }, [dispatch, navigate, values, validateField])
 
@@ -102,9 +105,8 @@ const Login = () => {
                   value={values.email}
                   onChange={handleOnChange}
                   placeholder="Email Address"
-                  className={`w-full px-4 py-3 rounded border ${
-                    errors.email ? 'border-red-500' : 'border-gray-300'
-                  } focus:border-black focus:ring-0 text-sm pr-10`}
+                  className={`w-full px-4 py-3 rounded border ${errors.email ? 'border-red-500' : 'border-gray-300'
+                    } focus:border-black focus:ring-0 text-sm pr-10`}
                   aria-invalid={errors.email ? 'true' : 'false'}
                 />
                 {errors.email && (
@@ -119,9 +121,8 @@ const Login = () => {
                   value={values.password}
                   onChange={handleOnChange}
                   placeholder="Password"
-                  className={`w-full px-4 py-3 rounded border ${
-                    errors.password ? 'border-red-500' : 'border-gray-300'
-                  } focus:border-black focus:ring-0 text-sm pr-10`}
+                  className={`w-full px-4 py-3 rounded border ${errors.password ? 'border-red-500' : 'border-gray-300'
+                    } focus:border-black focus:ring-0 text-sm pr-10`}
                   aria-invalid={errors.password ? 'true' : 'false'}
                 />
                 {errors.password && (
@@ -133,14 +134,14 @@ const Login = () => {
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
                 >
-                  {showPassword ? 
-                    <EyeOff className="w-5 h-5" /> : 
+                  {showPassword ?
+                    <EyeOff className="w-5 h-5" /> :
                     <Eye className="w-5 h-5" />
                   }
                 </button>
-                <Link 
-                to={'/forgot-password'}
-                className="absolute right-0 -bottom-6 text-xs text-gray-600 hover:text-black">
+                <Link
+                  to={'/forgot-password'}
+                  className="absolute right-0 -bottom-6 text-xs text-gray-600 hover:text-black">
                   Forgot your password?
                 </Link>
               </div>

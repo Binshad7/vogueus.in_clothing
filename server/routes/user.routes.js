@@ -61,4 +61,9 @@ user_router.post('/product/addToCart', protectRoute, addToCart);
 user_router.delete('/product/removeItemCart/:productId', protectRoute, deleteItemFromCart)
 user_router.get('/product/getCartItems', protectRoute, listCart)
 user_router.patch('/product/cartitemQuantityHandle/:cartId', protectRoute, quantityChangeHandle)
+
+
+// Addresses
+const {addewAddress} = require('../controllers/user/addAddress.controller');
+user_router.post('/addNewAddress/:userId',protectRoute,addewAddress);
 module.exports = user_router;  
