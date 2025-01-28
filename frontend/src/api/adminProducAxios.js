@@ -1,7 +1,7 @@
 import axios from "axios";
-
+import { ADMIN_PRODUCT_URL } from "../constant/urls";
 const adminProductAxios = axios.create({
-    baseURL: 'http://localhost:5000/api/v1/admin/product',
+    baseURL: ADMIN_PRODUCT_URL,
     withCredentials: true,
     headers: {
 

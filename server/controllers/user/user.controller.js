@@ -118,7 +118,7 @@ const loginWIthGoogle = async (req, res) => {
         }
 
         if (exist_user.isBlock) {
-            return res.status(401).json({ success: false, message: ' this user is blocked from the site ' });
+            return res.status(401).json({ success: false, message: ' This User is Blocked from the Site ' });
         }
         generateToken(exist_user._id, res);
         var { password, googleId, ...userDetails } = exist_user

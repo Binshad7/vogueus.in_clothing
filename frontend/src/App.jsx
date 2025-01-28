@@ -3,8 +3,7 @@ import UserRoutes from './routes/UserRoutes'
 import { ToastContainer } from 'react-toastify'
 import ProtectedDashboardLayout from './routes/ProtectedDashboardLayout'
 import AdminLogin from './pages/admin/Login/Login'
-
-
+ 
 function App() {
 
   return (

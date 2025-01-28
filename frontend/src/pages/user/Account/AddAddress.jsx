@@ -1,147 +1,110 @@
-import React from 'react';
-import {
-  Box,
-  TextField,
-  Button,
-  Typography,
-  Grid,
-  Paper
-} from '@mui/material';
+import React, { useState } from 'react';
 import { X } from 'lucide-react';
 
 const AddAddress = ({ onCancel }) => {
+  const [address, setAddress] = useState({
+      fullName:'',
+      mobileNumber:'',
+      pincode:'',
+      country:'',
+      address:'',
+      state:'',
+      landMark:''
+  })
   const handleSubmit = (event) => {
     event.preventDefault();
-    const formData = new FormData(event.target);
-    const data = {
-      fullName: formData.get('fullName'),
-      mobileNumber: formData.get('mobileNumber'),
-      pinCode: formData.get('pinCode'),
-      country: formData.get('country'),
-      address: formData.get('address'),
-      cityDistrictTown: formData.get('cityDistrictTown'),
-      state: formData.get('state'),
-      landmark: formData.get('landmark'),
-    };
-    console.log(data); // Replace with your submit handler
+
   };
 
-
   return (
-    <Paper elevation={0} sx={{ p: 3, bgcolor: 'background.default' }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
-        <Typography variant="h5">Add New Address</Typography>
-        <Button 
-          startIcon={<X size={18} />}
+    <div className="bg-white p-6 rounded-lg shadow">
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-medium">Add New Address</h2>
+        <button
           onClick={onCancel}
-          color="inherit"
+          className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-md"
         >
+          <X className="h-4 w-4" />
           Cancel
-        </Button>
-      </Box>
+        </button>
+      </div>
 
       <form onSubmit={handleSubmit}>
-        <Grid container spacing={3}>
-          <Grid item xs={12} md={6}>
-            <TextField
-              required
-              fullWidth
-              name="fullName"
-              label="Full Name"
-              variant="outlined"
-            />
-          </Grid>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <input
+            required
+            name="fullName"
+            placeholder="Full Name"
+            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
 
-          <Grid item xs={12} md={6}>
-            <TextField
-              required
-              fullWidth
-              name="mobileNumber"
-              label="Mobile Number"
-              variant="outlined"
-            />
-          </Grid>
+          <input
+            required
+            name="mobileNumber"
+            placeholder="Mobile Number"
+            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
 
-          <Grid item xs={12} md={6}>
-            <TextField
-              required
-              fullWidth
-              name="pinCode"
-              label="PIN Code"
-              variant="outlined"
-            />
-          </Grid>
+          <input
+            required
+            name="pinCode"
+            placeholder="PIN Code"
+            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
 
-          <Grid item xs={12} md={6}>
-            <TextField
-              required
-              fullWidth
-              name="country"
-              label="Country"
-              variant="outlined"
-            />
-          </Grid>
+          <input
+            required
+            name="country"
+            placeholder="Country"
+            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
 
-          <Grid item xs={12}>
-            <TextField
-              required
-              fullWidth
-              name="address"
-              label="Address"
-              variant="outlined"
-              multiline
-              rows={3}
-            />
-          </Grid>
+          <textarea
+            required
+            name="address"
+            placeholder="Address"
+            rows={3}
+            className="w-full col-span-2 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+          />
 
-          <Grid item xs={12} md={6}>
-            <TextField
-              required
-              fullWidth
-              name="cityDistrictTown"
-              label="City/District/Town"
-              variant="outlined"
-            />
-          </Grid>
+          <input
+            required
+            name="cityDistrictTown"
+            placeholder="City/District/Town"
+            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
 
-          <Grid item xs={12} md={6}>
-            <TextField
-              required
-              fullWidth
-              name="state"
-              label="State"
-              variant="outlined"
-            />
-          </Grid>
+          <input
+            required
+            name="state"
+            placeholder="State"
+            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
 
-          <Grid item xs={12}>
-            <TextField
-              fullWidth
-              name="landmark"
-              label="Landmark (Optional)"
-              variant="outlined"
-            />
-          </Grid>
+          <input
+            name="landmark"
+            placeholder="Landmark (Optional)"
+            className="w-full col-span-2 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
 
-          <Grid item xs={12}>
-            <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
-              <Button
-                variant="outlined"
-                onClick={onCancel}
-              >
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                variant="contained"
-              >
-                Save Address
-              </Button>
-            </Box>
-          </Grid>
-        </Grid>
+          <div className="col-span-2 flex justify-end gap-4">
+            <button
+              type="button"
+              onClick={onCancel}
+              className="px-6 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+            >
+              Save Address
+            </button>
+          </div>
+        </div>
       </form>
-    </Paper>
+    </div>
   );
 };
 

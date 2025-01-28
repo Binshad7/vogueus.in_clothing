@@ -38,15 +38,6 @@ const adminLogin = async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 }
-const adminLogout = async (req, res) => {
-    try {
-        console.log('clearcookie')
-        res.clearCookie("vogueusToken")
-        res.status(200).json({ success: true, message: "Admin Logged out success fully completed " })
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-}
 const adminRefresh = (req, res) => {
     try {
         const admin = req.user;
@@ -63,6 +54,15 @@ const adminRefresh = (req, res) => {
 }
 
 
+const adminLogout = async (req, res) => {
+    try {
+        console.log('clearcookie')
+        res.clearCookie("vogueusToken")
+        res.status(200).json({ success: true, message: "Admin Logged out success fully completed " })
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+}
 
 module.exports = {
     adminLogin,
