@@ -43,16 +43,25 @@ const AddAddress = ({ onCancel }) => {
     setErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit =async (event) => {
     event.preventDefault();
     const errors = addressValidation(address); // Assume this validates all fields
     if (Object.keys(errors).length !== 0) {
       setErrors(errors);
       return;
     }
-    const result = dispatch(addewAddress({ address, userId: user._id }))
+    const result = await dispatch(addewAddress({ address, userId: user._id }))
+    console.log(result)
+    console.log(addewAddress.fulfilled.match(result))
     if (addewAddress.fulfilled.match(result)) {
-      navigate('/account-details/profile');
+      console.log('login success')
+      if(onCancel){
+        console.log(5)
+        oncancel()
+      }else{
+        console.log(6);
+        navigate('/account-details/profile');
+      }
     }
   };
 

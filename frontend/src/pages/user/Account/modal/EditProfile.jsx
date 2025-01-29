@@ -21,6 +21,7 @@ const customStyles = {
 import { useDispatch } from 'react-redux'
 import { updateUserProfile } from '../../../../store/middlewares/user/user_updates';
 function EditProfile({ userName, userEmail, userId, modalIsOpen, closeModal }) {
+    console.log('editmodal render')
     const [name, setName] = useState(userName);
     const dispatch = useDispatch()
     const handleSubmit = (e) => {

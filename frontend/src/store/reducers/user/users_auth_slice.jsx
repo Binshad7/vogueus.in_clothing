@@ -5,10 +5,10 @@ import {
     userRegisterWihtGoogle,
     userLoginWithGoogle,
     userLogout,
-    tokenRefresh,
+    tokenRefresh
 } from "../../middlewares/user/user_auth";
 import { updateUserProfile } from "../../middlewares/user/user_updates";
-
+import { addewAddress, deleteAddress, editAddress } from '../../middlewares/user/address'
 // Initial state
 const initialState = {
     isAuthenticated: localStorage.getItem('isAuthenticated') === 'true',
@@ -18,12 +18,11 @@ const initialState = {
     loading: false,
 };
 
-// Helper function to handle pending state
 const handlePending = (state) => {
     state.loading = true;
 };
 
-// Helper function to handle auth success
+
 const handleAuthSuccess = (state, action) => {
     state.loading = false;
     state.user = action.payload;
@@ -32,7 +31,6 @@ const handleAuthSuccess = (state, action) => {
     localStorage.setItem('isAuthenticated', 'true');
 };
 
-// Helper function to handle rejection
 const handleRejection = (state) => {
     state.loading = false;
     state.user = null;
@@ -40,6 +38,32 @@ const handleRejection = (state) => {
     localStorage.removeItem('user');
     localStorage.removeItem('isAuthenticated');
 };
+
+const userUpdatesSuccess = (state, action) => {
+    state.loading = false;
+    state.user = action.payload;
+    localStorage.setItem('user', JSON.stringify(action.payload));
+}
+const deleteAddressSuccess = (state, action) => {
+    state.loading = false;
+    state.user.address = action.payload
+}
+const userUpdatesRejeted = (state) => {
+    state.loading = false
+}
+
+const userAddressUpdatesSuccess = (state, action) => {
+
+    if (state.user?.address) {
+        const updateAddressIndex = state.user.address.findIndex((item) => item._id === action.payload._id);
+        console.log(updateAddressIndex)
+        if (updateAddressIndex !== -1) {
+            state.user.address[updateAddressIndex] = action.payload;
+        }
+    }
+    state.loading = false;
+    localStorage.setItem('user', JSON.stringify(state.user));
+}
 
 const userSlice = createSlice({
     name: "userSlice",
@@ -90,9 +114,7 @@ const userSlice = createSlice({
                 localStorage.removeItem('user');
                 localStorage.removeItem('isAuthenticated');
             })
-            .addCase(userLogout.rejected, (state) => {
-                state.loading = false;
-            })
+            .addCase(userLogout.rejected, userUpdatesRejeted)
 
             // Refresh token
             .addCase(tokenRefresh.pending, handlePending)
@@ -107,14 +129,25 @@ const userSlice = createSlice({
 
             // Update user profile
             .addCase(updateUserProfile.pending, handlePending)
-            .addCase(updateUserProfile.fulfilled, (state, action) => {
-                state.loading = false;
-                state.user = action.payload;
-                localStorage.setItem('user', JSON.stringify(action.payload));
-            })
-            .addCase(updateUserProfile.rejected, (state) => {
-                state.loading = false
-            })
+            .addCase(updateUserProfile.fulfilled, userUpdatesSuccess)
+            .addCase(updateUserProfile.rejected, userUpdatesRejeted)
+
+
+            // addNew address
+            .addCase(addewAddress.pending, handlePending)
+            .addCase(addewAddress.fulfilled, userUpdatesSuccess)
+            .addCase(addewAddress.rejected, userUpdatesRejeted)
+
+            //delete Address
+
+            .addCase(deleteAddress.pending, handlePending)
+            .addCase(deleteAddress.fulfilled, deleteAddressSuccess)
+            .addCase(deleteAddress.rejected, userUpdatesRejeted)
+
+            // editAddress
+            .addCase(editAddress.pending, handlePending)
+            .addCase(editAddress.fulfilled, userAddressUpdatesSuccess)
+            .addCase(editAddress.rejected, userUpdatesRejeted)
     },
 });
 

@@ -31,6 +31,7 @@ const Profile = () => {
     setEditProfile(false);
   }
 
+ 
   if (loading) {
     return <Spinner />
   }
@@ -51,6 +52,7 @@ const Profile = () => {
           />
 
         }
+        
         {!addingAddress ? (
           <Box>
             {/* Contact Details Section */}
@@ -117,11 +119,10 @@ const Profile = () => {
               ) : (
                 <Grid container spacing={3}>
                   {user?.address?.map((address, index) => (
-                    <Grid item xs={12} sm={6} md={6} key={index}> {/* Changed to 2 cards per row */}
+                    <Grid item xs={12} sm={6} md={6} key={index}> 
                       <AddressCard
                         address={address}
-                        onEdit={() => console.log('Edit address', index)}
-                        onRemove={() => console.log('Remove address', index)}
+                        userId={user._id}
                       />
                     </Grid>
                   ))}

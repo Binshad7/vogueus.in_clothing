@@ -34,7 +34,7 @@ user_router.get('/refresh', protectRoute, refreshToken)
 
 // update userProfiles userName and passowrds
 
-user_router.patch('/user/upddateProfile/:userId',protectRoute,updateUserName)
+user_router.patch('/user/upddateProfile/:userId', protectRoute, updateUserName)
 
 
 // /forgot-password
@@ -64,6 +64,9 @@ user_router.patch('/product/cartitemQuantityHandle/:cartId', protectRoute, quant
 
 
 // Addresses
-const {addewAddress} = require('../controllers/user/addAddress.controller');
-user_router.post('/addNewAddress/:userId',protectRoute,addewAddress);
+const { addewAddress, deleteAddress, editAddress } = require('../controllers/user/addAddress.controller');
+user_router.post('/addNewAddress/:userId', protectRoute, addewAddress);
+user_router.delete('/deleteAddress/:addressId', protectRoute, deleteAddress)
+user_router.patch('/editAddress/:addressId', protectRoute, editAddress)
+
 module.exports = user_router;  
