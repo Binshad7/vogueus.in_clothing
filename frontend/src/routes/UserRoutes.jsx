@@ -20,6 +20,7 @@ import AddAddress from '../pages/user/Account/AddAddress'
 import Orders from '../pages/user/Account/Orders'
 import Settings from '../pages/user/Account/Settings'
 import Profile from '../pages/user/Account/Profile'
+import CheckoutPage from '../pages/user/payment/CheckoutPage'
 function UserRoutes() {
 
     return (
@@ -56,9 +57,9 @@ function UserRoutes() {
 
                 <Route path='/wishlist' element={<UserProtectedRoute element={<WishlistPage />} />} />
                 <Route path='/cart-items' element={<CartPage />} />
+                <Route path='/checkout' element={<CheckoutPage />} />
                 {/* 
                 <Route path='/support' element={<Support />} />
-                <Route path='/checkout' element={<Checkout />} />
                 <Route path='/orderConfirmed' element={<OrderConfirmed />} /> */}
 
 

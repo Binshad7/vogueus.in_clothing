@@ -31,6 +31,10 @@ const userSchema = new mongoose.Schema({
         default: false,
     },
     address: [{
+        type: {
+            type: String,
+           
+        },
         fullName: {
             type: String,
             required: true
@@ -64,6 +68,6 @@ const userSchema = new mongoose.Schema({
         }
 
     }]
-},{timestamps:true});
+}, { timestamps: true });
 
 module.exports = mongoose.model('User', userSchema);

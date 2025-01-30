@@ -1,11 +1,14 @@
 import React, { useState } from "react";
-import { X } from "lucide-react";
+import { X, Home, Building2 } from "lucide-react";
 import FormInput from "../../../utils/FormInput";
 import { addressValidation } from "../../../utils/addressValidation";
-import { useDispatch,useSelector } from 'react-redux'
-import { useNavigate } from 'react-router-dom'
+import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 import { addewAddress } from "../../../store/middlewares/user/address";
+
+
 const ERRORS = {
+  type: '',
   fullName: "",
   mobileNumber: "",
   pinCode: "",
@@ -17,6 +20,7 @@ const ERRORS = {
 };
 
 const INITIAL_ADDRESS = {
+  type: "Home",
   fullName: "",
   mobileNumber: "",
   pinCode: "",
@@ -26,45 +30,40 @@ const INITIAL_ADDRESS = {
   state: "",
   landMark: "",
 };
-
 const AddAddress = ({ onCancel }) => {
+  // ... (keep all the existing state and handlers the same)
   const [error, setErrors] = useState(ERRORS);
   const [address, setAddress] = useState(INITIAL_ADDRESS);
-  const dispatch = useDispatch()
-  const navigate = useNavigate()
-  const {user} = useSelector((state)=>state.user);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const { user } = useSelector((state) => state.user);
+
   const handleOnChange = (e) => {
     const { name, value } = e.target;
     setAddress((prev) => ({
       ...prev,
       [name]: value,
     }));
-    // Reset individual field error
     setErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
-  const handleSubmit =async (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
-    const errors = addressValidation(address); // Assume this validates all fields
+    const errors = addressValidation(address);
     if (Object.keys(errors).length !== 0) {
       setErrors(errors);
       return;
     }
-    const result = await dispatch(addewAddress({ address, userId: user._id }))
-    console.log(result)
-    console.log(addewAddress.fulfilled.match(result))
+    console.log(address)
+    const result = await dispatch(addewAddress({ address, userId: user._id }));
     if (addewAddress.fulfilled.match(result)) {
-      console.log('login success')
-      if(onCancel){
-        console.log(5)
-        oncancel()
-      }else{
-        console.log(6);
+      if (onCancel) {
+        onCancel();
+      } else {
         navigate('/account-details/profile');
       }
     }
   };
-
   return (
     <div className="bg-white p-6 rounded-lg shadow">
       <div className="flex justify-between items-center mb-6">
@@ -80,7 +79,80 @@ const AddAddress = ({ onCancel }) => {
 
       <form onSubmit={handleSubmit}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Full Name */}
+          {/* Address Type Selection with Icons */}
+          <div className="col-span-2">
+            <label className="block text-sm font-medium text-gray-700 mb-3">
+              Address Type
+            </label>
+            <div className="flex gap-4">
+              <label className="flex-1">
+                <input
+                  type="radio"
+                  name="type"
+                  value="Home"
+                  checked={address.type === "Home"}
+                  onChange={handleOnChange}
+                  className="sr-only" // Hide default radio button
+                />
+                <div className={`
+                  flex items-center justify-center p-4 rounded-lg border-2 cursor-pointer
+                  hover:bg-blue-50 transition-all
+                  ${address.type === "Home"
+                    ? 'border-blue-500 bg-blue-50'
+                    : 'border-gray-200'
+                  }
+                `}>
+                  <div className="flex items-center gap-3">
+                    <Home
+                      className={`w-5 h-5 ${address.type === "Home" ? 'text-blue-500' : 'text-gray-400'
+                        }`}
+                    />
+                    <div>
+                      <p className={`font-medium ${address.type === "Home" ? 'text-blue-700' : 'text-gray-700'
+                        }`}>
+                        Home
+                      </p>
+                      <p className="text-sm text-gray-500">Personal Address</p>
+                    </div>
+                  </div>
+                </div>
+              </label>
+
+              <label className="flex-1">
+                <input
+                  type="radio"
+                  name="type"
+                  value="Work"
+                  checked={address.type === "Work"}
+                  onChange={handleOnChange}
+                  className="sr-only" // Hide default radio button
+                />
+                <div className={`
+                  flex items-center justify-center p-4 rounded-lg border-2 cursor-pointer
+                  hover:bg-green-50 transition-all
+                  ${address.type === "Work"
+                    ? 'border-green-500 bg-green-50'
+                    : 'border-gray-200'
+                  }
+                `}>
+                  <div className="flex items-center gap-3">
+                    <Building2
+                      className={`w-5 h-5 ${address.type === "Work" ? 'text-green-500' : 'text-gray-400'
+                        }`}
+                    />
+                    <div>
+                      <p className={`font-medium ${address.type === "Work" ? 'text-green-700' : 'text-gray-700'
+                        }`}>
+                        Work
+                      </p>
+                      <p className="text-sm text-gray-500">Office Address</p>
+                    </div>
+                  </div>
+                </div>
+              </label>
+            </div>
+          </div>
+
           <div>
             <FormInput
               type="text"
@@ -95,6 +167,7 @@ const AddAddress = ({ onCancel }) => {
             )}
           </div>
 
+          {/* Rest of your existing form fields... */}
           {/* Mobile Number */}
           <div>
             <FormInput

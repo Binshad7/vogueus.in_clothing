@@ -3,8 +3,9 @@ const user = require('../../models/userSchema');
 
 
 const addewAddress = async (req, res) => {
+
   const { userId } = req.params;
-  const { fullName, mobileNumber, pinCode, country, address, cityDistrictTown, state, landMark } = req.body.address
+  const { fullName, mobileNumber, pinCode, country, address, cityDistrictTown, state, landMark, type } = req.body.address
   if (!fullName.trim()) {
     return res.status(400).message({ success: false, message: 'FullName is Required' })
   }
@@ -35,13 +36,15 @@ const addewAddress = async (req, res) => {
   if (userId !== req.user._id.toString()) {
     return res.status(400).message({ success: false, message: 'User Not Valid' })
   }
+  if (!type.trim()) {
+    return res.status(400).message({ success: false, message: 'Type is Required' })
+  }
   try {
 
     const ExistUser = await user.findOne({ _id: userId });
-    if (ExistUser.address.length > 4) {
+    if (ExistUser.address.length >= 4) {
       return res.status(400).json({ success: false, message: '4 Address Already Exist' })
     }
-
     ExistUser.address.push(req.body.address);
     await ExistUser.save()
     const userWithNewAddress = await user.findOne({ _id: userId });
@@ -74,7 +77,7 @@ const deleteAddress = async (req, res) => {
 
 const editAddress = async (req, res) => {
   const { addressId } = req.params;
-  const { fullName, mobileNumber, pinCode, country, address, cityDistrictTown, state, landMark } = req.body.address;
+  const { fullName, mobileNumber, pinCode, country, address, cityDistrictTown, state, landMark, type } = req.body.address;
 
   try {
     // Early validation for required fields
@@ -107,6 +110,7 @@ const editAddress = async (req, res) => {
     if (cityDistrictTown?.trim()) updatedValues['address.$.cityDistrictTown'] = cityDistrictTown.trim();
     if (state?.trim()) updatedValues['address.$.state'] = state.trim();
     if (landMark?.trim()) updatedValues['address.$.landMark'] = landMark.trim();
+    if (type?.trim()) updatedValues['address.$.type'] = type.trim();
 
     if (Object.keys(updatedValues).length === 0) {
       return res.status(400).json({ success: false, message: "No valid fields to update" });
@@ -145,7 +149,7 @@ const editAddress = async (req, res) => {
     return res.status(200).json({
       success: true,
       message: "Address updated Successfully",
-      updatedAddress:JSON.stringify(updatedAddress)
+      updatedAddress: JSON.stringify(updatedAddress)
     });
 
   } catch (error) {

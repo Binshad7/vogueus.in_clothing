@@ -1,10 +1,13 @@
 import React, { useState } from "react";
+import { X, Home, Building2 } from "lucide-react";
 import FormInput from "../../../utils/FormInput";
 import { addressValidation } from "../../../utils/addressValidation";
-import { useDispatch } from 'react-redux'
-import { useNavigate } from 'react-router-dom'
+import { useDispatch } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 import { editAddress } from "../../../store/middlewares/user/address";
+
 const ERRORS = {
+    type: '',
     fullName: "",
     mobileNumber: "",
     pinCode: "",
@@ -15,11 +18,10 @@ const ERRORS = {
     landMark: "",
 };
 
-
-
 const EditAddress = ({ editUserAddress, closeModal }) => {
     const [error, setErrors] = useState(ERRORS);
     const [address, setAddress] = useState({
+        type: editUserAddress?.type || "Home",
         fullName: editUserAddress?.fullName,
         mobileNumber: editUserAddress?.mobileNumber,
         pinCode: editUserAddress?.pinCode,
@@ -29,30 +31,31 @@ const EditAddress = ({ editUserAddress, closeModal }) => {
         state: editUserAddress?.state,
         landMark: editUserAddress?.landMark,
     });
-    const dispatch = useDispatch()
-    const navigate = useNavigate()
+    
+    const dispatch = useDispatch();
+    const navigate = useNavigate();
+
     const handleOnChange = (e) => {
         const { name, value } = e.target;
         setAddress((prev) => ({
             ...prev,
             [name]: value,
         }));
-        // Reset individual field error
         setErrors((prev) => ({ ...prev, [name]: "" }));
     };
+
     const handleSubmit = async (event) => {
         event.preventDefault();
-        const errors = addressValidation(address); // Assume this validates all fields
+        const errors = addressValidation(address);
         if (Object.keys(errors).length !== 0) {
             setErrors(errors);
             return;
         }
-        const result = await dispatch(editAddress({ address, editAddressId: editUserAddress._id }))
-        
+        const result = await dispatch(editAddress({ address, editAddressId: editUserAddress._id }));
 
         if (editAddress.fulfilled.match(result)) {
             if (closeModal) {
-                closeModal()
+                closeModal();
             } else {
                 navigate('/account-details/profile');
             }
@@ -63,10 +66,82 @@ const EditAddress = ({ editUserAddress, closeModal }) => {
         <div className="bg-white p-6 rounded-lg shadow">
             <div className="flex justify-between items-center mb-6">
                 <h2 className="text-2xl font-medium">Edit Address</h2>
+                <button
+                    onClick={closeModal}
+                    className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-md"
+                >
+                    <X className="h-4 w-4" />
+                    Cancel
+                </button>
             </div>
 
             <form onSubmit={handleSubmit}>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Address Type Selection */}
+                    <div className="col-span-2">
+                        <label className="block text-sm font-medium text-gray-700 mb-3">
+                            Address Type
+                        </label>
+                        <div className="flex gap-4">
+                            <label className="flex-1">
+                                <input
+                                    type="radio"
+                                    name="type"
+                                    value="Home"
+                                    checked={address.type === "Home"}
+                                    onChange={handleOnChange}
+                                    className="sr-only"
+                                />
+                                <div className={`
+                                    flex items-center justify-center p-4 rounded-lg border-2 cursor-pointer
+                                    hover:bg-blue-50 transition-all
+                                    ${address.type === "Home" ? 'border-blue-500 bg-blue-50' : 'border-gray-200'}
+                                `}>
+                                    <div className="flex items-center gap-3">
+                                        <Home
+                                            className={`w-5 h-5 ${address.type === "Home" ? 'text-blue-500' : 'text-gray-400'}`}
+                                        />
+                                        <div>
+                                            <p className={`font-medium ${address.type === "Home" ? 'text-blue-700' : 'text-gray-700'}`}>
+                                                Home
+                                            </p>
+                                            <p className="text-sm text-gray-500">Personal Address</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </label>
+
+                            <label className="flex-1">
+                                <input
+                                    type="radio"
+                                    name="type"
+                                    value="Work"
+                                    checked={address.type === "Work"}
+                                    onChange={handleOnChange}
+                                    className="sr-only"
+                                />
+                                <div className={`
+                                    flex items-center justify-center p-4 rounded-lg border-2 cursor-pointer
+                                    hover:bg-green-50 transition-all
+                                    ${address.type === "Work" ? 'border-green-500 bg-green-50' : 'border-gray-200'}
+                                `}>
+                                    <div className="flex items-center gap-3">
+                                        <Building2
+                                            className={`w-5 h-5 ${address.type === "Work" ? 'text-green-500' : 'text-gray-400'}`}
+                                        />
+                                        <div>
+                                            <p className={`font-medium ${address.type === "Work" ? 'text-green-700' : 'text-gray-700'}`}>
+                                                Work
+                                            </p>
+                                            <p className="text-sm text-gray-500">Office Address</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    {/* Full Name */}
                     <div>
                         <FormInput
                             type="text"
