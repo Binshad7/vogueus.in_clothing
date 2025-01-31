@@ -252,7 +252,7 @@ const CartPage = () => {
           </table>
 
           <div className="flex flex-col lg:flex-row gap-8 mt-8">
-           
+
             <div className="flex-1">
               <h3 className="font-semibold text-lg mb-4">Order Summary</h3>
               <div className="flex justify-between mb-2">

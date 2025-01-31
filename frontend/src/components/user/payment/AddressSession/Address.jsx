@@ -8,7 +8,7 @@ const AddressDropdown = ({ addresses, selectedAddress, onAddressSelect }) => {
 
     useEffect(() => {
         onAddressSelect(0);
-    }, []);
+    },[]);
 
     const handleOpenAddAddress = () => {
         setIsOpen(true);
