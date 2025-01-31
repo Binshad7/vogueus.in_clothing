@@ -252,18 +252,7 @@ const CartPage = () => {
           </table>
 
           <div className="flex flex-col lg:flex-row gap-8 mt-8">
-            <div className="flex-1">
-              <h3 className="font-semibold text-lg mb-4">Discount Codes</h3>
-              <input
-                type="text"
-                placeholder="Enter your coupon code if you have one"
-                className="w-full border px-4 py-2 rounded mb-4"
-              />
-              <Button variant="contained" color="primary" onClick={applyCoupon} className="w-full">
-                Apply Coupon
-              </Button>
-            </div>
-
+           
             <div className="flex-1">
               <h3 className="font-semibold text-lg mb-4">Order Summary</h3>
               <div className="flex justify-between mb-2">

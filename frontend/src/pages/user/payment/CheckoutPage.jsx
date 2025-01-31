@@ -1,11 +1,12 @@
 import React, { useState } from 'react'
 import Address from '../../../components/user/payment/AddressSession/Address'
+import PaymentOptions from '../../../components/user/payment/payment/PaymentOptions';
 import { useSelector, useDispatch } from 'react-redux'
 function CheckoutPage() {
 
     const user = useSelector((state) => state.user.user);
     const [selectedAddress, setSelectedAddress] = useState(0);
-    
+
     return (
         <div className="min-h-screen bg-gray-100 py-8 relative">
             {/* <CouponPopup onApplyCoupon={handleApplyCoupon} /> */}
@@ -17,10 +18,10 @@ function CheckoutPage() {
                             selectedAddress={selectedAddress}
                             onAddressSelect={setSelectedAddress}
                         />
-                        {/* <PaymentSection
-                            selectedPayment={selectedPayment}
-                            onPaymentSelect={setSelectedPayment}
-                        /> */}
+                        <PaymentOptions
+                            // selectedPayment={selectedPayment}
+                            // onPaymentSelect={setSelectedPayment}
+                        />
                     </div>
                     <div>
                         {/* <OrderSummary
