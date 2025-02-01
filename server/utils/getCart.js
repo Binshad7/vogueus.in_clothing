@@ -1,7 +1,5 @@
 const cartSchema = require('../models/cart');
 const mongoose = require('mongoose');
-const Product = require('../models/productSchema'); // Replace with the correct path
-const Category = require('../models/category'); // Replace with the correct path
 
 const GetCart = async (userId) => {
     try {
@@ -12,7 +10,28 @@ const GetCart = async (userId) => {
     }
 
 }
+const GetCartWithProductDetails = async (userId) => {
+    try {
+        const userCart = await cartSchema.aggregate(
+            [
+                { $match: { userId: new mongoose.Types.ObjectId(userId) } },
+                { $unwind: "$items" },
+                {
+                    $lookup: {
+                        from: 'products',
+                        localField: "items.productId",
+                        foreignField: "_id",
+                        as: "productDetails",
+                    }
+                }
+            ]
+        );
+        return userCart
+    } catch (error) {
+        throw new Error('Something went wrong while fetching the cart')
+    }
 
+}
 const fetchCartWithProductDetails = async (userId) => {
     try {
         const userCart = await cartSchema.aggregate([
@@ -86,7 +105,7 @@ const fetchCartWithProductDetails = async (userId) => {
                 _id: item._id,
                 size: item.items.size,
                 quantity: item.items.quantity,
-                cartItemsId:item.items._id
+                cartItemsId: item.items._id
             },
             productDetails: {
                 productId: item.productDetails._id,
@@ -105,7 +124,7 @@ const fetchCartWithProductDetails = async (userId) => {
     }
 };
 
-module.exports = { GetCart, fetchCartWithProductDetails }
+module.exports = { GetCart, fetchCartWithProductDetails,GetCartWithProductDetails }
 
 
 

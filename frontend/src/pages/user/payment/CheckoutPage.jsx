@@ -5,6 +5,8 @@ import { useSelector, useDispatch } from 'react-redux'
 import OrderSummary from '../../../components/user/payment/orderSummary/OrderSummary';
 import { GetCart } from '../../../store/middlewares/user/cart';
 import Spinner from '../../../components/user/Spinner';
+import { toast } from 'react-toastify';
+import { createNewOreder } from '../../../store/middlewares/user/orders'
 function CheckoutPage() {
 
     const { cart, loading } = useSelector((state) => state.Cart);
@@ -19,9 +21,6 @@ function CheckoutPage() {
         Discount: 0,
         Total: 0
     });
-    useEffect(() => {
-        dispatch(GetCart())
-    }, [dispatch])
     const calculateOrderSummary = () => {
         let subtotal = 0;
         let shipping = 0;
@@ -37,16 +36,43 @@ function CheckoutPage() {
         });
         Discount = applyCoupon?.trim() == 'b1nshad' && (subtotal + shipping) > 1000 ? 250 : 0;
         setOrderSummary({
-            subtotal,
-            shipping,
-            Discount,
-            total: (subtotal + shipping) - Discount
+            subTotal: subtotal,
+            shipping: shipping,
+            Discount: Discount,
+            Total: (subtotal + shipping) - Discount
         });
     };
-    const handleApplyCoupon = useMemo((coupon) => {
-        setAppliedCoupon(coupon);
+
+    useEffect(() => {
+        if (cart.length > 0) {
+            calculateOrderSummary();
+        }
+    }, [cart, applyCoupon]);
+
+
+    useEffect(() => {
+        dispatch(GetCart())
+    }, [dispatch])
+
+
+    useEffect(() => {
         calculateOrderSummary()
     }, [applyCoupon])
+
+    const handleApplyCoupon = (coupon) => {
+        setAppliedCoupon(coupon);
+        if (coupon.trim() !== 'b1nshad') return
+        toast.success("coupon applied ")
+        calculateOrderSummary()
+    }
+
+    const handleOrderConfirm = () => {
+        console.log('submited')
+        console.log(user.address[selectedAddress])
+        if (selectedPayment === 'cod') {
+            dispatch(createNewOreder({ addressIndex: selectedAddress ,paymentMethod:selectedPayment,userId:user._id}))
+        }
+    }
 
     if (loading) {
         return <Spinner />
@@ -64,6 +90,7 @@ function CheckoutPage() {
                         <PaymentOptions
                             selectedPayment={selectedPayment}
                             onPaymentSelect={setSelectedPayment}
+                            handleOrderConfirm={handleOrderConfirm}
                         />
                     </div>
                     <div>

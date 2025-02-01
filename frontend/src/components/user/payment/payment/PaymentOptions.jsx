@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Check } from 'lucide-react';
 import { toast } from 'react-toastify';
-const PaymentSelection = ({ selectedPayment, onPaymentSelect }) => {
+const PaymentSelection = ({ selectedPayment, onPaymentSelect, handleOrderConfirm }) => {
     const [isProcessing, setIsProcessing] = useState(false);
 
     const paymentMethods = [
@@ -66,7 +66,7 @@ const PaymentSelection = ({ selectedPayment, onPaymentSelect }) => {
                                 <div className="flex items-center flex-1">
                                     <div className="flex items-center justify-center w-10 h-10 mr-3 text-xl">
                                         {method.icon}
-                                    </div>
+                                    </div>  
                                     <div className="flex-1">
                                         <p className="font-medium text-gray-800">{method.name}</p>
                                         <p className="text-sm text-gray-500">{method.description}</p>
@@ -83,6 +83,7 @@ const PaymentSelection = ({ selectedPayment, onPaymentSelect }) => {
                 {/* Payment Button */}
                 <div className="mt-6">
                     <button
+                        onClick={handleOrderConfirm}
                         type="submit"
                         disabled={isProcessing || !selectedPayment}
                         className={`w-full py-3 px-4 rounded-lg text-white font-medium transition-colors

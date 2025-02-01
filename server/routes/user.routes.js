@@ -69,4 +69,9 @@ user_router.post('/addNewAddress/:userId', protectRoute, addewAddress);
 user_router.delete('/deleteAddress/:addressId', protectRoute, deleteAddress)
 user_router.patch('/editAddress/:addressId', protectRoute, editAddress)
 
+
+// order
+const { createNewOrder } = require('../controllers/user/order.controller')
+user_router.post('/neworder/:userId', protectRoute, createNewOrder)
+
 module.exports = user_router;  

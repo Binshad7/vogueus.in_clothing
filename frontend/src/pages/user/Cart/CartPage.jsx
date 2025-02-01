@@ -97,9 +97,6 @@ const CartPage = () => {
     deleteModalClose();
   };
 
-  const applyCoupon = () => {
-    console.log('Coupon applied');
-  };
 
   const checkout = () => {
     let outofStcokProducts = cartItems.filter((item) => item?.productDetails?.stock == 0);

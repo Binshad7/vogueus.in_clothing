@@ -18,7 +18,7 @@ const Navigation = () => {
       dispatch(GetCart());
     }
 
-  }, [cart]);
+  }, [dispatch]);
 
   // Memoize cart length to avoid unnecessary re-renders
   const cartCount = useMemo(() => (cart ? cart.length : 0), [cart]);

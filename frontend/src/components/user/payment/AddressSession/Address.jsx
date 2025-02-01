@@ -116,7 +116,7 @@ const AddressDropdown = ({ addresses, selectedAddress, onAddressSelect }) => {
             )}
 
             {/* Add New Address Button */}
-            {addresses.length < 4 && (
+            {addresses?.length < 4 && (
                 <div className="flex justify-center">
                     <button
                         onClick={handleOpenAddAddress}

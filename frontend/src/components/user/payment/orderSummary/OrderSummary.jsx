@@ -7,10 +7,18 @@ const OrderSummary = ({ items, onApplyCoupon, orderSummary }) => {
     const [couponError, setCouponError] = useState('');
     const [isApplying, setIsApplying] = useState(false);
 
+    const handleCouponCodeApplay = () => {
+        setIsApplying(true)
+        onApplyCoupon(couponCode)
+        console.log(couponCode)
+        setTimeout(() => {
+            setIsApplying(false)
+        }, 2000)
+    }
     const handleApplyCoupon = () => {
         setIsApplying(true);
         setCouponError('');
-
+        // onApplyCoupon(couponCode)
         // Simulate coupon validation
         setTimeout(() => {
             // Mock coupon validation logic
@@ -83,7 +91,7 @@ const OrderSummary = ({ items, onApplyCoupon, orderSummary }) => {
                                 className="flex-1 px-3 py-2 border rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500"
                             />
                             <button
-                                onClick={handleApplyCoupon}
+                                onClick={handleCouponCodeApplay}
                                 disabled={!couponCode || isApplying}
                                 className={`px-4 py-2 rounded-lg font-medium transition-colors
                   ${!couponCode || isApplying
@@ -148,7 +156,6 @@ const OrderSummary = ({ items, onApplyCoupon, orderSummary }) => {
                 <div className="flex justify-between items-center">
                     <div>
                         <span className="text-lg font-semibold text-gray-800">Total</span>
-                        <p className="text-sm text-gray-500">including GST</p>
                     </div>
                     <span className="text-xl font-semibold text-gray-800">
                         ₹{orderSummary?.Total?.toLocaleString()}
