@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { createNewOreder } from '../../middlewares/user/orders'
+import { createNewOreder, getOrderItems } from '../../middlewares/user/orders'
 const initialState = {
     loading: false,
     orderes: []
@@ -20,10 +20,20 @@ const userOrders = createSlice({
     initialState,
     extraReducers: (builder) => {
         builder
+            // get All orders for the user
+            .addCase(getOrderItems.pending, handlePending)
+            .addCase(getOrderItems.fulfilled, handleSuccess)
+            .addCase(getOrderItems.rejected, handleRejected)
+
+            // add a new order 
+
             .addCase(createNewOreder.pending, handlePending)
-            .addCase(createNewOreder.fulfilled, handleSuccess)
+            .addCase(createNewOreder.fulfilled, (state, action) => {
+                state.orderes.push(action.payload);
+                state.loading = false
+            })
             .addCase(createNewOreder.rejected, handleRejected)
+
     }
 })
-
 export default userOrders.reducer

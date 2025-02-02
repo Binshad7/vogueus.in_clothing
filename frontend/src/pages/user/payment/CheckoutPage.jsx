@@ -7,10 +7,17 @@ import { GetCart } from '../../../store/middlewares/user/cart';
 import Spinner from '../../../components/user/Spinner';
 import { toast } from 'react-toastify';
 import { createNewOreder } from '../../../store/middlewares/user/orders'
+import { useNavigate } from 'react-router-dom';
 function CheckoutPage() {
 
     const { cart, loading } = useSelector((state) => state.Cart);
+    useEffect(() => {
+        if (cart.length==0) {
+            navigate('/')
+        }
+    }, [])
     const dispatch = useDispatch()
+    const navigate = useNavigate()
     const user = useSelector((state) => state.user.user);
     const [selectedAddress, setSelectedAddress] = useState(0);
     const [selectedPayment, setSelectedPayment] = useState(null);
@@ -66,11 +73,14 @@ function CheckoutPage() {
         calculateOrderSummary()
     }
 
-    const handleOrderConfirm = () => {
+    const handleOrderConfirm = async () => {
         console.log('submited')
         console.log(user.address[selectedAddress])
         if (selectedPayment === 'cod') {
-            dispatch(createNewOreder({ addressIndex: selectedAddress ,paymentMethod:selectedPayment,userId:user._id}))
+            const result = await dispatch(createNewOreder({ addressIndex: selectedAddress, paymentMethod: selectedPayment, userId: user._id }));
+            if (createNewOreder.fulfilled.match(result)) {
+                navigate('/orderSuccess');
+            }
         }
     }
 

@@ -1,9 +1,10 @@
 import React, { useCallback, useState } from 'react';
 import { LogOut, Lock } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const Settings = () => {
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
-
+  const navigate = useNavigate()
   const handleLogout = useCallback(() => {
     const result = dispatch(userLogout());
     if (userLogout.fulfilled.match(result)) {

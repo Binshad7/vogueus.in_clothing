@@ -8,14 +8,27 @@ const createNewOreder = createAsyncThunk(
         try {
             const response = await userAxios.post(`/neworder/${orderDetails.userId}`, { paymentMethod: orderDetails.paymentMethod, selectedAddressIndex: orderDetails.addressIndex });
             toast.success(response?.data?.message);
-            return JSON.stringify(response.data.orders);
+            return JSON.parse(response.data.orderItems);
         } catch (error) {
             toast.error(error?.response?.data?.message || error.message)
             return rejectWithValue(error?.response?.data?.message)
         }
     }
+);
+
+const getOrderItems = createAsyncThunk(
+    'user/fetchOrderItems',
+    async (userId, { rejectWithValue }) => {
+        try {
+            const response = await userAxios.get(`/orders/${userId}`);
+            return JSON.parse(response.data.orderItems);
+        } catch (error) {
+            return rejectWithValue(error.response.data.message);
+        }
+    }
 )
 
 export {
-    createNewOreder
+    createNewOreder,
+    getOrderItems
 }

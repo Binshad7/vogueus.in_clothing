@@ -71,7 +71,8 @@ user_router.patch('/editAddress/:addressId', protectRoute, editAddress)
 
 
 // order
-const { createNewOrder } = require('../controllers/user/order.controller')
+const { createNewOrder,getUserOrderes } = require('../controllers/user/order.controller')
 user_router.post('/neworder/:userId', protectRoute, createNewOrder)
+user_router.get('/orders/:userId', protectRoute, getUserOrderes)
 
 module.exports = user_router;  

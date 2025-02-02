@@ -1,7 +1,7 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { addToCart, removeItemFromCart, GetCart, handleQuantityChange } from '../../middlewares/user/cart'
 import { userLogout } from '../../middlewares/user/user_auth'
-
+import { createNewOreder } from "../../middlewares/user/orders";
 const initialState = {
     loading: false,
     cart: []
@@ -40,9 +40,9 @@ const Cart = createSlice({
             // getCart quantity
             .addCase(handleQuantityChange.pending, handlePendding)
             .addCase(handleQuantityChange.fulfilled, (state, action) => {
-                const updateItemIndex = state.cart.findIndex((item)=>item?.itemDetails?.cartItemsId == action.payload._id)
+                const updateItemIndex = state.cart.findIndex((item) => item?.itemDetails?.cartItemsId == action.payload._id)
                 console.log(updateItemIndex)
-                state.cart[updateItemIndex].itemDetails.quantity = action.payload.quantity 
+                state.cart[updateItemIndex].itemDetails.quantity = action.payload.quantity
                 state.loading = false;
             })
             .addCase(handleQuantityChange.rejected, handleRejected)
@@ -52,6 +52,12 @@ const Cart = createSlice({
                 state.cart = []
             })
 
+
+            // if order is success fully completed then cart is empty
+
+            .addCase(createNewOreder.fulfilled, (state) => {
+                state.cart = []
+            })
 
     }
 })
