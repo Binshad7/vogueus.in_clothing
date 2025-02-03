@@ -1,16 +1,20 @@
 import React, { useCallback, useState } from 'react';
 import { LogOut, Lock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-
+import { userLogout } from '../../../store/middlewares/user/user_auth'
+import { useDispatch } from 'react-redux';
 const Settings = () => {
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
   const navigate = useNavigate()
-  const handleLogout = useCallback(() => {
-    const result = dispatch(userLogout());
+  const disptach = useDispatch()
+
+  const handleLogout = () => {
+    console.log('hti in logot')
+    const result = disptach(userLogout());
     if (userLogout.fulfilled.match(result)) {
       navigate('/')
     }
-  }, [navigate]);
+  }
 
 
   const handleChangePassword = () => {

@@ -27,8 +27,9 @@ async function getOrderItems(userId) {
                     orderStatus: { $first: "$orderStatus" },
                     orderId: { $first: "$orderId" },
                     orderedAt: { $first: "$orderedAt" },
-                    items: { 
+                    items: {
                         $push: {
+                            ItemId: "$items._id",
                             quantity: "$items.quantity",
                             productPrice: "$items.productPrice",
                             size: "$items.size",

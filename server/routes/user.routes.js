@@ -71,8 +71,11 @@ user_router.patch('/editAddress/:addressId', protectRoute, editAddress)
 
 
 // order
-const { createNewOrder,getUserOrderes } = require('../controllers/user/order.controller')
+const { createNewOrder, getUserOrderes ,cancellOrder, cancelOrderItem } = require('../controllers/user/order.controller')
 user_router.post('/neworder/:userId', protectRoute, createNewOrder)
 user_router.get('/orders/:userId', protectRoute, getUserOrderes)
+// cancelOrder
+user_router.patch('/orders/cancellOrder/:orderId',protectRoute,cancellOrder);
+user_router.patch('/orders/cancellItem/:orderId/:itemId',protectRoute,cancelOrderItem);
 
 module.exports = user_router;  
