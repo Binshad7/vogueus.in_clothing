@@ -22,6 +22,7 @@ import Settings from '../pages/user/Account/Settings'
 import Profile from '../pages/user/Account/Profile'
 import CheckoutPage from '../pages/user/payment/CheckoutPage'
 import OrderSuccessPage from '../components/user/OrderSuccessPage'
+import WalletPage from '../pages/user/Account/WalletPage'
 function UserRoutes() {
 
     return (
@@ -42,6 +43,7 @@ function UserRoutes() {
                 <Route path='/account-details' element={<AccountLayout />}>
                     <Route index element={<UserProtectedRoute element={<Profile />} />} />
                     <Route path="profile" element={<UserProtectedRoute element={<Profile />} />} />
+                    <Route path="wallet" element={<UserProtectedRoute element={<WalletPage />} />} />
                     <Route path="orders" element={<UserProtectedRoute element={<Orders />} />} />
                     <Route path="address" element={<UserProtectedRoute element={<AddAddress />} />} />
                     <Route path="settings" element={<UserProtectedRoute element={<Settings />} />} />

@@ -8,6 +8,7 @@ import AllProductManageSlice from './reducers/user/products_handle_slice'
 import wishlist from './reducers/user/wishlist'
 import Cart from './reducers/user/cart'
 import userOrders from './reducers/user/userOrders'
+import adminOrders from './reducers/admin/admin_orders'
 const store = configureStore({
     reducer: {
         user: userSlice,
@@ -18,7 +19,8 @@ const store = configureStore({
         AllProductManageSlice,
         wishlist,
         Cart,
-        userOrders
+        userOrders,
+        adminOrders
     }
 })
 

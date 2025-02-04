@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { createNewOreder, getOrderItems, cancelOrder } from '../../middlewares/user/orders'
+import { createNewOreder, getOrderItems, cancelOrder, returnOrderItem, returnOrder } from '../../middlewares/user/orders'
 const initialState = {
     loading: false,
     orderes: []
@@ -37,6 +37,14 @@ const userOrders = createSlice({
             .addCase(cancelOrder.pending, handlePending)
             .addCase(cancelOrder.fulfilled, handleSuccess)
             .addCase(cancelOrder.rejected, handleRejected)
+            // handle the Returrn Product 
+            .addCase(returnOrderItem.pending, handlePending)
+            .addCase(returnOrderItem.fulfilled, handleSuccess)
+            .addCase(returnOrderItem.rejected, handleRejected)
+            // return order
+            .addCase(returnOrder.pending, handlePending)
+            .addCase(returnOrder.fulfilled, handleSuccess)
+            .addCase(returnOrder.rejected, handleRejected)
     }
 })
 export default userOrders.reducer

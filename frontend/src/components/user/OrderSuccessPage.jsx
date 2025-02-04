@@ -91,7 +91,7 @@ const OrderSuccessPage = () => {
                                         Quantity: {item.quantity}
                                     </p>
                                 </div>
-                                <p className="font-medium">${item.productPrice}</p>
+                                <p className="font-medium">₹{item.productPrice}</p>
                             </div>
                         ))}
                     </div>
@@ -99,7 +99,9 @@ const OrderSuccessPage = () => {
 
                 {/* Action Buttons */}
                 <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                    <button className="inline-flex items-center justify-center px-6 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-blue-600 hover:bg-blue-700">
+                    <button
+                        onClick={() => navigate('/account-details/orders')}
+                        className="inline-flex items-center justify-center px-6 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-blue-600 hover:bg-blue-700">
                         <Package className="h-5 w-5 mr-2" />
                         Track Order
                     </button>
@@ -107,7 +109,9 @@ const OrderSuccessPage = () => {
                         <Printer className="h-5 w-5 mr-2" />
                         Print Receipt
                     </button>
-                    <button className="inline-flex items-center justify-center px-6 py-3 border border-gray-300 rounded-md shadow-sm text-base font-medium text-gray-700 bg-white hover:bg-gray-50">
+                    <button
+                        onClick={() => navigate('/')}
+                        className="inline-flex items-center justify-center px-6 py-3 border border-gray-300 rounded-md shadow-sm text-base font-medium text-gray-700 bg-white hover:bg-gray-50">
                         <Home className="h-5 w-5 mr-2" />
                         Continue Shopping
                     </button>

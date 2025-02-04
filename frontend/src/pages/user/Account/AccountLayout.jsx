@@ -1,30 +1,35 @@
 import React from 'react';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
-import { User, ShoppingBag, MapPin, Settings } from 'lucide-react';
+import { User, ShoppingBag, MapPin, Settings, Wallet } from 'lucide-react';
 
 const AccountLayout = () => {
   const location = useLocation();
-  
+
   const navLinks = [
     {
       to: '/account-details/profile',
       label: 'Profile',
-      icon: <User size={20} />
+      icon: <User className="w-5 h-5" />
     },
     {
       to: '/account-details/orders',
       label: 'Orders',
-      icon: <ShoppingBag size={20} />
+      icon: <ShoppingBag className="w-5 h-5" />
+    },
+    {
+      to: '/account-details/wallet',
+      label: 'Wallet',
+      icon: <Wallet className="w-5 h-5" />
     },
     {
       to: '/account-details/address',
       label: 'Address',
-      icon: <MapPin size={20} />
+      icon: <MapPin className="w-5 h-5" />
     },
     {
       to: '/account-details/settings',
       label: 'Settings',
-      icon: <Settings size={20} />
+      icon: <Settings className="w-5 h-5" />
     }
   ];
 
@@ -36,22 +41,27 @@ const AccountLayout = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        {/* Mobile Header */}
-        <div className="md:hidden mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">{getCurrentPageTitle()}</h1>
+      {/* Mobile Header */}
+      <div className="lg:hidden bg-white border-b">
+        <div className="px-4 py-3">
+          <h1 className="text-lg font-semibold text-gray-900">
+            {getCurrentPageTitle()}
+          </h1>
         </div>
+      </div>
 
-        <div className="flex flex-col md:flex-row gap-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-[280px,1fr] gap-8">
           {/* Sidebar Navigation */}
-          <div className="md:w-64 w-full">
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100">
+          <div className="hidden lg:block">
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
               {/* Desktop Header */}
-              <div className="hidden md:block p-6 border-b border-gray-100">
-                <h2 className="text-xl font-bold text-gray-900">Account Settings</h2>
+              <div className="p-4 border-b">
+                <h2 className="text-lg font-semibold text-gray-900">
+                  Account Settings
+                </h2>
               </div>
-              
-              <nav className="p-4">
+              <nav className="p-2">
                 {navLinks.map((link) => (
                   <NavLink
                     key={link.to}
@@ -64,14 +74,16 @@ const AccountLayout = () => {
                       }`
                     }
                   >
-                    <span className={({ isActive }) =>
-                      `transition-colors duration-200 ${
-                        isActive ? 'text-white' : 'text-gray-400'
-                      }`
-                    }>
+                    <span
+                      className={({ isActive }) =>
+                        `transition-colors duration-200 ${
+                          isActive ? 'text-white' : 'text-gray-400'
+                        }`
+                      }
+                    >
                       {link.icon}
                     </span>
-                    <span className="font-medium">{link.label}</span>
+                    {link.label}
                   </NavLink>
                 ))}
               </nav>
@@ -79,10 +91,12 @@ const AccountLayout = () => {
           </div>
 
           {/* Main Content Area */}
-          <div className="flex-1">
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-              <div className="hidden md:block mb-6">
-                <h1 className="text-2xl font-bold text-gray-900">{getCurrentPageTitle()}</h1>
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+            <div className="p-6">
+              <div className="lg:hidden mb-6">
+                <h1 className="text-2xl font-bold text-gray-900">
+                  {getCurrentPageTitle()}
+                </h1>
               </div>
               <Outlet />
             </div>

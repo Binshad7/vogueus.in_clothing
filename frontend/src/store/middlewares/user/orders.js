@@ -55,10 +55,40 @@ const cancelOrderItem = createAsyncThunk(
     }
 );
 
+const returnOrderItem = createAsyncThunk(
+    'user/returnOrderItem',
+    async ({ orderId, updateDetails }, { rejectWithValue }) => {
+        try {
+            const response = await userAxios.patch(`/orders/returnOrderItem/${orderId}`,{...updateDetails});
+            toast.success(response.data.message);
+            return JSON.parse(response.data.orderItems);
+        } catch (error) {
+            toast.error(error.response.data.message);
+            return rejectWithValue(error.response.data.message);
+        }
+    }
+);
+const returnOrder = createAsyncThunk(
+    'user/returnOrder',
+    async ({ orderId,returnMessage }, { rejectWithValue }) => {
+        try {
+            const response = await userAxios.patch(`/orders/returnOrder/${orderId}`,{returnMessage});
+            toast.success(response.data.message);
+            return JSON.parse(response.data.orderItems);
+        } catch (error) {
+            toast.error(error.response.data.message);
+            return rejectWithValue(error.response.data.message);
+        }
+    }
+);
+
+
 
 export {
     createNewOreder,
     getOrderItems,
     cancelOrder,
-    cancelOrderItem
+    cancelOrderItem,
+    returnOrderItem,
+    returnOrder
 }

@@ -89,10 +89,13 @@ const createNewOrder = async (req, res) => {
         UpdateCart.items = [];
         await UpdateCart.save();
         const orderDetails = await getOrderItems(req.user._id)
+        console.log(orderDetails[0])
+        const lastAddedProduct = orderDetails.find((item) => item.orderId == orderId);
+        console.log('filet one ', lastAddedProduct)
         res.status(201).json({
             success: true,
             message: "Order placed successfully",
-            orderItems: JSON.stringify(orderDetails[orderDetails.length - 1]),
+            orderItems: JSON.stringify(lastAddedProduct),
         });
 
     } catch (error) {
@@ -174,8 +177,9 @@ const cancelOrderItem = async (req, res) => {
         if (!ExistingProductWithId) {
             return res.status(404).json({ success: false, message: "Order or Item not found" });
         }
+        const orderDetails = await getOrderItems(req.user._id);
 
-        res.status(200).json({ success: true, message: "Order item canceled", updatedOrder: updatedOrder });
+        res.status(200).json({ success: true, message: "Order item canceled", orderdItem: JSON.stringify(orderDetails) });
     } catch (error) {
         console.error("Error canceling order:", error);
         res.status(500).json({ success: false, message: "Server error, please try again later" });
@@ -183,10 +187,115 @@ const cancelOrderItem = async (req, res) => {
 };
 
 
+const returnOrderItem = async (req, res) => {
+    const { orderId } = req.params;
+    const { returnMessage, itemId } = req.body
+    if (!mongoose.Types.ObjectId.isValid(orderId)) {
+        return res.status(400).json({ success: false, message: "Invalid Order ID format" });
+    }
+    if (!mongoose.Types.ObjectId.isValid(itemId)) {
+        return res.status(400).json({ success: false, message: "Invalid Item ID format" });
+    }
+    if (!returnMessage.trim()) {
+        return res.status(400).json({ success: false, message: "Return Message is Required For Return  Order " });
+    }
+    try {
+        const UpdatedItem = await orderSchema.updateOne({
+            _id: orderId,
+            "items._id": itemId
+        },
+            {
+                $set: {
+                    "items.$.returnRequest.requestStatus": true,
+                    "items.$.returnRequest.requestMessage": returnMessage
+                }
+            }
+        )
+        if (UpdatedItem.modifiedCount == 0) {
+            return res.status(400).json({ success: false, message: "Product Not Found" })
+        }
+        const orderDetails = await getOrderItems(req.user._id);
+        res.status(200).json({ success: true, message: 'Requsted To Return Product ', orderdItem: JSON.stringify(orderDetails) })
+    } catch (error) {
+        console.error("Error canceling A item order:", error);
+        res.status(500).json({ success: false, message: "Server error, please try again later" });
+    }
+}
+
+
+const returnOrder = async (req, res) => {
+    const { orderId } = req.params;
+    const { returnMessage } = req.body;
+
+    // Validate order ID format
+    if (!mongoose.Types.ObjectId.isValid(orderId)) {
+        return res.status(400).json({ success: false, message: "Invalid Order ID format" });
+    }
+
+    // Ensure returnMessage is provided
+    if (!returnMessage || !returnMessage.trim()) {
+        return res.status(400).json({ success: false, message: "Return Message is Required For Returning the Order" });
+    }
+
+    try {
+        // Fetch the order
+        const updateOrder = await orderSchema.findById(orderId);
+        if (!updateOrder) {
+            return res.status(404).json({ success: false, message: "Order Not Found" });
+        }
+
+        // Update order-level return request
+        updateOrder.returnRequest.requestStatus = true;
+        updateOrder.returnRequest.requestMessage = returnMessage;
+        updateOrder.returnRequest.adminStatus = "pending";
+
+        // Update item-level return requests only if they are empty
+        updateOrder.items = updateOrder.items.map((item) => {
+            if (item.returnRequest.requestStatus || item.returnRequest.requestMessage) {
+                return item; // Keep existing return requests
+            }
+            return {
+                ...item,
+                returnRequest: {
+                    requestStatus: true,
+                    requestMessage: returnMessage,
+                    adminStatus: "pending",
+                },
+            };
+        });
+
+        // Save the updated order
+        const updateResult = await orderSchema.updateOne(
+            { _id: orderId },
+            {
+                $set: {
+                    returnRequest: updateOrder.returnRequest,
+                    items: updateOrder.items,
+                },
+            }
+        );
+
+        if (updateResult.modifiedCount > 0) {
+            const orderDetails = await getOrderItems(req.user._id);
+
+            return res.status(200).json({ success: true, message: "Return request sent successfully" ,orderdItem: JSON.stringify(orderDetails)});
+        }
+
+        res.status(400).json({ success: false, message: "Try Again Later" });
+
+    } catch (error) {
+        console.error("Error returning order:", error);
+        res.status(500).json({ success: false, message: "Server error, please try again later" });
+    }
+};
+
+module.exports = returnOrder;
 
 module.exports = {
     createNewOrder,
     getUserOrderes,
     cancellOrder,
-    cancelOrderItem
+    cancelOrderItem,
+    returnOrderItem,
+    returnOrder
 };
