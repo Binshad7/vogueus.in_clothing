@@ -2,16 +2,23 @@ import { createSlice } from "@reduxjs/toolkit";
 import { getAllOrders } from '../../middlewares/admin/admin_order_handle'
 const initialState = {
     loading: false,
-    orders: []
-}
+    orders: [],
+    totalPages: 1,
+    totalOrders: 0,
+    currentPage: 1
+};
+
 
 const handlePending = (state) => {
     state.loading = true;
 }
 const handleFulfilled = (state, action) => {
     state.loading = false;
-    state.orders = action.payload;
-}
+    state.orders = action.payload.orders;
+    state.totalPages = action.payload.totalPages;
+    state.totalOrders = action.payload.totalOrders;
+    state.currentPage = action.payload.currentPage;
+};
 const handleReject = (state) => {
     state.loading = false;
 }

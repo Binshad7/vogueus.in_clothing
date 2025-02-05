@@ -1,114 +1,108 @@
 import React, { useEffect, useState } from 'react';
-import { getAllOrders } from '../../../store/middlewares/admin/admin_order_handle';
 import { useDispatch, useSelector } from 'react-redux';
-
+import { getAllOrders } from '../../../store/middlewares/admin/admin_order_handle';
+import debounce from 'lodash/debounce';
+import { useNavigate } from 'react-router-dom';
 const OrderListingPage = () => {
     const dispatch = useDispatch();
-    const { loading, orders } = useSelector((state) => state.adminOrders);
-
-    // Local state for filtered orders and search/filter values
-    const [filteredOrders, setFilteredOrders] = useState([]);
+    const { 
+        loading, 
+        orders, 
+        totalPages, 
+        currentPage: serverCurrentPage,
+        totalOrders 
+    } = useSelector((state) => state.adminOrders);
+    const navigate = useNavigate()
+    // Local states
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('All');
-
-    // Pagination state
     const [currentPage, setCurrentPage] = useState(1);
-    const [ordersPerPage] = useState(10);
+    const ordersPerPage = 10;
 
-
-
-
-    useEffect(() => {
-        console.log("Fetching orders for page:", currentPage);
-        dispatch(getAllOrders({
-            page: currentPage,
+    // Debounced search function
+    const debouncedSearch = debounce((term, status, page) => {
+        dispatch(getAllOrders({ 
+            page, 
             limit: ordersPerPage,
-            search: searchTerm,
-            status: statusFilter !== 'All' ? statusFilter.toLowerCase() : ''
+            search: term,
+            status: status === 'All' ? undefined : status.toLowerCase()
         }));
-    }, [dispatch, currentPage, ordersPerPage, searchTerm, statusFilter]);
+    }, 500);
 
-
-
-
-    // Update filtered orders whenever orders, search term, or status filter changes
+    // Fetch orders when filters or pagination changes
     useEffect(() => {
-        if (!orders || orders.length === 0) return;
+        debouncedSearch(searchTerm, statusFilter, currentPage);
+        return () => debouncedSearch.cancel();
+    }, [searchTerm, statusFilter, currentPage]);
 
-        let result = [...orders];
+    // Reset pagination when filters change
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchTerm, statusFilter]);
 
-        if (searchTerm) {
-            result = result.filter(order =>
-                order.orderId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                order.items.some(item =>
-                    item.productName.toLowerCase().includes(searchTerm.toLowerCase())
-                )
-            );
+    const getStatusColor = (order) => {
+        // Check if order has return request approved
+        if (order.returnRequest?.adminStatus === 'approved') {
+            return 'bg-purple-100 text-purple-800';
         }
 
-        if (statusFilter !== 'All') {
-            result = result.filter(order => order.orderStatus === statusFilter.toLowerCase());
+        // Count items with return requests
+        const totalItems = order.items.length;
+        const returnedItems = order.items.filter(item => 
+            item.itemStatus === 'returned' || 
+            item.returnRequest?.adminStatus === 'approved'
+        ).length;
+
+        if (returnedItems === totalItems) {
+            return 'bg-purple-100 text-purple-800';
+        } else if (returnedItems > 0) {
+            return 'bg-orange-100 text-orange-800';
         }
 
-        setFilteredOrders(result);
-    }, [orders, searchTerm, statusFilter]);
-
-
-    // Pagination calculations
-    const indexOfLastOrder = currentPage * ordersPerPage;
-    const indexOfFirstOrder = indexOfLastOrder - ordersPerPage;
-    const currentOrders = filteredOrders.slice(indexOfFirstOrder, indexOfLastOrder);
-    const totalPages = Math.ceil(filteredOrders.length / ordersPerPage);
-
-    // Pagination controls
-    const paginate = (pageNumber) => setCurrentPage(pageNumber);
-
-    const nextPage = () => {
-        console.log(totalPages)
-        if (currentPage < totalPages) {
-
-            setCurrentPage(prev => prev + 1);
-            dispatch(getAllOrders({
-                page: currentPage + 1,
-                limit: ordersPerPage,
-                search: searchTerm,
-                status: statusFilter !== 'All' ? statusFilter.toLowerCase() : ''
-            }));
-        }
-    };
-
-
-    const prevPage = () => {
-        if (currentPage > 1) {
-            setCurrentPage(prev => prev - 1);
-        }
-    };
-
-
-    const formatDate = (dateString) => {
-        return new Date(dateString).toLocaleString();
-    };
-
-    const getStatusColor = (status) => {
         const statusColors = {
             'delivered': 'bg-green-100 text-green-800',
             'processing': 'bg-yellow-100 text-yellow-800',
             'cancelled': 'bg-red-100 text-red-800',
             'pending': 'bg-blue-100 text-blue-800',
-            'paid': 'bg-green-100 text-green-800',
-            'unpaid': 'bg-red-100 text-red-800'
+            'shipped': 'bg-indigo-100 text-indigo-800'
         };
-        return statusColors[status] || 'bg-gray-100 text-gray-800';
+        return statusColors[order.orderStatus.toLowerCase()] || 'bg-gray-100 text-gray-800';
     };
 
-    // Generate page numbers for pagination
+    const getOrderStatus = (order) => {
+        if (order.returnRequest?.adminStatus === 'approved') {
+            return 'Fully Returned';
+        }
+
+        const returnedItems = order.items.filter(item => 
+            item.itemStatus === 'returned' || 
+            item.returnRequest?.adminStatus === 'approved'
+        ).length;
+        
+        if (returnedItems === order.items.length) {
+            return 'All Items Returned';
+        } else if (returnedItems > 0) {
+            return `Partially Returned (${returnedItems}/${order.items.length})`;
+        }
+        
+        return order.orderStatus;
+    };
+
+    // Pagination functions
+    const nextPage = () => {
+        if (currentPage < totalPages) setCurrentPage(prev => prev + 1);
+    };
+
+    const prevPage = () => {
+        if (currentPage > 1) setCurrentPage(prev => prev - 1);
+    };
+
     const getPageNumbers = () => {
         const pageNumbers = [];
         const maxVisiblePages = 5;
         let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
         let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
 
-        // Adjust start page if end page is maxed out
         if (endPage === totalPages) {
             startPage = Math.max(1, endPage - maxVisiblePages + 1);
         }
@@ -120,9 +114,11 @@ const OrderListingPage = () => {
         return pageNumbers;
     };
 
+    const formatDate = (dateString) => new Date(dateString).toLocaleString();
+
     return (
         <div className="p-6">
-            {/* Header and filters - same as before */}
+            {/* Header and Filters */}
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-2xl font-bold">Order Management</h1>
                 <div className="flex gap-4">
@@ -138,21 +134,24 @@ const OrderListingPage = () => {
                         value={statusFilter}
                         onChange={(e) => setStatusFilter(e.target.value)}
                     >
-                        <option>All</option>
-                        <option>Delivered</option>
-                        <option>Processing</option>
-                        <option>Cancelled</option>
-                        <option>Pending</option>
+                        <option value="All">All</option>
+                        <option value="processing">Processing</option>
+                        <option value="shipped">Shipped</option>
+                        <option value="delivered">Delivered</option>
+                        <option value="cancelled">Cancelled</option>
+                        <option value="fully_returned">Fully Returned</option>
+                        <option value="partially_returned">Partially Returned</option>
+                        <option value="return_requested">Return Requested</option>
                     </select>
                 </div>
             </div>
 
+            {/* Loading State */}
             {loading ? (
                 <div className="text-center py-4">Loading orders...</div>
             ) : (
                 <div className="overflow-x-auto">
                     <table className="min-w-full bg-white border">
-                        {/* Table header - same as before */}
                         <thead className="bg-gray-50">
                             <tr>
                                 <th className="p-4 text-left font-medium text-gray-500">Order ID</th>
@@ -165,9 +164,8 @@ const OrderListingPage = () => {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-200">
-                            {currentOrders.map((order) => (
+                            {orders.map((order) => (
                                 <tr key={order._id} className="hover:bg-gray-50">
-                                    {/* Table row content - same as before */}
                                     <td className="p-4">{order.orderId}</td>
                                     <td className="p-4">
                                         {order.items.map((item, index) => (
@@ -183,8 +181,8 @@ const OrderListingPage = () => {
                                                         {item.quantity}x ${item.productPrice} - Size: {item.size}
                                                     </div>
                                                     {item.returnRequest?.requestStatus && (
-                                                        <div className="text-red-500 text-xs">
-                                                            Return Requested: {item.returnRequest.adminStatus}
+                                                        <div className="text-xs text-orange-600">
+                                                            Return {item.returnRequest.adminStatus}
                                                         </div>
                                                     )}
                                                 </div>
@@ -193,28 +191,21 @@ const OrderListingPage = () => {
                                     </td>
                                     <td className="p-4 font-medium">${order.totalAmount}</td>
                                     <td className="p-4">
-                                        <span className={`px-2 py-1 rounded-full text-sm ${getStatusColor(order.orderStatus)}`}>
-                                            {order.orderStatus}
-                                        </span>
-                                    </td>
-                                    <td className="p-4">
                                         <div className="flex flex-col gap-1">
-                                            <span className="text-sm">{order.paymentMethod}</span>
-                                            <span className={`px-2 py-1 rounded-full text-sm ${getStatusColor(order.paymentStatus)}`}>
-                                                {order.paymentStatus}
+                                            <span className={`px-2 py-1 rounded-full text-sm ${getStatusColor(order)}`}>
+                                                {getOrderStatus(order)}
                                             </span>
+                                            {order.returnRequest?.requestStatus && order.returnRequest.adminStatus === 'pending' && (
+                                                <span className="text-xs bg-yellow-50 text-yellow-600 px-2 py-0.5 rounded">
+                                                    Return Requested
+                                                </span>
+                                            )}
                                         </div>
                                     </td>
+                                    <td className="p-4">{order.paymentMethod}</td>
                                     <td className="p-4 text-sm">{formatDate(order.orderedAt)}</td>
                                     <td className="p-4">
-                                        <div className="flex gap-2">
-                                            <button className="p-2 text-blue-600 hover:text-blue-800">
-                                                View
-                                            </button>
-                                            <button className="p-2 text-gray-600 hover:text-gray-800">
-                                                Edit
-                                            </button>
-                                        </div>
+                                        <button className="p-2 text-blue-600 hover:text-blue-800" onClick={()=>navigate('/admin/orders/detailspage')}>View</button>
                                     </td>
                                 </tr>
                             ))}
@@ -223,64 +214,39 @@ const OrderListingPage = () => {
                 </div>
             )}
 
-            {/* Enhanced pagination controls */}
             {/* Pagination Controls */}
             <div className="mt-4 flex justify-between items-center">
                 <div className="text-sm text-gray-500">
-                    Showing {indexOfFirstOrder + 1} to {Math.min(indexOfLastOrder, filteredOrders.length)} of {filteredOrders.length} orders
+                    Showing {((currentPage - 1) * ordersPerPage) + 1} to {Math.min(currentPage * ordersPerPage, totalOrders)} of {totalOrders} orders
                 </div>
-
                 <div className="flex items-center gap-2">
-                    {/* First Page */}
-                    <button
-                        onClick={() => setCurrentPage(1)}
-                        disabled={currentPage === 1}
-                        className="px-3 py-1 border rounded disabled:opacity-50 hover:bg-gray-50"
-                    >
-                        First
-                    </button>
-
-                    {/* Previous Page */}
-                    <button
-                        onClick={prevPage}
-                        disabled={currentPage === 1}
-                        className="px-3 py-1 border rounded disabled:opacity-50 hover:bg-gray-50"
+                    <button 
+                        onClick={prevPage} 
+                        disabled={currentPage === 1} 
+                        className="px-3 py-1 border rounded hover:bg-gray-50 disabled:opacity-50"
                     >
                         Previous
                     </button>
-
-                    {/* Page Numbers */}
                     {getPageNumbers().map(number => (
-                        <button
-                            key={number}
-                            onClick={() => paginate(number)}
-                            className={`px-3 py-1 border rounded hover:bg-gray-50 ${currentPage === number ? 'bg-blue-50 border-blue-500 text-blue-600' : ''
-                                }`}
+                        <button 
+                            key={number} 
+                            onClick={() => setCurrentPage(number)}
+                            className={`px-3 py-1 border rounded hover:bg-gray-50 ${
+                                currentPage === number ? 'bg-blue-50 border-blue-500 text-blue-600' : ''
+                            }`}
                         >
                             {number}
                         </button>
                     ))}
-
-                    {/* Next Page */}
-                    <button
-                        onClick={nextPage}
-                        // disabled={currentPage === totalPages}
-                        className="px-3 py-1 border rounded disabled:opacity-50 hover:bg-gray-50"
+                    <button 
+                        onClick={nextPage} 
+                        disabled={currentPage === totalPages} 
+                        className="px-3 py-1 border rounded hover:bg-gray-50 disabled:opacity-50"
                     >
                         Next
                     </button>
-
-                    {/* Last Page */}
-                    <button
-                        onClick={() => setCurrentPage(totalPages)}
-                        disabled={currentPage === totalPages}
-                        className="px-3 py-1 border rounded disabled:opacity-50 hover:bg-gray-50"
-                    >
-                        Last
-                    </button>
                 </div>
             </div>
-
         </div>
     );
 };

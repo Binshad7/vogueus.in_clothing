@@ -9,6 +9,7 @@ import ProductList from '../pages/admin/product/productList/ProductList'
 // 
 import UserManagement from '../pages/admin/UserManagement/UserManagement'
 import OrderListingPage from '../pages/admin/orders/OrderListingPage'
+import OrderDetails from '../pages/admin/orders/OrderDetailPage'
 
 
 function AdminRoutes() {
@@ -23,6 +24,7 @@ function AdminRoutes() {
         <Route path='/updateProduct/:productId' element={<EditProduct />} />
 
         <Route path='/orders' element={<OrderListingPage />} />
+        <Route path='/orders/detailspage' element={<OrderDetails />} />
         <Route path='/allusers' element={<UserManagement />} />
 
 
