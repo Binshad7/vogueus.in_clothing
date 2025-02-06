@@ -24,7 +24,7 @@ function AdminRoutes() {
         <Route path='/updateProduct/:productId' element={<EditProduct />} />
 
         <Route path='/orders' element={<OrderListingPage />} />
-        <Route path='/orders/detailspage' element={<OrderDetails />} />
+        <Route path='/orders/detailspage/:orderId' element={<OrderDetails />} />
         <Route path='/allusers' element={<UserManagement />} />
 
 

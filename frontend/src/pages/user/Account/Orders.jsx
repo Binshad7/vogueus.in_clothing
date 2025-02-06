@@ -52,20 +52,19 @@ const Orders = () => {
   const [returnMessage, setReturnMessage] = useState("");
   const [selectedItemForReturn, setSelectedItemForReturn] = useState(null);
   const [selectedOrderForReturn, setSelectedOrderForReturn] = useState(null);
-  const [returnAOrder, setReturnOrder] = useState()
+  const [returnAOrder, setReturnOrder] = useState();
+
   // Redux
   const dispatch = useDispatch();
   const { orderes, loading } = useSelector((state) => state.userOrders);
   const { user } = useSelector((state) => state.user);
 
-  // Initial Load
   useEffect(() => {
     if (user?._id) {
       dispatch(getOrderItems(user._id));
     }
   }, [dispatch, user]);
 
-  // Filter Orders
   useEffect(() => {
     if (orderes?.length > 0) {
       setUserOrders(
@@ -78,7 +77,6 @@ const Orders = () => {
     }
   }, [selectedFilter, orderes]);
 
-  // Date Formatting
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric",
@@ -87,7 +85,6 @@ const Orders = () => {
     });
   };
 
-  // Order Actions
   const handleOrderCancel = async (orderId) => {
     setCancellingOrder(orderId);
     const result = await dispatch(cancelOrder(orderId));
@@ -125,26 +122,27 @@ const Orders = () => {
     setReturnMessage("");
     setSelectedItemForReturn(null);
     setSelectedOrderForReturn(null);
-    setReturnOrder(null)
+    setReturnOrder(null);
   };
 
-  // Return Order
   const returnOrderOpenModal = (orderId) => {
-    setShowReturnModal(true)
-    setReturnOrder(orderId)
+    setShowReturnModal(true);
+    setReturnOrder(orderId);
+  };
 
-  }
   const returnOrderConfirm = () => {
-    dispatch(returnOrder({ orderId: returnAOrder, returnMessage }))
-    setShowReturnModal(false)
-  }
-  // Separate functions for order and item level actions
+    dispatch(returnOrder({ orderId: returnAOrder, returnMessage }));
+    setShowReturnModal(false);
+  };
+
+  // Updated order actions to only show cancel button for processing status
   const getOrderActions = (order) => {
     const orderStatus = order.orderStatus.toLowerCase();
     const paymentStatus = order.paymentStatus.toLowerCase();
-    const returnRequest = order.items.some((item) => item.itemStatus === 'delivered' && item.returnRequest.requestStatus)
+    const returnRequest = order.items.some((item) => item.itemStatus === 'delivered' && item.returnRequest.requestStatus);
+    
     return {
-      canCancel: ['processing', 'pending'].includes(orderStatus),
+      canCancel: orderStatus === 'processing', // Only show cancel for processing status
       canReturn: orderStatus === 'delivered' && order.items[0].itemStatus === 'delivered' && !returnRequest,
       canReorder: ['delivered', 'cancelled', 'returned'].includes(orderStatus),
       canTrack: ['shipped'].includes(orderStatus),
@@ -152,6 +150,7 @@ const Orders = () => {
     };
   };
 
+  // Updated item actions to only show cancel button for processing status
   const getItemActions = (order, item) => {
     if (!item) return {};
 
@@ -159,11 +158,10 @@ const Orders = () => {
     const itemStatus = item.itemStatus.toLowerCase();
 
     return {
-      canCancel: ['processing', 'pending'].includes(orderStatus),
+      canCancel: itemStatus === 'processing', // Only show cancel for processing status
       canReturn: itemStatus === 'delivered' && orderStatus === 'delivered' && !item?.returnRequest?.requestStatus,
     };
   };
-
 
   return (
     <div className="max-w-7xl mx-auto p-4">
@@ -200,7 +198,6 @@ const Orders = () => {
         userOrders.map((order) => (
           <div key={order._id} className="bg-white rounded-lg shadow-sm border border-gray-200 mb-4">
             <div className="p-6">
-              {/* Order Header */}
               <div className="flex justify-between items-center mb-4">
                 <div>
                   <h2 className="text-lg font-semibold">Order #{order.orderId}</h2>
@@ -215,7 +212,6 @@ const Orders = () => {
                   </p>
                   <p className="font-semibold mt-1">₹{order.totalAmount}</p>
 
-                  {/* Order-level Actions */}
                   <div className="flex gap-2 mt-2 justify-end">
                     {getOrderActions(order).canCancel && (
                       <ActionButton
@@ -242,7 +238,6 @@ const Orders = () => {
                 </div>
               </div>
 
-              {/* Order Date */}
               <div className="flex items-center gap-2 mb-4">
                 <Calendar className="w-5 h-5 text-gray-500" />
                 <span className="text-sm text-gray-600">
@@ -250,7 +245,6 @@ const Orders = () => {
                 </span>
               </div>
 
-              {/* Details Toggle Button */}
               <button
                 onClick={() => setSelectedOrder(selectedOrder === order._id ? "" : order._id)}
                 className="text-blue-600 hover:text-blue-700 flex items-center gap-1"
@@ -262,7 +256,6 @@ const Orders = () => {
                 )}
               </button>
 
-              {/* Order Items */}
               {selectedOrder === order._id && (
                 <div className="mt-4 border-t pt-4">
                   {order.items.map((item, index) => (
@@ -293,7 +286,7 @@ const Orders = () => {
                                   setSelectedItemForReturn(item);
                                   setSelectedOrderForReturn(order._id);
                                   setShowReturnModal(true);
-                                  setReturnMessage('')
+                                  setReturnMessage('');
                                 }}
                                 bgColor="bg-orange-100 text-orange-600"
                                 hoverBgColor="hover:bg-orange-200"

@@ -23,7 +23,21 @@ const getAllOrders = createAsyncThunk(
     }
 );
 
+const updateOrderItemStatus = createAsyncThunk(
+    "admin/updateOrderItemStatus",
+    async ({ orderId, itemId, newStatus }, { rejectWithValue }) => {
+        try {
+            const response = await adminAxios.patch(`/orders/updateOrderStatus/${orderId}/${itemId}`, { newStatus });
+            toast.success(response.data.message)
+            return response.data
+        } catch (error) {
+            toast.error(error.response?.data?.message || "Failed to fetch orders");
+            return rejectWithValue(error.response?.data);
+        }
+    }
+);
 
 export {
-    getAllOrders
+    getAllOrders,
+    updateOrderItemStatus
 }

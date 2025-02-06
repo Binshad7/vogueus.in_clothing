@@ -205,7 +205,7 @@ const returnOrderItem = async (req, res) => {
             "items._id": itemId
         },
             {
-                $set: {
+                $set: { 
                     "items.$.returnRequest.requestStatus": true,
                     "items.$.returnRequest.requestMessage": returnMessage
                 }

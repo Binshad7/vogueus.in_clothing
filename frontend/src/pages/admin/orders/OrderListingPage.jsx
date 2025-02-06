@@ -205,7 +205,7 @@ const OrderListingPage = () => {
                                     <td className="p-4">{order.paymentMethod}</td>
                                     <td className="p-4 text-sm">{formatDate(order.orderedAt)}</td>
                                     <td className="p-4">
-                                        <button className="p-2 text-blue-600 hover:text-blue-800" onClick={()=>navigate('/admin/orders/detailspage')}>View</button>
+                                        <button className="p-2 text-blue-600 hover:text-blue-800" onClick={()=>navigate(`/admin/orders/detailspage/${order._id}`)}>View</button>
                                     </td>
                                 </tr>
                             ))}

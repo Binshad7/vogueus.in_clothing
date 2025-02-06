@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { getAllOrders } from '../../middlewares/admin/admin_order_handle'
+import { getAllOrders, updateOrderItemStatus } from '../../middlewares/admin/admin_order_handle'
 const initialState = {
     loading: false,
     orders: [],
@@ -32,6 +32,15 @@ const adminOrders = createSlice({
             .addCase(getAllOrders.pending, handlePending)
             .addCase(getAllOrders.fulfilled, handleFulfilled)
             .addCase(getAllOrders.rejected, handleReject)
+
+
+            .addCase(updateOrderItemStatus.pending, handlePending)
+            .addCase(updateOrderItemStatus.fulfilled, (state, action) => {
+                const updatedIndex = state.orders.findIndex((item) => action.payload.order._id.toString() == item._id.toString());
+                state.orders[updatedIndex] = action.payload.order
+                state.loading = false
+            })
+            .addCase(updateOrderItemStatus.rejected, handleReject)
     }
 })
 
