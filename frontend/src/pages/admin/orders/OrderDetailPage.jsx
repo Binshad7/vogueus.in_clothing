@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { act, useEffect, useState } from "react";
 import {
   Package,
   User,
@@ -9,7 +9,7 @@ import {
 import { useParams } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { updateOrderItemStatus } from "../../../store/middlewares/admin/admin_order_handle";
+import { updateOrderItemStatus, updateOrderStatus, itemStatusReturn } from "../../../store/middlewares/admin/admin_order_handle";
 import Spinner from "../../../components/user/Spinner";
 
 const StatusBadge = ({ status, type }) => {
@@ -56,60 +56,17 @@ const OrderDetails = () => {
     setLoading(false);
   }, [orderId, orders]);
 
-  const updateOrderStatus = async (newStatus) => {
-    setIsUpdatingAllItems(true);
-    try {
-      // Update all items to the new status
-      const updatePromises = order.items.map(item =>
-        dispatch(updateOrderItemStatus({ itemId: item._id, orderId, newStatus }))
-      );
 
-      await Promise.all(updatePromises);
-
-      // Update local state
-      setOrder(prev => ({
-        ...prev,
-        orderStatus: newStatus,
-        items: prev.items.map(item => ({
-          ...item,
-          itemStatus: newStatus
-        }))
-      }));
-    } catch (error) {
-      console.error('Error updating all items:', error);
-    }
-    setIsUpdatingAllItems(false);
+  const orderStatusUpdate = async (newStatus) => {
+    dispatch(updateOrderStatus({ orderId, orderStatus: newStatus }))
   };
 
   const updateItemStatus = (itemId, newStatus) => {
     dispatch(updateOrderItemStatus({ itemId, orderId, newStatus }));
   };
 
-  const updateReturnStatus = (index, action) => {
-    const updatedItems = [...order.items];
-    const currentItem = updatedItems[index];
-
-    const returnStatusMap = {
-      approve: {
-        adminStatus: "return_approved",
-        adminComments: "Return approved. Refund will be processed.",
-        itemStatus: "returned"
-      },
-      reject: {
-        adminStatus: "return_rejected",
-        adminComments: "Return request does not meet our policy.",
-        itemStatus: "delivered"
-      }
-    };
-
-    const selectedAction = returnStatusMap[action];
-
-    currentItem.returnRequest.adminStatus = selectedAction.adminStatus;
-    currentItem.returnRequest.adminComments = selectedAction.adminComments;
-    currentItem.itemStatus = selectedAction.itemStatus;
-
-    setOrder((prev) => ({ ...prev, items: updatedItems }));
-    setSelectedReturnAction(prev => ({ ...prev, [index]: null }));
+  const updateReturnStatus = (item, action) => {
+    dispatch(itemStatusReturn({ orderId, itemId: item._id, returnStatus: action }))
   };
 
   const formatDate = (dateString) => {
@@ -138,13 +95,14 @@ const OrderDetails = () => {
                 <select
                   className="p-2 text-sm border rounded-md bg-white text-gray-800 focus:ring-blue-500 focus:border-blue-500"
                   value={order?.orderStatus}
-                  onChange={(e) => updateOrderStatus(e.target.value.toLowerCase())}
-                  disabled={isUpdatingAllItems}
+                  onChange={(e) => orderStatusUpdate(e.target.value.toLowerCase())}
+                  disabled={order?.orderStatus === 'cancelled'}
                 >
                   <option value="processing">Processing</option>
                   <option value="shipped">Shipped</option>
                   <option value="delivered">Delivered</option>
                   <option value="returned">Returned</option>
+                  <option value="cancelled">Cancelled</option>
                 </select>
                 {isUpdatingAllItems && (
                   <div className="text-white text-xs">Updating...</div>
@@ -260,7 +218,7 @@ const OrderDetails = () => {
                         className="block w-full p-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
                         value={item.itemStatus}
                         onChange={(e) => updateItemStatus(item._id, e.target.value.toLowerCase())}
-                        disabled={isUpdatingAllItems}
+                        disabled={order?.orderStatus === 'cancelled'}
                       >
                         <option value="processing">Processing</option>
                         <option value="shipped">Shipped</option>
@@ -321,7 +279,7 @@ const OrderDetails = () => {
                               <p className="text-sm mb-2">Confirm {selectedReturnAction[index]} action?</p>
                               <div className="flex space-x-2">
                                 <button
-                                  onClick={() => updateReturnStatus(index, selectedReturnAction[index])}
+                                  onClick={() => updateReturnStatus(item, selectedReturnAction[index])}
                                   className="flex-1 bg-green-500 text-white p-2 rounded hover:bg-green-600 text-sm"
                                 >
                                   Confirm

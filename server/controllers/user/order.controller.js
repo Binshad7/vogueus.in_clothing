@@ -116,7 +116,8 @@ const cancellOrder = async (req, res) => {
         }
         for (const item of CancelOrder.items) {
             const updateResult = await productSchema.updateOne(
-                { _id: item.productId, "variants.size": item.size },
+                { _id: item.productId, "variants.size": item.size }, 
+
                 { $inc: { "variants.$[elem].stock": item.quantity } },
                 { arrayFilters: [{ "elem.size": item.size }] }
             );

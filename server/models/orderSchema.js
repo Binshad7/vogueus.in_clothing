@@ -46,14 +46,14 @@ const orderSchema = new mongoose.Schema({
             itemStatus: {
                 type: String,
                 enum: ['processing', 'shipped', 'delivered', 'cancelled', 'returned'],
-                default: 'processing',   
+                default: 'processing',
             },
             returnRequest: {
                 requestStatus: { type: Boolean, default: false },
                 requestMessage: { type: String },
                 adminStatus: {
                     type: String,
-                    enum: ['approved', 'cancelled', 'pending'],
+                    enum: ['approved', 'reject', 'pending'],
                     default: 'pending',
                 },
             },
@@ -65,7 +65,7 @@ const orderSchema = new mongoose.Schema({
     },
     paymentMethod: {
         type: String,
-        enum: ['wallet','razorpay', 'cod'],
+        enum: ['wallet', 'razorpay', 'cod'],
         required: true,
     },
     paymentStatus: {
@@ -109,7 +109,7 @@ const orderSchema = new mongoose.Schema({
         requestMessage: { type: String },
         adminStatus: {
             type: String,
-            enum: ['approved', 'cancelled', 'pending'],
+            enum: ['approved', 'rejectd', 'pending'],
             default: 'pending',
         },
     },

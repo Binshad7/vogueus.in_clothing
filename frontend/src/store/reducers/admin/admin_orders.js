@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { getAllOrders, updateOrderItemStatus } from '../../middlewares/admin/admin_order_handle'
+import { getAllOrders, updateOrderItemStatus, updateOrderStatus, itemStatusReturn } from '../../middlewares/admin/admin_order_handle'
 const initialState = {
     loading: false,
     orders: [],
@@ -33,7 +33,7 @@ const adminOrders = createSlice({
             .addCase(getAllOrders.fulfilled, handleFulfilled)
             .addCase(getAllOrders.rejected, handleReject)
 
-
+            // updateOrderOItmeStatus
             .addCase(updateOrderItemStatus.pending, handlePending)
             .addCase(updateOrderItemStatus.fulfilled, (state, action) => {
                 const updatedIndex = state.orders.findIndex((item) => action.payload.order._id.toString() == item._id.toString());
@@ -41,6 +41,23 @@ const adminOrders = createSlice({
                 state.loading = false
             })
             .addCase(updateOrderItemStatus.rejected, handleReject)
+            // update order orderStatus
+            .addCase(updateOrderStatus.pending, handlePending)
+            .addCase(updateOrderStatus.fulfilled, (state, action) => {
+                const updatedIndex = state.orders.findIndex((item) => action.payload.order._id.toString() == item._id.toString());
+                state.orders[updatedIndex] = action.payload.order
+                state.loading = false
+            })
+            .addCase(updateOrderStatus.rejected, handleReject)
+
+            // order return Status change
+            .addCase(itemStatusReturn.pending, handlePending)
+            .addCase(itemStatusReturn.fulfilled, (state, action) => {
+                const updatedIndex = state.orders.findIndex((item) => action.payload.order._id.toString() == item._id.toString());
+                state.orders[updatedIndex] = action.payload.order
+                state.loading = false
+            })
+            .addCase(itemStatusReturn.rejected, handleReject)
     }
 })
 

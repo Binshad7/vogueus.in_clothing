@@ -37,7 +37,39 @@ const updateOrderItemStatus = createAsyncThunk(
     }
 );
 
+const updateOrderStatus = createAsyncThunk(
+    "admin/updateOrderStatus",
+    async ({ orderId, orderStatus }, { rejectWithValue }) => {
+        try {
+            const response = await adminAxios.patch(`/orders/updateOrderStatus/${orderId}`, { orderStatus });
+            toast.success(response.data.message)
+            return response.data
+        } catch (error) {
+            toast.error(error.response?.data?.message || "Failed to fetch orders");
+            return rejectWithValue(error.response?.data);
+        }
+    }
+);
+const itemStatusReturn = createAsyncThunk(
+    "admin/orderStatusReturn",
+    async ({ orderId, itemId,returnStatus }, { rejectWithValue }) => {
+        try {
+            const response = await adminAxios.patch(`/orders/itemReturnStatus/${orderId}/${itemId}`, { returnStatus });
+            toast.success(response.data.message)
+            console.log(response.data.order)
+            return response.data
+        } catch (error) {
+            toast.error(error.response?.data?.message || "Failed to fetch orders");
+            return rejectWithValue(error.response?.data);
+        }
+    }
+);
+
+
+
 export {
     getAllOrders,
-    updateOrderItemStatus
+    updateOrderItemStatus,
+    updateOrderStatus,
+    itemStatusReturn
 }

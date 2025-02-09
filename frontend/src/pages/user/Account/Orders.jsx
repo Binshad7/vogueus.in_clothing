@@ -87,9 +87,14 @@ const Orders = () => {
 
   const handleOrderCancel = async (orderId) => {
     setCancellingOrder(orderId);
+
     const result = await dispatch(cancelOrder(orderId));
+    console.log("itemss")
+    console.log(cancelOrder.fulfilled.match(result));
+    
     if (cancelOrder.fulfilled.match(result)) {
       setCancellingOrder(null);
+      console.log('order updated')
     }
   };
 

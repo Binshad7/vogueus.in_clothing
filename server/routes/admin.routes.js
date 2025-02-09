@@ -67,8 +67,10 @@ admin_router.get('/usersHandle/fetchUsers', protectRoute, fetchAllUsers)
 admin_router.patch('/usersHandle/blockAndUnBlock/:userID', protectRoute, updateUserStatus)
 
 // handle All Orders
-const {getAllordersToAdmin,updateOrderItemStatus} = require('../controllers/admin/ordersHandle.controller')
+const {getAllordersToAdmin,updateOrderItemStatus,updateOrderStatus,orderItemReturnStatus} = require('../controllers/admin/ordersHandle.controller')
 admin_router.get('/orders/getallorders',protectRoute,getAllordersToAdmin);
 admin_router.patch('/orders/updateOrderStatus/:orderId/:itemId',protectRoute,updateOrderItemStatus);
+admin_router.patch('/orders/updateOrderStatus/:orderId',protectRoute,updateOrderStatus);
+admin_router.patch('/orders/itemReturnStatus/:orderId/:itemId',protectRoute,orderItemReturnStatus);
 
 module.exports = admin_router; 
