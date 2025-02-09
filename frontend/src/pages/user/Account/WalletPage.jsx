@@ -1,50 +1,29 @@
 import React, { useState, useEffect } from 'react';
 import { Wallet, ArrowUpRight, ArrowDownLeft, Plus, History, Search, Filter, ChevronDown } from 'lucide-react';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
+import { getWallete } from '../../../store/middlewares/user/wallete';
+import { useNavigate } from 'react-router-dom';
 
 const WalletPage = () => {
   // States
-  const [balance, setBalance] = useState(0);
-  const [transactions, setTransactions] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [showAddMoneyModal, setShowAddMoneyModal] = useState(false);
-  const [addAmount, setAddAmount] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState('all');
+  const [showAddMoneyModal, setShowAddMoneyModal] = useState(false);
+  const [addAmount, setAddAmount] = useState('');
+
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   // Redux
   const { user } = useSelector((state) => state.user);
+  const { userWallete, loading } = useSelector(state => state.userWalleteDetails);
 
-  // Fetch wallet data
   useEffect(() => {
-    const fetchWalletData = async () => {
-      try {
-        setBalance(1500);
-        setTransactions([
-          {
-            id: 1,
-            type: 'credit',
-            amount: 500,
-            description: 'Order refund #ORD123',
-            date: '2024-02-01T10:00:00',
-          },
-          {
-            id: 2,
-            type: 'debit',
-            amount: 1200,
-            description: 'Payment for order #ORD456',
-            date: '2024-01-28T15:30:00',
-          },
-        ]);
-        setLoading(false);
-      } catch (error) {
-        console.error('Error fetching wallet data:', error);
-        setLoading(false);
-      }
-    };
-
-    fetchWalletData();
-  }, []);
+    if (!user) {
+      return navigate('/');
+    }
+    dispatch(getWallete(user._id));
+  }, [user, dispatch, navigate]);
 
   // Format date
   const formatDate = (dateString) => {
@@ -57,23 +36,12 @@ const WalletPage = () => {
     });
   };
 
-  // Handle add money
-  const handleAddMoney = async () => {
-    if (!addAmount || isNaN(addAmount) || Number(addAmount) <= 0) {
-      alert('Please enter a valid amount');
-      return;
-    }
-    alert(`Add money functionality will be integrated here. Amount: ₹${addAmount}`);
-    setShowAddMoneyModal(false);
-    setAddAmount('');
-  };
-
   // Filter transactions
-  const filteredTransactions = transactions.filter(transaction => {
-    const matchesSearch = transaction.description.toLowerCase().includes(searchQuery.toLowerCase());
+  const filteredTransactions = userWallete?.transactions?.filter(transaction => {
+    const matchesSearch = transaction.type.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesType = filterType === 'all' || transaction.type === filterType;
     return matchesSearch && matchesType;
-  });
+  }) || [];
 
   // Quick Action Button component
   const QuickActionButton = ({ icon, label, onClick, bgColor }) => (
@@ -133,7 +101,11 @@ const WalletPage = () => {
             Cancel
           </button>
           <button
-            onClick={handleAddMoney}
+            onClick={() => {
+              // TODO: Implement handleAddMoney functionality
+              setShowAddMoneyModal(false);
+              setAddAmount('');
+            }}
             className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
           >
             Proceed
@@ -158,7 +130,7 @@ const WalletPage = () => {
         <div className="flex justify-between items-start mb-4">
           <div>
             <h2 className="text-lg font-medium opacity-90">Total Balance</h2>
-            <div className="text-4xl font-bold mt-2">₹{balance.toFixed(2)}</div>
+            <div className="text-4xl font-bold mt-2">₹{userWallete?.balance?.toFixed(2) || '0.00'}</div>
           </div>
           <button
             onClick={() => setShowAddMoneyModal(true)}
@@ -175,19 +147,19 @@ const WalletPage = () => {
         <QuickActionButton
           icon={<ArrowUpRight className="w-6 h-6" />}
           label="Send Money"
-          onClick={() => {}}
+          onClick={() => { }}
           bgColor="bg-purple-600"
         />
         <QuickActionButton
           icon={<ArrowDownLeft className="w-6 h-6" />}
           label="Request Money"
-          onClick={() => {}}
+          onClick={() => { }}
           bgColor="bg-green-600"
         />
         <QuickActionButton
           icon={<History className="w-6 h-6" />}
           label="Transaction History"
-          onClick={() => {}}
+          onClick={() => { }}
           bgColor="bg-orange-600"
         />
       </div>
@@ -196,7 +168,7 @@ const WalletPage = () => {
       <div className="bg-white rounded-2xl shadow-sm border">
         <div className="p-6 border-b">
           <h2 className="text-xl font-semibold">Transaction History</h2>
-          
+
           {/* Filters */}
           <div className="mt-4 flex gap-4">
             <div className="flex-1 relative">
@@ -217,42 +189,41 @@ const WalletPage = () => {
               <option value="all">All Transactions</option>
               <option value="credit">Credits</option>
               <option value="debit">Debits</option>
+              <option value="refund">Refunds</option>
             </select>
           </div>
         </div>
-        
+
         <div className="divide-y">
           {filteredTransactions.length > 0 ? (
             filteredTransactions.map((transaction) => (
               <div
-                key={transaction.id}
+                key={transaction._id}
                 className="flex items-center justify-between p-4 hover:bg-gray-50 transition-colors"
               >
                 <div className="flex items-center gap-4">
-                  <div className={`p-3 rounded-full ${
-                    transaction.type === 'credit' ? 'bg-green-100' : 'bg-red-100'
-                  }`}>
-                    {transaction.type === 'credit' ? (
-                      <ArrowDownLeft className={`w-5 h-5 ${
-                        transaction.type === 'credit' ? 'text-green-600' : 'text-red-600'
-                      }`} />
+                  <div className={`p-3 rounded-full ${transaction.type === 'credit' || transaction.type === 'refund'
+                      ? 'bg-green-100'
+                      : 'bg-red-100'
+                    }`}>
+                    {transaction.type === 'credit' || transaction.type === 'refund' ? (
+                      <ArrowDownLeft className="w-5 h-5 text-green-600" />
                     ) : (
-                      <ArrowUpRight className={`w-5 h-5 ${
-                        transaction.type === 'credit' ? 'text-green-600' : 'text-red-600'
-                      }`} />
+                      <ArrowUpRight className="w-5 h-5 text-red-600" />
                     )}
                   </div>
                   <div>
-                    <p className="font-medium">{transaction.description}</p>
+                    <p className="font-medium">{transaction.type.charAt(0).toUpperCase() + transaction.type.slice(1)}</p>
                     <p className="text-sm text-gray-500">
-                      {formatDate(transaction.date)}
+                      {formatDate(transaction.createdAt)}
                     </p>
                   </div>
                 </div>
-                <span className={`font-semibold ${
-                  transaction.type === 'credit' ? 'text-green-600' : 'text-red-600'
-                }`}>
-                  {transaction.type === 'credit' ? '+' : '-'}₹
+                <span className={`font-semibold ${transaction.type === 'credit' || transaction.type === 'refund'
+                    ? 'text-green-600'
+                    : 'text-red-600'
+                  }`}>
+                  {transaction.type === 'credit' || transaction.type === 'refund' ? '+' : '-'}₹
                   {transaction.amount.toFixed(2)}
                 </span>
               </div>

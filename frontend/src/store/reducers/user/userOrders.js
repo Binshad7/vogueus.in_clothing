@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { createNewOreder, getOrderItems, cancelOrder, returnOrderItem, returnOrder } from '../../middlewares/user/orders'
+import { getOrderItems, cancelOrder, returnOrderItem, returnOrder } from '../../middlewares/user/orders'
 const initialState = {
     loading: false,
     orderes: []
@@ -18,21 +18,18 @@ const handleRejected = (state) => {
 const userOrders = createSlice({
     name: "userOrders",
     initialState,
+    reducers: {
+        createNewOreder: (state, action) => {
+            state.orderes.push(action.payload);
+            state.loading = false
+        }
+    },
     extraReducers: (builder) => {
         builder
             // get All orders for the user
             .addCase(getOrderItems.pending, handlePending)
             .addCase(getOrderItems.fulfilled, handleSuccess)
             .addCase(getOrderItems.rejected, handleRejected)
-
-            // add a new order 
-
-            .addCase(createNewOreder.pending, handlePending)
-            .addCase(createNewOreder.fulfilled, (state, action) => {
-                state.orderes.push(action.payload);
-                state.loading = false
-            })
-            .addCase(createNewOreder.rejected, handleRejected)
             // cancelorder
             .addCase(cancelOrder.pending, handlePending)
             .addCase(cancelOrder.fulfilled, handleSuccess)
@@ -47,4 +44,5 @@ const userOrders = createSlice({
             .addCase(returnOrder.rejected, handleRejected)
     }
 })
+export const { createNewOreder } = userOrders.actions
 export default userOrders.reducer

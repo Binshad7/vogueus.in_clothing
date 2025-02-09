@@ -4,7 +4,7 @@ const { GetCartWithProductDetails, GetCart } = require('../../utils/getCart');
 const { v4: uuidv4 } = require('uuid');
 const { getOrderItems } = require('../../utils/getOrderItems');
 const mongoose = require("mongoose");
-
+const walletSchema = require('../../models/wallet')
 
 
 
@@ -57,15 +57,20 @@ const createNewOrder = async (req, res) => {
                 size: item.items.size,
             };
         });
-
-        // Create new order
-        const newOrder = new orderSchema({
+        let productDetails = {
             userId,
             items,
             totalAmount,
             paymentMethod,
             orderId,
             shippingAddress: selectedAddress,
+        }
+        if (['wallet', 'razorpay']) {
+            productDetails.paymentStatus = 'paid'
+        }
+        // Create new order
+        const newOrder = new orderSchema({
+            productDetails
         });
 
         const orderdItem = await newOrder.save();
@@ -84,14 +89,17 @@ const createNewOrder = async (req, res) => {
                 return res.status(400).json({ success: false, message: `Stock update failed for product ${item.productId}` });
             }
         }
+        if (paymentMethod === 'wallet') {
+            const updateWalleteBalance = walletSchema.updateOne({ userId }, {
+                $inc: { balance: -totalAmount }
+            })
+        }
 
         const UpdateCart = await GetCart(userId);
         UpdateCart.items = [];
         await UpdateCart.save();
         const orderDetails = await getOrderItems(req.user._id)
-        console.log(orderDetails[0])
         const lastAddedProduct = orderDetails.find((item) => item.orderId == orderId);
-        console.log('filet one ', lastAddedProduct)
         res.status(201).json({
             success: true,
             message: "Order placed successfully",
@@ -116,7 +124,7 @@ const cancellOrder = async (req, res) => {
         }
         for (const item of CancelOrder.items) {
             const updateResult = await productSchema.updateOne(
-                { _id: item.productId, "variants.size": item.size }, 
+                { _id: item.productId, "variants.size": item.size },
 
                 { $inc: { "variants.$[elem].stock": item.quantity } },
                 { arrayFilters: [{ "elem.size": item.size }] }
@@ -206,7 +214,7 @@ const returnOrderItem = async (req, res) => {
             "items._id": itemId
         },
             {
-                $set: { 
+                $set: {
                     "items.$.returnRequest.requestStatus": true,
                     "items.$.returnRequest.requestMessage": returnMessage
                 }
@@ -279,7 +287,7 @@ const returnOrder = async (req, res) => {
         if (updateResult.modifiedCount > 0) {
             const orderDetails = await getOrderItems(req.user._id);
 
-            return res.status(200).json({ success: true, message: "Return request sent successfully" ,orderdItem: JSON.stringify(orderDetails)});
+            return res.status(200).json({ success: true, message: "Return request sent successfully", orderdItem: JSON.stringify(orderDetails) });
         }
 
         res.status(400).json({ success: false, message: "Try Again Later" });
@@ -290,7 +298,6 @@ const returnOrder = async (req, res) => {
     }
 };
 
-module.exports = returnOrder;
 
 module.exports = {
     createNewOrder,

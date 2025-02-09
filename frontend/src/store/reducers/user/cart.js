@@ -1,7 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { addToCart, removeItemFromCart, GetCart, handleQuantityChange } from '../../middlewares/user/cart'
 import { userLogout } from '../../middlewares/user/user_auth'
-import { createNewOreder } from "../../middlewares/user/orders";
 const initialState = {
     loading: false,
     cart: []
@@ -23,6 +22,11 @@ const handleRejected = (state) => {
 const Cart = createSlice({
     name: "userCart",
     initialState,
+    reducers: {
+        clearCartItems: (state) => {
+            state.cart = []
+        }
+    },
     extraReducers: (builder) => {
         builder
             // addToCart 
@@ -52,15 +56,7 @@ const Cart = createSlice({
                 state.cart = []
             })
 
-
-            // if order is success fully completed then cart is empty
-
-            .addCase(createNewOreder.fulfilled, (state) => {
-                state.cart = []
-            })
-
     }
 })
-
-
+export const { clearCartItems } = Cart.actions
 export default Cart.reducer

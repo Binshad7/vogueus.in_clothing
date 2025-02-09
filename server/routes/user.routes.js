@@ -71,13 +71,17 @@ user_router.patch('/editAddress/:addressId', protectRoute, editAddress)
 
 
 // order
-const { createNewOrder, getUserOrderes ,cancellOrder, cancelOrderItem,returnOrderItem,returnOrder } = require('../controllers/user/order.controller')
+const { createNewOrder, getUserOrderes, cancellOrder, cancelOrderItem, returnOrderItem, returnOrder } = require('../controllers/user/order.controller')
 user_router.post('/neworder/:userId', protectRoute, createNewOrder)
 user_router.get('/orders/:userId', protectRoute, getUserOrderes)
 // cancelOrder
-user_router.patch('/orders/cancellOrder/:orderId',protectRoute,cancellOrder);
-user_router.patch('/orders/cancellItem/:orderId/:itemId',protectRoute,cancelOrderItem);
-user_router.patch('/orders/returnOrderItem/:orderId',protectRoute,returnOrderItem);
-user_router.patch('/orders/returnOrder/:orderId',protectRoute,returnOrder);
+user_router.patch('/orders/cancellOrder/:orderId', protectRoute, cancellOrder);
+user_router.patch('/orders/cancellItem/:orderId/:itemId', protectRoute, cancelOrderItem);
+user_router.patch('/orders/returnOrderItem/:orderId', protectRoute, returnOrderItem);
+user_router.patch('/orders/returnOrder/:orderId', protectRoute, returnOrder);
+
+// wallete user 
+const { userWalletDetail } = require('../controllers/user/wallete.controller')
+user_router.get('/wallete/:userId', protectRoute, userWalletDetail);
 
 module.exports = user_router;  

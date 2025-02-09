@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import Address from '../../../components/user/payment/AddressSession/Address'
 import PaymentOptions from '../../../components/user/payment/payment/PaymentOptions';
 import { useSelector, useDispatch } from 'react-redux'
@@ -6,13 +6,15 @@ import OrderSummary from '../../../components/user/payment/orderSummary/OrderSum
 import { GetCart } from '../../../store/middlewares/user/cart';
 import Spinner from '../../../components/user/Spinner';
 import { toast } from 'react-toastify';
-import { createNewOreder } from '../../../store/middlewares/user/orders'
+import { createNewOreder } from '../../../store/reducers/user/userOrders'
+import { clearCartItems } from '../../../store/reducers/user/cart'
 import { useNavigate } from 'react-router-dom';
+import userAxios from '../../../api/userAxios';
 function CheckoutPage() {
 
     const { cart, loading } = useSelector((state) => state.Cart);
     useEffect(() => {
-        if (cart.length==0) {
+        if (cart.length == 0) {
             navigate('/')
         }
     }, [])
@@ -74,13 +76,19 @@ function CheckoutPage() {
     }
 
     const handleOrderConfirm = async () => {
-        console.log('submited')
         console.log(user.address[selectedAddress])
-        if (selectedPayment === 'cod') {
-            const result = await dispatch(createNewOreder({ addressIndex: selectedAddress, paymentMethod: selectedPayment, userId: user._id }));
-            if (createNewOreder.fulfilled.match(result)) {
-                navigate('/orderSuccess');
-            }
+
+        try {
+            const response = await userAxios.post(`/neworder/${user._id}`, { paymentMethod: selectedPayment, selectedAddressIndex: selectedAddress });
+            toast.success(response?.data?.message);
+            let orderItem = JSON.parse(response.data.orderItems)
+            console.log(orderItem)
+            navigate(`/orderSuccess/${orderItem._id}`)
+            dispatch(clearCartItems())
+            dispatch(createNewOreder(orderItem));
+            return;
+        } catch (error) {
+            toast.error(error?.response?.data?.message || error.message)
         }
     }
 

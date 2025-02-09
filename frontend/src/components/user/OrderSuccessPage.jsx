@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { Check, Package, Printer, Home } from "lucide-react";
 import { useSelector, useDispatch } from "react-redux";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import Spinner from "./Spinner";
 import { getOrderItems } from "../../store/middlewares/user/orders";
 
 const OrderSuccessPage = () => {
+    const { orderId } = useParams()
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const { orderes, loading } = useSelector((state) => state.userOrders);
@@ -14,15 +15,17 @@ const OrderSuccessPage = () => {
 
     useEffect(() => {
         dispatch(getOrderItems(user._id));
-    }, [dispatch, user._id]);
+    }, [dispatch, user._id, orderId]);
 
     useEffect(() => {
         if (orderes.length !== 0) {
-            setLastOrder(orderes[orderes.length - 1]);
+            let lastOrderItem = orderes.find(item => item._id.toString() == orderId);
+
+            setLastOrder(lastOrderItem);
         } else {
             navigate("/");
         }
-    }, [orderes, navigate]);
+    }, [orderes, navigate, orderId]);
 
     if (loading || !lastOrder) {
         return <Spinner />;
