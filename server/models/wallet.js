@@ -10,11 +10,12 @@ const walletSchema = new mongoose.Schema({
     balance: {
         type: Number,
         required: true,
-        default: 0
+        default: 0,
+        min: 0
     },
     transactions: [
         {
-            _id: { type: mongoose.Schema.Types.ObjectId, auto: true }, 
+            _id: { type: mongoose.Schema.Types.ObjectId, auto: true },
             type: { type: String, enum: ["credit", "debit", "refund"], required: true },
             amount: { type: Number, required: true },
             createdAt: { type: Date, default: Date.now }

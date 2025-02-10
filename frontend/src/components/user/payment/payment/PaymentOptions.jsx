@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Check } from 'lucide-react';
 import { toast } from 'react-toastify';
-const PaymentSelection = ({ selectedPayment, onPaymentSelect, handleOrderConfirm }) => {
+
+const PaymentSelection = ({ selectedPayment, onPaymentSelect, handleOrderConfirm, walleteBalanceAMout }) => {
     const [isProcessing, setIsProcessing] = useState(false);
 
     const paymentMethods = [
@@ -27,15 +28,11 @@ const PaymentSelection = ({ selectedPayment, onPaymentSelect, handleOrderConfirm
 
     const handlePayment = (e) => {
         e.preventDefault();
-        if (!selectedMethod) {
+        if (!selectedPayment) {
             toast.error('Please select a payment method');
             return;
         }
-        setIsProcessing(true);
-        setTimeout(() => {
-            setIsProcessing(false);
-            toast.error(`Processing payment with ${selectedPayment}`);
-        }, 1500);
+       
     };
 
     return (
@@ -50,7 +47,7 @@ const PaymentSelection = ({ selectedPayment, onPaymentSelect, handleOrderConfirm
                         <label
                             key={method.id}
                             className={`block relative border rounded-lg cursor-pointer transition-all
-                ${selectedPayment === method.id
+                                ${selectedPayment === method.id
                                     ? 'border-blue-500 bg-blue-50'
                                     : 'border-gray-200 hover:border-gray-300'}`}
                         >
@@ -66,10 +63,22 @@ const PaymentSelection = ({ selectedPayment, onPaymentSelect, handleOrderConfirm
                                 <div className="flex items-center flex-1">
                                     <div className="flex items-center justify-center w-10 h-10 mr-3 text-xl">
                                         {method.icon}
-                                    </div>  
+                                    </div>
+
                                     <div className="flex-1">
                                         <p className="font-medium text-gray-800">{method.name}</p>
                                         <p className="text-sm text-gray-500">{method.description}</p>
+                                        {method.id === 'wallet' && (
+                                            <div className="mt-2 bg-blue-50 rounded-md p-2">
+                                                <div className="flex items-center justify-between">
+                                                    <span className="text-sm font-medium text-blue-700">Available Balance</span>
+                                                    <div className="flex items-center">
+                                                        <span className="text-lg font-semibold text-blue-700">₹{walleteBalanceAMout}</span>
+                                                        <div className="ml-2 w-2 h-2 rounded-full bg-green-500"></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
                                     {selectedPayment === method.id && (
                                         <Check className="w-5 h-5 text-blue-500 ml-2" />
@@ -80,14 +89,13 @@ const PaymentSelection = ({ selectedPayment, onPaymentSelect, handleOrderConfirm
                     ))}
                 </div>
 
-                {/* Payment Button */}
                 <div className="mt-6">
                     <button
                         onClick={handleOrderConfirm}
                         type="submit"
                         disabled={isProcessing || !selectedPayment}
                         className={`w-full py-3 px-4 rounded-lg text-white font-medium transition-colors
-              ${isProcessing || !selectedPayment
+                            ${isProcessing || !selectedPayment
                                 ? 'bg-gray-400 cursor-not-allowed'
                                 : 'bg-blue-600 hover:bg-blue-700'}`}
                     >
@@ -118,7 +126,6 @@ const PaymentSelection = ({ selectedPayment, onPaymentSelect, handleOrderConfirm
                 </div>
             </form>
 
-            {/* Security Notice */}
             <div className="p-4 border-t">
                 <p className="text-xs text-gray-500 text-center">
                     Your payment information is secure and encrypted

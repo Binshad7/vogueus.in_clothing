@@ -13,33 +13,29 @@ const {
     emailResendCode,
     forgotPassowrd,
     resetPassword,
-    updateUserName
+    updateUserName,
+    checkPassowrd,
+    changePassword
 } = require('../controllers/user/user.controller');
 // auth routes
 user_router.post('/register', register);
 user_router.post('/login', login);
 user_router.post('/logout', protectRoute, logout);
-
 // google auth routes
-
 user_router.post('/googleSignup', googleSignup);
 user_router.post('/googleLogin', loginWIthGoogle);
-
-
 // email verification
-
 user_router.post('/email-verification', emailVerification);
 user_router.post('/email-resendcode', emailResendCode);
 user_router.get('/refresh', protectRoute, refreshToken)
-
 // update userProfiles userName and passowrds
-
 user_router.patch('/user/upddateProfile/:userId', protectRoute, updateUserName)
-
-
-// /forgot-password
-
+//forgot-password
 user_router.post('/forgot-password', forgotPassowrd);
+// changePassowrd 
+user_router.post('/user/checkPassowrd/:userId', protectRoute, checkPassowrd)
+user_router.patch('/user/changePassword/:userId', protectRoute, changePassword)
+
 // midleware for token check 
 const { verifyResetToken } = require('../middleware/verifyResetToken ')
 user_router.patch('/reset-passowrd', verifyResetToken, resetPassword);

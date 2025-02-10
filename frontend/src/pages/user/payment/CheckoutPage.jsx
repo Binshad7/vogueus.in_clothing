@@ -10,17 +10,20 @@ import { createNewOreder } from '../../../store/reducers/user/userOrders'
 import { clearCartItems } from '../../../store/reducers/user/cart'
 import { useNavigate } from 'react-router-dom';
 import userAxios from '../../../api/userAxios';
+import { getWallete } from '../../../store/middlewares/user/wallete';
 function CheckoutPage() {
 
-    const { cart, loading } = useSelector((state) => state.Cart);
+    const dispatch = useDispatch()
+    const { cart } = useSelector((state) => state.Cart);
+    const user = useSelector((state) => state.user.user);
+    const { userWallete, loading } = useSelector((state) => state.userWalleteDetails);
     useEffect(() => {
+        dispatch(getWallete(user._id))
         if (cart.length == 0) {
             navigate('/')
         }
     }, [])
-    const dispatch = useDispatch()
     const navigate = useNavigate()
-    const user = useSelector((state) => state.user.user);
     const [selectedAddress, setSelectedAddress] = useState(0);
     const [selectedPayment, setSelectedPayment] = useState(null);
     const [applyCoupon, setAppliedCoupon] = useState('');
@@ -76,13 +79,13 @@ function CheckoutPage() {
     }
 
     const handleOrderConfirm = async () => {
-        console.log(user.address[selectedAddress])
-
+        if (selectedPayment === 'wallet' && orderSummary.Total > userWallete.balance) {
+            return toast.error("Insufficient Wallet Balance ")
+        }
         try {
             const response = await userAxios.post(`/neworder/${user._id}`, { paymentMethod: selectedPayment, selectedAddressIndex: selectedAddress });
             toast.success(response?.data?.message);
             let orderItem = JSON.parse(response.data.orderItems)
-            console.log(orderItem)
             navigate(`/orderSuccess/${orderItem._id}`)
             dispatch(clearCartItems())
             dispatch(createNewOreder(orderItem));
@@ -106,6 +109,7 @@ function CheckoutPage() {
                             onAddressSelect={setSelectedAddress}
                         />
                         <PaymentOptions
+                            walleteBalanceAMout={userWallete.balance}
                             selectedPayment={selectedPayment}
                             onPaymentSelect={setSelectedPayment}
                             handleOrderConfirm={handleOrderConfirm}

@@ -1,3 +1,4 @@
+const userSchema = require('../../models/userSchema');
 const User = require('../../models/userSchema');
 const { hashPassword, comparePassword } = require('../../utils/bcryptPassowrd');
 const generateToken = require('../../utils/genarateToken');
@@ -250,7 +251,55 @@ const logout = async (req, res) => {
         res.clearCookie("vogueusToken")
         res.status(200).json({ success: true, message: 'User logged out successfully' });
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        console.error("Error logout :", error);
+        res.status(500).json({ success: false, message: "Server error, please try again later" });
+    }
+}
+
+
+const checkPassowrd = async (req, res) => {
+    const { userId } = req.params
+    const { currentPassword } = req.body
+    if (!req.user._id.equals(userId)) {
+        return res.status(400).json({ success: false, message: 'Invalid User ID' });
+    }
+    try {
+        const existUser = await userSchema.findOne({ _id: userId });
+        if (!existUser) {
+            return res.status(400).json({ success: false, message: "User Not Find" })
+        }
+        if (!existUser.password) {
+            return res.status(200).json({ success: true, message: 'Create A New Password' })
+        }
+        const isValidPassowrd = await comparePassword(currentPassword, existUser.password);
+        if (!isValidPassowrd) {
+            return res.status(400).json({ success: false, message: 'Password Is Not Match' })
+        }
+        res.status(200).json({ success: true, message: 'password Is Currect' })
+    } catch (error) {
+        console.error("Error changePassword :", error);
+        res.status(500).json({ success: false, message: "Server error, please try again later" });
+    }
+}
+const changePassword = async (req, res) => {
+    const { userId } = req.params
+    const { newPassword } = req.body
+    if (!req.user._id.equals(userId)) {
+        return res.status(400).json({ success: false, message: 'Invalid User ID' });
+    }
+    if (!newPassword.trim()) {
+        return res.status(400).json({ success: false, message: 'New Password Is Required' })
+    }
+    try {
+        const hashedPassword = await hashPassword(newPassword)
+        const updatedUser = await userSchema.updateOne({ _id: userId }, { $set: { password: hashedPassword } });
+        if (updatedUser.modifiedCount == 0) {
+            return res.status(400).json({ success: false, message: 'Password Not Updated' })
+        }
+        res.status(200).json({ success: true, message: 'Password Successfuly Updated' })
+    } catch (error) {
+        console.error("Error changePassword :", error);
+        res.status(500).json({ success: false, message: "Server error, please try again later" });
     }
 }
 module.exports = {
@@ -264,5 +313,7 @@ module.exports = {
     emailResendCode,
     forgotPassowrd,
     resetPassword,
-    updateUserName
+    updateUserName,
+    checkPassowrd,
+    changePassword
 }
