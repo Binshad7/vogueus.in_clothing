@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from 'react';
-import { Home, Package, ShoppingCart, Users, Settings, ChevronDown, Menu } from 'lucide-react';
+import { Home, Package, ShoppingCart, Users, Settings, ChevronDown, Menu ,Boxes} from 'lucide-react';
 import { SideBarContext } from '../../../../context/SideBarContext';
 import { useNavigate } from 'react-router-dom';
 const Sidebar = ({ }) => {
@@ -44,6 +44,11 @@ const Sidebar = ({ }) => {
       title: 'Customers',
       icon: <Users className="h-5 w-5" />,
       path: '/allusers'
+    },
+    {
+      title: 'Stock Management',
+      icon: <Boxes className="h-5 w-5" />,
+      path: '/stockmanagement'
     },
     {
       title: 'Settings',

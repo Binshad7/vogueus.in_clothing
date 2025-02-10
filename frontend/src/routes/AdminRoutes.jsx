@@ -10,6 +10,7 @@ import ProductList from '../pages/admin/product/productList/ProductList'
 import UserManagement from '../pages/admin/UserManagement/UserManagement'
 import OrderListingPage from '../pages/admin/orders/OrderListingPage'
 import OrderDetails from '../pages/admin/orders/OrderDetailPage'
+import StockManagement from '../pages/admin/stockManagemente/StockManagement'
 
 
 function AdminRoutes() {
@@ -26,6 +27,7 @@ function AdminRoutes() {
         <Route path='/orders' element={<OrderListingPage />} />
         <Route path='/orders/detailspage/:orderId' element={<OrderDetails />} />
         <Route path='/allusers' element={<UserManagement />} />
+        <Route path='/stockmanagement' element={<StockManagement />} />
 
 
 

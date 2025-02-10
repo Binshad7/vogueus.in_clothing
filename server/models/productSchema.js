@@ -1,8 +1,6 @@
 const mongoose = require('mongoose');
 
 const productSchema = new mongoose.Schema({
-
-
     productName: {
         type: String,
         required: true,
@@ -39,9 +37,7 @@ const productSchema = new mongoose.Schema({
         ref: 'subcategory',
     },
     images: {
-        type: [
-            String
-        ]
+        type: [String],
     },
     isBlocked: {
         type: Boolean,
@@ -71,5 +67,41 @@ const productSchema = new mongoose.Schema({
         },
     ],
 }, { timestamps: true });
+
+
+// Middleware: Automatically update status when stock changes
+productSchema.pre('save', function (next) {
+    this.variants.forEach(variant => {
+        if (variant.stock === 0) {
+            variant.status = 'out of stock';
+        } else {
+            variant.status = 'available';
+        }
+    });
+    next();
+});
+
+// Middleware: Ensure status updates when stock is modified
+productSchema.pre('findOneAndUpdate', function (next) {
+    const update = this.getUpdate();
+    if (update.variants) {
+        update.variants.forEach(variant => {
+            if (variant.stock === 0) {
+                variant.status = 'out of stock';
+            } else {
+                variant.status = 'available';
+            }
+        });
+    }
+    next();
+});
+
+// Virtual Property: Dynamically check stock status
+productSchema.virtual('variantStatus').get(function () {
+    return this.variants.map(variant => ({
+        size: variant.size,
+        status: variant.stock === 0 ? 'out of stock' : 'available'
+    }));
+});
 
 module.exports = mongoose.model('products', productSchema);

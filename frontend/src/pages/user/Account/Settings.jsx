@@ -28,8 +28,6 @@ const Settings = () => {
   };
 
   const validateCurrentPassword = async () => {
-    // Add your API call to validate current password
-    const isValid = true; // Replace with actual validation
     if (!currentPassword.trim()) {
       return setError('Password Is Required');
     }
