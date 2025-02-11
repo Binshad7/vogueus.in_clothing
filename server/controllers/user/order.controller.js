@@ -252,7 +252,7 @@ const cancelOrderItem = async (req, res) => {
 
         res.status(200).json({
             success: true,
-            message: "Order item canceled and amount refunded (if applicable)",
+            message: "Order item canceled and amount refunded",
             orderdItem: JSON.stringify(orderDetails),
         });
     } catch (error) {

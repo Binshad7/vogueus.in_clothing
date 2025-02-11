@@ -2,12 +2,12 @@
 const Admin = require('../../models/userSchema');
 const generateToken = require('../../utils/genarateToken');
 const bcrypt = require('bcrypt');
-// create new user
 const adminLogin = async (req, res) => {
     try {
         var { email, password } = req.body;
+        console.log(email,password)
         const ExistingAdmin = await Admin.findOne({ email });
-
+         console.log(ExistingAdmin)
         if (!ExistingAdmin) {
 
             return res.status(400).json({ success: false, message: "Admin does not exist" });

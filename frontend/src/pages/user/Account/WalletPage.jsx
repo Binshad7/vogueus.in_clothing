@@ -150,12 +150,12 @@ const WalletPage = () => {
           onClick={() => { }}
           bgColor="bg-purple-600"
         />
-        <QuickActionButton
+        {/* <QuickActionButton
           icon={<ArrowDownLeft className="w-6 h-6" />}
           label="Request Money"
           onClick={() => { }}
           bgColor="bg-green-600"
-        />
+        /> */}
         <QuickActionButton
           icon={<History className="w-6 h-6" />}
           label="Transaction History"

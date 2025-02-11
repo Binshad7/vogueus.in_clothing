@@ -38,7 +38,7 @@ const CartPage = () => {
           : item.productDetails.regularPrice;
 
       subtotal += price * item.itemDetails.quantity;
-      shipping += price > 500 ? 0 : 5;
+      shipping += price > 500 ? 0 : 10;
     });
 
     setOrderSummary({
@@ -46,6 +46,7 @@ const CartPage = () => {
       shipping,
       total: subtotal + shipping
     });
+    
   };
 
   useEffect(() => {
@@ -224,7 +225,10 @@ const CartPage = () => {
                       }
                     </div>
                   </td>
-                  <td className="py-4 text-green-500">FREE</td>
+                  <td className="py-4 text-green-500">{
+                    item.productDetails.currentPrice > 0
+                      ? item.productDetails.currentPrice <= 500 ? `₹${10}` : 'FREE'
+                      : item.productDetails.regularPrice <= 500 ? `₹${10}` : 'FREE'}</td>
                   <td className="py-4 font-medium">
                     ₹
                     {(

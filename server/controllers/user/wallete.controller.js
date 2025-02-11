@@ -8,7 +8,7 @@ const userWalletDetail = async (req, res) => {
     }
 
     try {
-        let userWallet = await walletSchema.findOne({ userId });
+        let userWallet = await walletSchema.findOne({ userId })
 
         if (!userWallet) {
             userWallet = await walletSchema.create({ userId, balance: 0, transactions: [] });

@@ -44,7 +44,7 @@ function CheckoutPage() {
                     : item.productDetails.regularPrice;
 
             subtotal += price * item.itemDetails.quantity;
-            shipping += price > 500 ? 0 : 5;
+            shipping += price > 500 ? 0 : 10;
         });
         Discount = applyCoupon?.trim() == 'b1nshad' && (subtotal + shipping) > 1000 ? 250 : 0;
         setOrderSummary({

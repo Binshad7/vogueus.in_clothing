@@ -110,6 +110,8 @@ const updateOrderStatus = async (req, res) => {
         }
         if (updateOrder.items.length === 1) {
             updatedData['items.0.itemStatus'] = orderStatus;
+            // updatedData['items.$[].itemStatus'] = orderStatus;
+
         }
         if (updateOrder.items.length === 1 && orderStatus == 'delivered') {
             updatedData.paymentStatus = 'paid'
@@ -157,7 +159,7 @@ const orderItemReturnStatus = async (req, res) => {
         if (returnStatus === 'approve') {
             updatingDetail['items.$.paymentStatus'] = 'refunded';
             updatingDetail['items.$.itemStatus'] = 'returned';
-            updatingDetail.totalAmount = returnOrderItem.totalAmount - returnItem.productPrice;
+            // updatingDetail.totalAmount = returnOrderItem.totalAmount - returnItem.productPrice;
         }
 
         const orderStatusIsReturned = returnOrderItem.items.every(item => {

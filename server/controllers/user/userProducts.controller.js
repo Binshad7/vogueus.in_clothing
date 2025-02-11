@@ -12,9 +12,14 @@ const getAllProducts = async (req, res) => {
             !item.category?.isUnlist
         );
         const filterBlockedVariants = filterBlockProduct.map(item => {
-            const filteredVariants = item.variants.filter(variant => !variant.isBlocked);
+            const filteredVariants = item.variants.filter(variant =>
+                !variant.isBlocked && variant.status !== 'discontinued'
+            );
             return { ...item, variants: filteredVariants };
         });
+
+
+
 
         res.status(200).json({ success: true, message: 'product Successfuly completed', products: filterBlockedVariants })
 
