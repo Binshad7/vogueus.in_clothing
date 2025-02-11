@@ -96,13 +96,12 @@ const OrderDetails = () => {
                   className="p-2 text-sm border rounded-md bg-white text-gray-800 focus:ring-blue-500 focus:border-blue-500"
                   value={order?.orderStatus}
                   onChange={(e) => orderStatusUpdate(e.target.value.toLowerCase())}
-                  disabled={order?.orderStatus === 'cancelled'}
+                  disabled={order?.orderStatus === 'cancelled' || 'returned'}
                 >
                   <option value="processing">Processing</option>
                   <option value="shipped">Shipped</option>
                   <option value="delivered">Delivered</option>
                   <option value="returned">Returned</option>
-                  <option value="cancelled">Cancelled</option>
                 </select>
                 {isUpdatingAllItems && (
                   <div className="text-white text-xs">Updating...</div>
@@ -218,7 +217,7 @@ const OrderDetails = () => {
                         className="block w-full p-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
                         value={item.itemStatus}
                         onChange={(e) => updateItemStatus(item._id, e.target.value.toLowerCase())}
-                        disabled={order?.orderStatus === 'cancelled'}
+                        disabled={order?.orderStatus === 'cancelled'  || 'returned'}
                       >
                         <option value="processing">Processing</option>
                         <option value="shipped">Shipped</option>

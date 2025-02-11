@@ -3,7 +3,8 @@ import {
     addProdcut,
     fetchProduct,
     blockAndUnBlock,
-    updateProduct
+    updateProduct,
+    updateStocks
 } from '../../middlewares/admin/ProductRelate'
 
 const initialState = {
@@ -45,6 +46,14 @@ const AllProducts = createSlice({
             .addCase(updateProduct.pending, handlePending)
             .addCase(updateProduct.fulfilled, handleFulfilled)
             .addCase(updateProduct.rejected, handleReject)
+            // updateProductStock 
+            .addCase(updateStocks.pending, handlePending)
+            .addCase(updateStocks.fulfilled, (state, action) => {
+                let updatedProductIndex = state.Products.findIndex((item) => item._id == action.payload._id);
+                state.Products[updatedProductIndex] = action.payload;
+                state.loading = false
+            })
+            .addCase(updateStocks.rejected, handleReject)
 
     }
 })

@@ -178,7 +178,7 @@ const OrderListingPage = () => {
                                                 <div className="text-sm">
                                                     <div className="font-medium">{item.productName}</div>
                                                     <div className="text-gray-500">
-                                                        {item.quantity}x ${item.productPrice} - Size: {item.size}
+                                                        {item.quantity}x ₹{item.productPrice} - Size: {item.size}
                                                     </div>
                                                     {item.returnRequest?.requestStatus && (
                                                         <div className="text-xs text-orange-600">
@@ -189,7 +189,7 @@ const OrderListingPage = () => {
                                             </div>
                                         ))}
                                     </td>
-                                    <td className="p-4 font-medium">${order.totalAmount}</td>
+                                    <td className="p-4 font-medium">₹{order.totalAmount}</td>
                                     <td className="p-4">
                                         <div className="flex flex-col gap-1">
                                             <span className={`px-2 py-1 rounded-full text-sm ${getStatusColor(order)}`}>

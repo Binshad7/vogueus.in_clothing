@@ -11,7 +11,6 @@ const adminLogin = createAsyncThunk(
             toast.success('login success fully completed')
             return response.data.admin
         } catch (error) {
-
             toast.error(error.response?.data?.message || error.message || "An error occurred while logging out.")
             return rejectWithValue(error.response?.data || error.message)
         }

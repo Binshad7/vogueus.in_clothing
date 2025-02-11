@@ -12,7 +12,6 @@ const getAllordersToAdmin = async (req, res) => {
         limit = parseInt(limit);
 
         const { orders, totalOrders } = await getAllOrders(page, limit, search, status);
-        console.log(totalOrders)
         res.status(200).json({
             success: true,
             message: 'Orders fetched successfully',
@@ -30,7 +29,7 @@ const getAllordersToAdmin = async (req, res) => {
 const updateOrderItemStatus = async (req, res) => {
     const { orderId, itemId } = req.params;
     const { newStatus } = req.body;
-
+    console.log(newStatus)
     try {
         const existOrder = await orderSchema.findById(orderId);
         if (!existOrder) {
@@ -47,16 +46,11 @@ const updateOrderItemStatus = async (req, res) => {
             return res.status(400).json({ success: false, message: 'Product is cancelled' });
         }
         if (!existItem.returnRequest?.requestStatus && newStatus === 'returned') {
-            return res.status(400).json({ success: false, message: 'User has not requested a return' });
+            return res.status(400).json({ success: false, message: 'User has Not Requested a Return' });
         }
-
-
-        let updateFields = { 'items.$.itemStatus': newStatus };
-        if (newStatus === 'paid') {
-            updateFields.paymentStatus = 'paid';
-            updateFields.orderStatus = 'paid';
+        if (newStatus === 'returned' && existItem.returnRequest?.adminStatus !== 'approved') {
+            return res.status(400).json({ success: false, message: 'Returend Requeste Not Approved' });
         }
-
 
 
         const updateProductStatus = await orderSchema.updateOne(
@@ -70,7 +64,14 @@ const updateOrderItemStatus = async (req, res) => {
         const updatedOrder = await orderSchema.findById(orderId);
 
         const orderStatusCheck = updatedOrder.items.every(item => item.itemStatus === newStatus);
-        if (orderStatusCheck) {
+        const orderStatusCheckIsDelvered = updatedOrder.items.every(item => item.itemStatus === 'delivered');
+        if (orderStatusCheckIsDelvered) {
+            await orderSchema.updateOne(
+                { _id: orderId },
+                { $set: { orderStatus: 'delivered', paymentStatus: 'paid', deliveredAt: Date.now() } }
+            );
+        }
+        else if (orderStatusCheck) {
             await orderSchema.updateOne(
                 { _id: orderId },
                 { $set: { orderStatus: newStatus } }
@@ -88,6 +89,7 @@ const updateOrderItemStatus = async (req, res) => {
         res.status(500).json({ success: false, message: "Server error, please try again later" });
     }
 };
+
 const updateOrderStatus = async (req, res) => {
     const { orderId } = req.params
     const { orderStatus } = req.body
@@ -100,11 +102,20 @@ const updateOrderStatus = async (req, res) => {
             return res.status(400).json({ success: false, message: 'Order As bin cancelled' })
         }
         const orderStatusIsReturned = updateOrder.items.every(item => item.itemStatus === 'returned')
-        console.log(orderStatusIsReturned)
         if (orderStatus === 'returned' && !orderStatusIsReturned) {
-            return res.status(400).json({ success: false, message: "Can't Change  Order Not FUly Returend " })
+            return res.status(400).json({ success: false, message: "Can't Change  Order Not Fuly Returend " })
         }
-        const updated = await orderSchema.updateOne({ _id: orderId }, { $set: { orderStatus: orderStatus } });
+        let updatedData = {
+            orderStatus: orderStatus
+        }
+        if (updateOrder.items.length === 1) {
+            updatedData['items.0.itemStatus'] = orderStatus;
+        }
+        if (updateOrder.items.length === 1 && orderStatus == 'delivered') {
+            updatedData.paymentStatus = 'paid'
+        }
+
+        const updated = await orderSchema.updateOne({ _id: orderId }, { $set: updatedData });
         if (updated.modifiedCount === 0) {
             return res.status(400).json({ success: false, message: 'Update failed' });
         }

@@ -302,32 +302,28 @@ const returnOrder = async (req, res) => {
     const { orderId } = req.params;
     const { returnMessage } = req.body;
 
-    // Validate order ID format
     if (!mongoose.Types.ObjectId.isValid(orderId)) {
         return res.status(400).json({ success: false, message: "Invalid Order ID format" });
     }
 
-    // Ensure returnMessage is provided
     if (!returnMessage || !returnMessage.trim()) {
         return res.status(400).json({ success: false, message: "Return Message is Required For Returning the Order" });
     }
 
     try {
-        // Fetch the order
         const updateOrder = await orderSchema.findById(orderId);
         if (!updateOrder) {
             return res.status(404).json({ success: false, message: "Order Not Found" });
         }
 
-        // Update order-level return request
         updateOrder.returnRequest.requestStatus = true;
         updateOrder.returnRequest.requestMessage = returnMessage;
         updateOrder.returnRequest.adminStatus = "pending";
 
-        // Update item-level return requests only if they are empty
+    
         updateOrder.items = updateOrder.items.map((item) => {
             if (item.returnRequest.requestStatus || item.returnRequest.requestMessage) {
-                return item; // Keep existing return requests
+                return item; 
             }
             return {
                 ...item,
@@ -339,7 +335,6 @@ const returnOrder = async (req, res) => {
             };
         });
 
-        // Save the updated order
         const updateResult = await orderSchema.updateOne(
             { _id: orderId },
             {

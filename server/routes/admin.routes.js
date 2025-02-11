@@ -50,7 +50,8 @@ const {
     addProduct,
     fetchProduct,
     updateProductStatus,
-    updateProduct
+    updateProduct,
+    updateProductVariants
 } = require('../controllers/admin/product.controller');
 
 const upload = require('../middleware/multer')
@@ -59,7 +60,8 @@ admin_router.get('/product/fetchProduct', protectRoute, fetchProduct)
 admin_router.patch('/product/updateProductStatus/:proId', protectRoute, updateProductStatus)
 admin_router.patch('/product/updateProduct/:proId', upload.array('images', 3), protectRoute, updateProduct)
 
-
+// productStock Managemente
+admin_router.put('/product/variantsupdate/:productId',protectRoute,updateProductVariants)
 
 // admin users handle 
 const { fetchAllUsers, updateUserStatus } = require('../controllers/admin/adminManageUser.controller')
@@ -67,10 +69,12 @@ admin_router.get('/usersHandle/fetchUsers', protectRoute, fetchAllUsers)
 admin_router.patch('/usersHandle/blockAndUnBlock/:userID', protectRoute, updateUserStatus)
 
 // handle All Orders
-const {getAllordersToAdmin,updateOrderItemStatus,updateOrderStatus,orderItemReturnStatus} = require('../controllers/admin/ordersHandle.controller')
-admin_router.get('/orders/getallorders',protectRoute,getAllordersToAdmin);
-admin_router.patch('/orders/updateOrderStatus/:orderId/:itemId',protectRoute,updateOrderItemStatus);
-admin_router.patch('/orders/updateOrderStatus/:orderId',protectRoute,updateOrderStatus);
-admin_router.patch('/orders/itemReturnStatus/:orderId/:itemId',protectRoute,orderItemReturnStatus);
+const { getAllordersToAdmin, updateOrderItemStatus, updateOrderStatus, orderItemReturnStatus } = require('../controllers/admin/ordersHandle.controller')
+admin_router.get('/orders/getallorders', protectRoute, getAllordersToAdmin);
+admin_router.patch('/orders/updateOrderStatus/:orderId/:itemId', protectRoute, updateOrderItemStatus);
+admin_router.patch('/orders/updateOrderStatus/:orderId', protectRoute, updateOrderStatus);
+admin_router.patch('/orders/itemReturnStatus/:orderId/:itemId', protectRoute, orderItemReturnStatus);
+
+
 
 module.exports = admin_router; 

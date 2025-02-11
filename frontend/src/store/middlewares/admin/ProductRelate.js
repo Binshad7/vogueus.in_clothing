@@ -1,6 +1,7 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import { toast } from "react-toastify";
 import adminProductAxios from "../../../api/adminProducAxios";
+import adminAxios from "../../../api/adminAxios";
 
 
 const addProdcut = createAsyncThunk(
@@ -62,9 +63,25 @@ const updateProduct = createAsyncThunk(
     }
 )
 
+const updateStocks = createAsyncThunk(
+    'admin/updateStocks',
+    async ({productId,variants},{rejectWithValue}) => {
+        try{
+            
+            const response = await adminAxios.put(`/product/variantsupdate/${productId}`,{variants})
+            toast.success(response?.data?.message);
+            return response.data.product
+        }catch(error){
+            toast.error(error?.response.data?.message || error.message)
+            return rejectWithValue()
+        }
+    }
+)
+
 export {
     addProdcut,
     fetchProduct,
     blockAndUnBlock,
-    updateProduct
+    updateProduct,
+    updateStocks
 }

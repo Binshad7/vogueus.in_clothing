@@ -5,7 +5,6 @@ import { toast } from "react-toastify";
 const fetchAllProducts = createAsyncThunk(
     'user/products',
     async (_, { rejectWithValue }) => {
-            console.log('hit the fetchallProducts')
         try {
             const response = await userAxios.get('/product/fetchAllProducts');
             return response.data.products;

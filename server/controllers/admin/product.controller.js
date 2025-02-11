@@ -167,13 +167,61 @@ const updateProductStatus =async (req,res)=>{
         }
     }
     
+    const updateProductVariants = async (req, res) => {
+        const { productId } = req.params;
+        const { variants } = req.body
+        try {
+            const updateProductVariant = await productSchema.updateOne({_id:productId},{$set:{variants:variants}});
+            if(!updateProductVariant ||updateProductVariant.modifiedCount ==0){
+                return res.status(400).json({success:true,message:"Product Not Find"})
+            }
+            const AllProducts =  await getProducts()
+            const UpdatedItem = AllProducts.find((item)=>item._id==productId);
+
+
+            res.status(200).json({ success: true, message: "Updated Stocks",product:UpdatedItem });
+        } catch (error) {
+            console.error("Error getAllProducts order:", error);
+            res.status(500).json({ success: false, message: "Server error, please try again later" });
+        }
+    }
     module.exports = { 
         addProduct,
         fetchProduct,
         updateProductStatus,
-        updateProduct
+        updateProduct,
+        updateProductVariants
     };
     
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     // // Function to delete images from Cloudinary
 // const deleteImages = async (urls) => {
     //     try {
