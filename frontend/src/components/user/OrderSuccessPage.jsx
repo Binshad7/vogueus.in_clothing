@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import { Check, Package, Printer, Home, Download } from "lucide-react";
+import { Check, Package, Home, Download } from "lucide-react";
 import { useSelector, useDispatch } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
 import Spinner from "./Spinner";
@@ -36,7 +36,7 @@ const OrderSuccessPage = () => {
                 const canvas = await html2canvas(pdfRef.current, {
                     scale: 2, // Higher scale for better quality
                     logging: false,
-                    useCORS: true // This is important for images
+                    useCORS: true // This is important for images,
                 });
 
                 // Calculate dimensions

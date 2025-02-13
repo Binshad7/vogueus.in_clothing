@@ -15,7 +15,15 @@ async function getOrderItems(userId) {
                 }
             },
             {
-                $unwind: "$productDetails" // Flatten the productDetails array
+                $lookup: {
+                    from: "users",
+                    localField: "userId",
+                    foreignField: "_id",
+                    as: "userDetails"
+                }
+            },
+            {
+                $unwind: "$productDetails"
             },
             {
                 $group: {
@@ -27,6 +35,9 @@ async function getOrderItems(userId) {
                     orderStatus: { $first: "$orderStatus" },
                     orderId: { $first: "$orderId" },
                     orderedAt: { $first: "$orderedAt" },
+                    fullName: { $first: '$shippingAddress.fullName' },
+                    mobileNumber: { $first: '$shippingAddress.mobileNumber' },
+                    email: { $first: '$userDetails.email' },
                     items: {
                         $push: {
                             ItemId: "$items._id",
@@ -54,7 +65,7 @@ async function getOrderItems(userId) {
 async function getAllOrders(page = 1, limit = 10, search = '', status = '') {
     try {
         const matchStage = {};
-        
+
         // Add search conditions if search term exists
         if (search) {
             matchStage.$or = [
@@ -62,10 +73,10 @@ async function getAllOrders(page = 1, limit = 10, search = '', status = '') {
                 { "items.productName": { $regex: search, $options: 'i' } }
             ];
         }
-        
+
         // Handle status filtering including return statuses
         if (status && status.toLowerCase() !== 'all') {
-            switch(status.toLowerCase()) {
+            switch (status.toLowerCase()) {
                 case 'fully_returned':
                     matchStage['returnRequest.adminStatus'] = 'approved';
                     break;
@@ -89,7 +100,7 @@ async function getAllOrders(page = 1, limit = 10, search = '', status = '') {
         const pipeline = [
             // Only include match stage if there are conditions
             Object.keys(matchStage).length > 0 ? { $match: matchStage } : null,
-            
+
             // First lookup user details
             {
                 $lookup: {
@@ -102,7 +113,7 @@ async function getAllOrders(page = 1, limit = 10, search = '', status = '') {
             {
                 $unwind: '$userDetails'
             },
-            
+
             // Then lookup products
             {
                 $lookup: {
@@ -112,10 +123,10 @@ async function getAllOrders(page = 1, limit = 10, search = '', status = '') {
                     as: 'productDetails'
                 }
             },
-            
+
             // Unwind the items array
             { $unwind: '$items' },
-            
+
             // Add product details to each item
             {
                 $addFields: {
@@ -133,7 +144,7 @@ async function getAllOrders(page = 1, limit = 10, search = '', status = '') {
                     }
                 }
             },
-            
+
             // Group back to original structure
             {
                 $group: {
@@ -170,7 +181,7 @@ async function getAllOrders(page = 1, limit = 10, search = '', status = '') {
                     statusHistory: { $first: '$statusHistory' }
                 }
             },
-            
+
             // Rest of your existing pipeline stages for return status...
             {
                 $addFields: {
@@ -186,7 +197,7 @@ async function getAllOrders(page = 1, limit = 10, search = '', status = '') {
                                                 $filter: {
                                                     input: "$items",
                                                     as: "item",
-                                                    cond: { 
+                                                    cond: {
                                                         $or: [
                                                             { $eq: ["$$item.itemStatus", "returned"] },
                                                             { $eq: ["$$item.returnRequest.adminStatus", "approved"] }
@@ -236,7 +247,7 @@ async function getAllOrders(page = 1, limit = 10, search = '', status = '') {
             orders,
             totalOrders: total
         };
-        
+
     } catch (error) {
         console.error(error);
         throw new Error('Something went wrong while fetching order items');

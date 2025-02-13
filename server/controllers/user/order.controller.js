@@ -70,7 +70,7 @@ const createNewOrder = async (req, res) => {
             orderId,
             shippingAddress: selectedAddress,
         };
-        if (['wallet', 'razorpay'].includes(paymentMethod)) {
+        if (paymentMethod === 'wallet') {
             productDetails.paymentStatus = 'paid';
         }
 
@@ -90,6 +90,16 @@ const createNewOrder = async (req, res) => {
             if (updateResult.modifiedCount === 0) {
                 return res.status(400).json({ success: false, message: `Stock update failed for product ${item.productId}` });
             }
+        }
+
+        if (paymentMethod === 'razorpay') {
+            const orderDetails = await getOrderItems(req.user._id);
+            const lastAddedProduct = orderDetails.find((item) => item.orderId === orderId);
+            return res.status(201).json({
+                success: true,
+                message: "Order placed successfully",
+                orderItems: JSON.stringify(lastAddedProduct),
+            });
         }
 
         if (paymentMethod === 'wallet') {
@@ -320,10 +330,10 @@ const returnOrder = async (req, res) => {
         updateOrder.returnRequest.requestMessage = returnMessage;
         updateOrder.returnRequest.adminStatus = "pending";
 
-    
+
         updateOrder.items = updateOrder.items.map((item) => {
             if (item.returnRequest.requestStatus || item.returnRequest.requestMessage) {
-                return item; 
+                return item;
             }
             return {
                 ...item,
@@ -368,3 +378,114 @@ module.exports = {
     returnOrderItem,
     returnOrder
 };
+
+
+/* 
+const Razorpay = require("razorpay");
+
+const razorpay = new Razorpay({
+    key_id: process.env.VITE_RAZORPAY_KEY_ID,
+    key_secret: process.env.VITE_RAZORPAY_SCRETE
+});
+
+const createNewOrder = async (req, res) => {
+    try {
+        const { userId } = req.params;
+        if (!req.user._id.equals(userId)) {
+            return res.status(400).json({ success: false, message: 'Invalid User ID' });
+        }
+
+        const { selectedAddressIndex, paymentMethod } = req.body;
+        if (!req.user.address || !req.user.address[selectedAddressIndex]) {
+            return res.status(400).json({ success: false, message: "Address is required" });
+        }
+        const selectedAddress = req.user.address[selectedAddressIndex];
+
+        const userCart = await GetCartWithProductDetails(userId);
+        if (!Array.isArray(userCart) || userCart.length === 0) {
+            return res.status(400).json({ success: false, message: "Cart is empty" });
+        }
+
+        let totalAmount = 0;
+        const items = userCart.map((item) => {
+            const productPrice = item?.productDetails[0]?.currentPrice > 0
+                ? item.productDetails[0].currentPrice
+                : item.productDetails[0].regularPrice;
+
+            totalAmount += productPrice * item.items.quantity;
+
+            return {
+                productId: item.items.productId,
+                quantity: item.items.quantity,
+                productPrice: productPrice,
+                size: item.items.size,
+            };
+        });
+
+        // ✅ **Create order in Razorpay**
+        if (paymentMethod === 'razorpay') {
+            const razorpayOrder = await razorpay.orders.create({
+                amount: totalAmount * 100, // Convert to paise (Razorpay expects amount in paise)
+                currency: "INR",
+                receipt: `order_${Date.now()}`, // Unique identifier
+                payment_capture: 1, // Auto-capture
+            });
+
+            if (!razorpayOrder.id) {
+                return res.status(400).json({ success: false, message: "Failed to create Razorpay order" });
+            }
+            
+            return res.status(201).json({
+                success: true,
+                message: "Razorpay order created",
+                orderId: razorpayOrder.id, // Send Razorpay Order ID to frontend
+                amount: totalAmount
+            });
+        }
+
+        // ✅ **Proceed with wallet payments**
+        if (paymentMethod === 'wallet') {
+            const walletBalance = await walletSchema.findOne({ userId });
+            if (Number(totalAmount) > walletBalance.balance) {
+                return res.status(400).json({ success: false, message: 'Wallet Balance Is Insufficient' });
+            }
+
+            let productDetails = {
+                userId,
+                items,
+                totalAmount,
+                paymentMethod,
+                orderId: `VOG-${uuidv4().split('-')[0].toUpperCase()}`,
+                shippingAddress: selectedAddress,
+                paymentStatus: 'paid'
+            };
+
+            const newOrder = new orderSchema(productDetails);
+            const orderedItem = await newOrder.save();
+
+            if (!orderedItem) {
+                return res.status(400).json({ success: false, message: "Something went wrong. Try again later." });
+            }
+
+            await walletSchema.updateOne(
+                { userId },
+                {
+                    $inc: { balance: -totalAmount },
+                    $push: { transactions: { type: 'debit', amount: totalAmount } }
+                }
+            );
+
+            return res.status(201).json({
+                success: true,
+                message: "Order placed successfully using wallet",
+                orderItems: orderedItem,
+            });
+        }
+
+    } catch (error) {
+        console.error("Error placing order:", error);
+        res.status(500).json({ success: false, message: 'Server error, please try again later' });
+    }
+};
+
+*/

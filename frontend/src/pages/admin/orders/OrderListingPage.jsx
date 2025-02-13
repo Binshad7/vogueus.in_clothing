@@ -139,8 +139,8 @@ const OrderListingPage = () => {
                         <option value="shipped">Shipped</option>
                         <option value="delivered">Delivered</option>
                         <option value="cancelled">Cancelled</option>
-                        <option value="fully_returned">Fully Returned</option>
-                        <option value="partially_returned">Partially Returned</option>
+                        {/* <option value="fully_returned">Fully Returned</option>
+                        <option value="partially_returned">Partially Returned</option> */}
                         <option value="return_requested">Return Requested</option>
                     </select>
                 </div>

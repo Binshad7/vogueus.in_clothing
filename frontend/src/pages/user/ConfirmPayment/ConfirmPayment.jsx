@@ -1,4 +1,3 @@
-import { useStripe } from '@stripe/react-stripe-js';
 import React, { useEffect, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { confirmPaymentAPI } from '../../../api/order';
