@@ -23,6 +23,7 @@ import Profile from '../pages/user/Account/Profile'
 import CheckoutPage from '../pages/user/payment/CheckoutPage'
 import OrderSuccessPage from '../components/user/OrderSuccessPage'
 import WalletPage from '../pages/user/Account/WalletPage'
+import Shop from '../pages/user/shop/Shop'
 function UserRoutes() {
 
     return (
@@ -31,14 +32,15 @@ function UserRoutes() {
             <Routes>
                 <Route path='*' element={<NotFoundPage />} />
                 <Route path='/' element={<Home />} />
-                {/* <Route path='/shop' element={<Shop />} />
-                <Route path='/about' element={<About />} />
-                <Route path='/contact' element={<Contact />} />
-                */}
+                <Route path='/shop' element={<Shop />} />
+                {/* <Route path='/about' element={<About />} />
+                <Route path='/contact' element={<Contact />} /> */}
+               
+
+
                 {/* product Detail page */}
                 <Route path='/product/:productId' element={<ProductDetails />} />
 
-                {/* User Profile pages */}
                 {/* User Profile pages */}
                 <Route path='/account-details' element={<AccountLayout />}>
                     <Route index element={<UserProtectedRoute element={<Profile />} />} />
@@ -49,24 +51,12 @@ function UserRoutes() {
                     <Route path="settings" element={<UserProtectedRoute element={<Settings />} />} />
                 </Route>
 
-
-                {/* Protected Route */}
-                {/* 
-                <Route path='/order/:orderId' element={ <UserProtectedRoute element={<Order />}/>} />
-                <Route path='/wallet' element={<UserProtectedRoute element={<Wallet/>} />} />
-                <Route path='/Coupons' element={<UserProtectedRoute element={<Coupons />}/>} />
-                {/*  */}
-
-
                 <Route path='/wishlist' element={<UserProtectedRoute element={<WishlistPage />} />} />
                 <Route path='/cart-items' element={<UserProtectedRoute element={<CartPage />} />} />
                 <Route path='/checkout' element={<UserProtectedRoute element={<CheckoutPage />} />} />
                 <Route path='/orderSuccess/:orderId' element={<UserProtectedRoute element={<OrderSuccessPage />} />} />
 
-                {/* 
-                <Route path='/support' element={<Support />} />
-                <Route path='/orderConfirmed' element={<OrderConfirmed />} /> */}
-
+              
 
                 {/* register and login  */}
 

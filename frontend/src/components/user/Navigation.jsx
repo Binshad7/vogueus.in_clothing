@@ -40,7 +40,7 @@ const Navigation = () => {
         <ul className="flex gap-14 text-gray-600 hover:text-black">
           <li>
             <NavLink
-              to="/"
+              to="/shop"
               className={({ isActive }) => (isActive ? 'font-bold text-black' : '')}
             >
               Shop
