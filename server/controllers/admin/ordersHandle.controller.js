@@ -29,13 +29,15 @@ const getAllordersToAdmin = async (req, res) => {
 const updateOrderItemStatus = async (req, res) => {
     const { orderId, itemId } = req.params;
     const { newStatus } = req.body;
-    console.log(newStatus)
     try {
         const existOrder = await orderSchema.findById(orderId);
+
         if (!existOrder) {
             return res.status(404).json({ success: false, message: 'Order Not Found' });
         }
-
+        if (existOrder.paymentMethod === 'razorpay' && existOrder.paymentStatus === 'pending') {
+           return res.status(400).json({success:false,message:'Online Payment Is Pending'})        
+        }
         const existItem = existOrder.items.find(item => item._id.toString() === itemId);
         if (!existItem) {
             return res.status(404).json({ success: false, message: "Item Not Found" });
@@ -98,6 +100,9 @@ const updateOrderStatus = async (req, res) => {
         if (!updateOrder) {
             return res.status(400).json({ success: false, message: "Product not find " })
         }
+        if (updateOrder.paymentMethod === 'razorpay' && updateOrder.paymentStatus === 'pending') {
+            return res.status(400).json({success:false,message:'Online Payment Is Pending'})        
+         }
         if (updateOrder.orderStatus === 'cancelled') {
             return res.status(400).json({ success: false, message: 'Order As bin cancelled' })
         }

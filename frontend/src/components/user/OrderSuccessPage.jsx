@@ -17,12 +17,12 @@ const OrderSuccessPage = () => {
     const pdfRef = useRef();
 
     useEffect(() => {
-        dispatch(getOrderItems(user._id));
-    }, [dispatch, user._id, orderId]);
+        dispatch(getOrderItems(user?._id));
+    }, [dispatch, user?._id, orderId]);
 
     useEffect(() => {
         if (orderes.length !== 0) {
-            let lastOrderItem = orderes.find(item => item._id.toString() == orderId);
+            let lastOrderItem = orderes?.find(item => item?._id.toString() == orderId);
             setLastOrder(lastOrderItem);
         } else {
             navigate("/");

@@ -5,7 +5,12 @@ const { v4: uuidv4 } = require('uuid');
 const { getOrderItems } = require('../../utils/getOrderItems');
 const mongoose = require("mongoose");
 const walletSchema = require('../../models/wallet')
-
+const Razorpay = require('razorpay')
+const { RAZORPAY_KEY_ID, RAZORPAY_SCRETE } = require('../../config/ENV_VARS')
+const razorpay = new Razorpay({
+    key_id: RAZORPAY_KEY_ID,
+    key_secret: RAZORPAY_SCRETE
+})
 
 
 const getUserOrderes = async (req, res) => {
@@ -37,7 +42,7 @@ const createNewOrder = async (req, res) => {
         const selectedAddress = req.user.address[selectedAddressIndex];
 
         const userCart = await GetCartWithProductDetails(userId);
-        if (!Array.isArray(userCart) || userCart.length === 0) {
+        if (!Array.isArray(userCart) || userCart?.length === 0) {
             return res.status(400).json({ success: false, message: "Cart is empty" });
         }
         const orderId = 'VOG-' + uuidv4().split('-')[0].toUpperCase();
@@ -86,7 +91,7 @@ const createNewOrder = async (req, res) => {
                 { $inc: { "variants.$[elem].stock": -item.quantity } },
                 { arrayFilters: [{ "elem.size": item.size }] }
             );
-
+         console.log(updateResult)                                                                                                                  
             if (updateResult.modifiedCount === 0) {
                 return res.status(400).json({ success: false, message: `Stock update failed for product ${item.productId}` });
             }
@@ -95,10 +100,20 @@ const createNewOrder = async (req, res) => {
         if (paymentMethod === 'razorpay') {
             const orderDetails = await getOrderItems(req.user._id);
             const lastAddedProduct = orderDetails.find((item) => item.orderId === orderId);
+            const razorpayOrder = await razorpay.orders.create({
+                amount: totalAmount * 100,
+                currency: 'INR',
+                receipt: `order_${Date.now()}`,
+                partial_payment: 1
+            })
+            if (!razorpayOrder.id) {
+                return res.status(400).json({ success: false, message: "Failed to create Razorpay order" });
+            }
             return res.status(201).json({
                 success: true,
                 message: "Order placed successfully",
                 orderItems: JSON.stringify(lastAddedProduct),
+                orderId: razorpayOrder.id
             });
         }
 
@@ -142,8 +157,67 @@ const createNewOrder = async (req, res) => {
     }
 };
 
+// payment success then change the status of 
+const razorpayPaymentStatus = async (req, res) => {
+    const { orderId } = req.params;
+
+    try {
+        const updatePaymentStatus = await orderSchema.findOneAndUpdate({ _id: orderId }, { $set: { paymentStatus: 'paid' } }, { new: true });
+        if (!updatePaymentStatus) {
+            return res.status(400).json({ success: false, message: 'Order Not Find' })
+        }
+        const updateCart = await GetCart(updatePaymentStatus.userId);
+        if (updateCart) {
+            updateCart.items = [];
+            await updateCart.save();
+        }
+        res.status(200).json({ success: true, message: 'Payment Successfuly completed' })
+    } catch (error) {
+        console.error("Error placing order:", error);
+        res.status(500).json({ success: false, message: 'Server error, please try again later' });
+
+    }
+}
 
 
+// when payment fail then order canceld
+const paymentCaneled = async (req, res) => {
+    const { orderId } = req.params;
+    if (!orderId) {
+        return res.status(400).json({ success: false, message: 'Order ID is not valid' });
+    }
+
+    try {
+        const order = await orderSchema.findOneAndUpdate(
+            { _id: orderId },
+            { $set: { orderStatus: "cancelled" } },
+            { new: true }
+        );
+
+        if (!order) {
+            return res.status(400).json({ success: false, message: "Order not found" });
+        }
+
+        // Restock products
+        for (const item of order.items) {
+            const updateResult = await productSchema.updateOne(
+                { _id: item.productId, "variants.size": item.size },
+                { $inc: { "variants.$[elem].stock": item.quantity } },
+                { arrayFilters: [{ "elem.size": item.size }] }
+            );
+
+            if (updateResult.modifiedCount === 0) {
+                return res.status(400).json({ success: false, message: `Stock update failed for product ${item.productId}` });
+            }
+        }
+        res.status(200).json({ success: true, message: 'Order cancelled and refund processed (if applicable)' });
+
+    } catch (error) {
+        console.error("Error cancelling order:", error);
+        res.status(500).json({ success: false, message: 'Server error, please try again later' });
+    }
+
+}
 const cancellOrder = async (req, res) => {
     const { orderId } = req.params;
     if (!orderId) {
@@ -376,7 +450,9 @@ module.exports = {
     cancellOrder,
     cancelOrderItem,
     returnOrderItem,
-    returnOrder
+    returnOrder,
+    razorpayPaymentStatus,
+    paymentCaneled
 };
 
 

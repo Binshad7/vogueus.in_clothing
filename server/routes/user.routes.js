@@ -67,8 +67,10 @@ user_router.patch('/editAddress/:addressId', protectRoute, editAddress)
 
 
 // order
-const { createNewOrder, getUserOrderes, cancellOrder, cancelOrderItem, returnOrderItem, returnOrder } = require('../controllers/user/order.controller')
+const { createNewOrder, getUserOrderes, cancellOrder, cancelOrderItem, returnOrderItem, returnOrder,razorpayPaymentStatus,paymentCaneled } = require('../controllers/user/order.controller')
 user_router.post('/neworder/:userId', protectRoute, createNewOrder)
+user_router.patch('/orders/orderPaymentStatus/:orderId', protectRoute, razorpayPaymentStatus);
+user_router.patch('/orders/orderPaymentFaild/:orderId', protectRoute, paymentCaneled);
 user_router.get('/orders/:userId', protectRoute, getUserOrderes)
 // cancelOrder
 user_router.patch('/orders/cancellOrder/:orderId', protectRoute, cancellOrder);

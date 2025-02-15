@@ -1,16 +1,17 @@
-import React, { useEffect, useState } from "react";
+// CheckoutPage.jsx
+import React, { useEffect, useState, useMemo, useCallback } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 import Address from "../../../components/user/payment/AddressSession/Address";
 import PaymentOptions from "../../../components/user/payment/payment/PaymentOptions";
-import { useSelector, useDispatch } from "react-redux";
 import OrderSummary from "../../../components/user/payment/orderSummary/OrderSummary";
-import { GetCart } from "../../../store/middlewares/user/cart";
 import Spinner from "../../../components/user/Spinner";
-import { toast } from "react-toastify";
+import { GetCart } from "../../../store/middlewares/user/cart";
 import { createNewOreder } from "../../../store/reducers/user/userOrders";
 import { clearCartItems } from "../../../store/reducers/user/cart";
-import { useNavigate } from "react-router-dom";
-import userAxios from "../../../api/userAxios";
 import { getWallete } from "../../../store/middlewares/user/wallete";
+import userAxios from "../../../api/userAxios";
 import { RAZORPAY_KEY_ID } from "../../../constant/screte";
 
 function CheckoutPage() {
@@ -21,67 +22,54 @@ function CheckoutPage() {
     const user = useSelector((state) => state.user.user);
     const { userWallete, loading } = useSelector((state) => state.userWalleteDetails);
 
-    useEffect(() => {
-        dispatch(getWallete(user._id));
-        if (cart.length === 0) {
-            navigate("/");
-        }
-    }, []);
-
+    const [lastOrder, setLastOrder] = useState(null);
     const [selectedAddress, setSelectedAddress] = useState(0);
     const [selectedPayment, setSelectedPayment] = useState(null);
     const [applyCoupon, setAppliedCoupon] = useState("");
-    const [orderSummary, setOrderSummary] = useState({
-        subTotal: 0,
-        shipping: 0,
-        Discount: 0,
-        Total: 0,
-    });
 
-    const calculateOrderSummary = () => {
-        let subtotal = 0;
-        let shipping = 0;
-        let Discount = 0;
-        cart.forEach((item) => {
-            const price =
-                item.productDetails.currentPrice > 0
-                    ? item.productDetails.currentPrice
-                    : item.productDetails.regularPrice;
-
-            subtotal += price * item.itemDetails.quantity;
-            shipping += price > 500 ? 0 : 10;
-        });
-        Discount = applyCoupon?.trim() === "b1nshad" && subtotal + shipping > 1000 ? 250 : 0;
-        setOrderSummary({
-            subTotal: subtotal,
-            shipping: shipping,
-            Discount: Discount,
-            Total: subtotal + shipping - Discount,
-        });
-    };
-
-    useEffect(() => {
-        if (cart.length > 0) {
-            calculateOrderSummary();
+    // Memoized order summary calculation
+    const orderSummary = useMemo(() => {
+        if (!cart || cart.length === 0) {
+            return {
+                subTotal: 0,
+                shipping: 0,
+                Discount: 0,
+                Total: 0,
+            };
         }
+
+        const subtotal = cart.reduce((total, item) => {
+            const price = item.productDetails.currentPrice > 0
+                ? item.productDetails.currentPrice
+                : item.productDetails.regularPrice;
+            return total + (price * item.itemDetails.quantity);
+        }, 0);
+
+        const shipping = cart.reduce((total, item) => {
+            const price = item.productDetails.currentPrice > 0
+                ? item.productDetails.currentPrice
+                : item.productDetails.regularPrice;
+            return total + (price > 500 ? 0 : 10);
+        }, 0);
+
+        const discount = applyCoupon?.trim() === "b1nshad" && subtotal + shipping > 1000 ? 250 : 0;
+
+        return {
+            subTotal: subtotal,
+            shipping,
+            Discount: discount,
+            Total: subtotal + shipping - discount,
+        };
     }, [cart, applyCoupon]);
 
-    useEffect(() => {
-        dispatch(GetCart());
-    }, [dispatch]);
-
-    useEffect(() => {
-        calculateOrderSummary();
-    }, [applyCoupon]);
-
-    const handleApplyCoupon = (coupon) => {
+    const handleApplyCoupon = useCallback((coupon) => {
         setAppliedCoupon(coupon);
-        if (coupon.trim() !== "b1nshad") return;
-        toast.success("Coupon applied!");
-        calculateOrderSummary();
-    };
+        if (coupon.trim() === "b1nshad") {
+            toast.success("Coupon applied!");
+        }
+    }, []);
 
-    const loadRazorpayScript = async () => {
+    const loadRazorpayScript = useCallback(() => {
         return new Promise((resolve) => {
             const script = document.createElement("script");
             script.src = "https://checkout.razorpay.com/v1/checkout.js";
@@ -89,11 +77,11 @@ function CheckoutPage() {
             script.onerror = () => resolve(false);
             document.body.appendChild(script);
         });
-    };
+    }, []);
 
-    const handleRazorpayPayment = async (totalAmount, orderId, _id, name, email, phone) => {
+    const handleRazorpayPayment = useCallback(async (totalAmount, orderId, _id, fullName, mobileNumber, email) => {
         const razorpayLoaded = await loadRazorpayScript();
-
+        
         if (!razorpayLoaded) {
             toast.error("Failed to load Razorpay. Please try again.");
             return;
@@ -107,41 +95,55 @@ function CheckoutPage() {
             description: "Test Transaction",
             order_id: orderId,
             handler: async (response) => {
-                console.log("Payment Successful", response);
-                toast.success("✅ Payment Successful!");
-
-                // API call to confirm payment
                 try {
-                    await userAxios.post(`/confirmPayment/${_id}`, response);
+                    // First save order to Redux
+                    dispatch(createNewOreder(lastOrder));
+                    
+                    // Then update payment status
+                    await userAxios.patch(`/orders/orderPaymentStatus/${_id}`);
+                    
+                    // Clear cart after successful payment
+                    dispatch(clearCartItems());
+                    
+                    toast.success("✅ Payment Successful!");
+                    
+                    // Navigate after all operations are complete
                     navigate(`/orderSuccess/${_id}`);
                 } catch (error) {
                     toast.error("Payment verification failed!");
+                    await userAxios.patch(`/orders/orderPaymentFaild/${_id}`);
                 }
             },
             prefill: {
-                name: name,
-                email: email,
-                contact: phone,
+                name: fullName,
+                email: mobileNumber,
+                contact: email,
             },
             theme: {
                 color: "#F37254",
             },
             modal: {
                 escape: false,
-                ondismiss: () => {
-                    console.log("Payment window closed!");
-                    toast.error("Payment was not completed!");
+                ondismiss: async () => {
+                    await userAxios.patch(`/orders/orderPaymentFaild/${_id}`);
+                    toast.error("Payment was not completed. Order is cancelled!");
                 },
             },
         };
 
         const razorpayInstance = new window.Razorpay(options);
         razorpayInstance.open();
-    };
+    }, [dispatch, navigate, lastOrder, loadRazorpayScript]);
 
-    const handleOrderConfirm = async () => {
+    const handleOrderConfirm = useCallback(async () => {
+        if (!user?._id) {
+            toast.error("Please log in to continue");
+            return;
+        }
+
         if (selectedPayment === "wallet" && orderSummary.Total > userWallete.balance) {
-            return toast.error("Insufficient Wallet Balance");
+            toast.error("Insufficient Wallet Balance");
+            return;
         }
 
         try {
@@ -151,11 +153,12 @@ function CheckoutPage() {
             });
 
             let orderItem = JSON.parse(response.data.orderItems);
+
             if (selectedPayment === "razorpay") {
-                console.log("Initiating Razorpay payment...");
+                setLastOrder(orderItem);
                 handleRazorpayPayment(
                     orderItem?.totalAmount,
-                    orderItem?.orderId,
+                    response?.data?.orderId,
                     orderItem?._id,
                     orderItem?.fullName,
                     orderItem?.mobileNumber,
@@ -164,15 +167,26 @@ function CheckoutPage() {
                 return;
             }
 
-            dispatch(clearCartItems());
+            // For non-Razorpay payments
             dispatch(createNewOreder(orderItem));
+            dispatch(clearCartItems());
             toast.success(response?.data?.message);
             navigate(`/orderSuccess/${orderItem._id}`);
-            return;
         } catch (error) {
-            toast.error(error?.response?.data?.message || error.message);
+            toast.error(error?.response?.data?.message || "Order creation failed");
         }
-    };
+    }, [selectedPayment, orderSummary.Total, userWallete.balance, user?._id, selectedAddress, handleRazorpayPayment, dispatch, navigate]);
+
+    useEffect(() => {
+        if (!user?._id) return;
+        
+        dispatch(getWallete(user._id));
+        dispatch(GetCart());
+        
+        if (cart.length === 0) {
+            navigate("/");
+        }
+    }, [dispatch, navigate, user?._id]);
 
     if (loading) {
         return <Spinner />;
@@ -196,7 +210,11 @@ function CheckoutPage() {
                         />
                     </div>
                     <div>
-                        <OrderSummary items={cart} onApplyCoupon={handleApplyCoupon} orderSummary={orderSummary} />
+                        <OrderSummary 
+                            items={cart} 
+                            onApplyCoupon={handleApplyCoupon} 
+                            orderSummary={orderSummary}
+                        />
                     </div>
                 </div>
             </div>
@@ -204,4 +222,4 @@ function CheckoutPage() {
     );
 }
 
-export default CheckoutPage;
+export default React.memo(CheckoutPage);
