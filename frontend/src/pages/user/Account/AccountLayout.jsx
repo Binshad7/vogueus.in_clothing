@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
-import { User, ShoppingBag, MapPin, Settings, Wallet } from 'lucide-react';
+import { User, ShoppingBag, MapPin, Settings, Wallet, Ticket } from 'lucide-react';
 
 const AccountLayout = () => {
   const location = useLocation();
@@ -25,6 +25,11 @@ const AccountLayout = () => {
       to: '/account-details/address',
       label: 'Address',
       icon: <MapPin className="w-5 h-5" />
+    },
+    {
+      to: '/account-details/coupons',
+      label: 'Coupons',
+      icon: <Ticket className="w-5 h-5" />
     },
     {
       to: '/account-details/settings',
@@ -67,17 +72,15 @@ const AccountLayout = () => {
                     key={link.to}
                     to={link.to}
                     className={({ isActive }) =>
-                      `flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${
-                        isActive
-                          ? 'bg-gray-900 text-white shadow-md'
-                          : 'text-gray-600 hover:bg-gray-100'
+                      `flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${isActive
+                        ? 'bg-gray-900 text-white shadow-md'
+                        : 'text-gray-600 hover:bg-gray-100'
                       }`
                     }
                   >
                     <span
                       className={({ isActive }) =>
-                        `transition-colors duration-200 ${
-                          isActive ? 'text-white' : 'text-gray-400'
+                        `transition-colors duration-200 ${isActive ? 'text-white' : 'text-gray-400'
                         }`
                       }
                     >

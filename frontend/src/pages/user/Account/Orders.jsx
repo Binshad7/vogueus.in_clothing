@@ -30,7 +30,7 @@ const StatusBadge = ({ type, status }) => {
   );
 };
 
-// Action Button Component
+
 const ActionButton = ({ onClick, disabled, bgColor, hoverBgColor, disabledBgColor, children }) => (
   <button
     onClick={onClick}

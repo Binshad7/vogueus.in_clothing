@@ -1,27 +1,30 @@
 
 const Admin = require('../../models/userSchema');
 const generateToken = require('../../utils/genarateToken');
-const bcrypt = require('bcrypt');
+const {comparePassword} = require('../../utils/bcryptPassowrd')
 const adminLogin = async (req, res) => {
     try {
         var { email, password } = req.body;
-        console.log(email,password)
+        // console.log(email,password)
         const ExistingAdmin = await Admin.findOne({ email });
-         console.log(ExistingAdmin)
+        //  console.log(ExistingAdmin)
         if (!ExistingAdmin) {
 
             return res.status(400).json({ success: false, message: "Admin does not exist" });
         }
-        const isPasswordCorrect = await bcrypt.compare(password, ExistingAdmin.password);
+        const isPasswordCorrect = await comparePassword(password, ExistingAdmin.password);
         if (!isPasswordCorrect) {
+            console.log(1);
             return res.status(400).json({ success: false, message: "Invalid credentials" });
         }
-
+        
         if (ExistingAdmin.role !== 'admin') {
+            console.log(2);
             return res.status(400).json({ success: false, message: "You are not an admin" });
         }
-
+        
         if (ExistingAdmin.isBlock) {
+            console.log(3);
             return res.status(400).json({ success: false, message: "You are blocked by admin" });
         }
         await generateToken(ExistingAdmin._id, res);

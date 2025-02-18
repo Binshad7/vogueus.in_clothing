@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Check } from 'lucide-react';
 import { toast } from 'react-toastify';
 
-const PaymentSelection = ({ selectedPayment, onPaymentSelect, handleOrderConfirm, walleteBalanceAMout }) => {
+const PaymentSelection = ({ selectedPayment, onPaymentSelect, handleOrderConfirm, walleteBalanceAmount }) => {
     const [isProcessing, setIsProcessing] = useState(false);
 
     const paymentMethods = [
@@ -73,7 +73,7 @@ const PaymentSelection = ({ selectedPayment, onPaymentSelect, handleOrderConfirm
                                                 <div className="flex items-center justify-between">
                                                     <span className="text-sm font-medium text-blue-700">Available Balance</span>
                                                     <div className="flex items-center">
-                                                        <span className="text-lg font-semibold text-blue-700">₹{walleteBalanceAMout}</span>
+                                                        <span className="text-lg font-semibold text-blue-700">₹{walleteBalanceAmount}</span>
                                                         <div className="ml-2 w-2 h-2 rounded-full bg-green-500"></div>
                                                     </div>
                                                 </div>

@@ -67,7 +67,7 @@ user_router.patch('/editAddress/:addressId', protectRoute, editAddress)
 
 
 // order
-const { createNewOrder, getUserOrderes, cancellOrder, cancelOrderItem, returnOrderItem, returnOrder,razorpayPaymentStatus,paymentCaneled } = require('../controllers/user/order.controller')
+const { createNewOrder, getUserOrderes, cancellOrder, cancelOrderItem, returnOrderItem, returnOrder, razorpayPaymentStatus, paymentCaneled, validateCoupon } = require('../controllers/user/order.controller')
 user_router.post('/neworder/:userId', protectRoute, createNewOrder)
 user_router.patch('/orders/orderPaymentStatus/:orderId', protectRoute, razorpayPaymentStatus);
 user_router.patch('/orders/orderPaymentFaild/:orderId', protectRoute, paymentCaneled);
@@ -78,8 +78,12 @@ user_router.patch('/orders/cancellItem/:orderId/:itemId', protectRoute, cancelOr
 user_router.patch('/orders/returnOrderItem/:orderId', protectRoute, returnOrderItem);
 user_router.patch('/orders/returnOrder/:orderId', protectRoute, returnOrder);
 
+// user coupons
+user_router.post('/coupon/validate_coupon', protectRoute, validateCoupon)
+
 // wallete user 
 const { userWalletDetail } = require('../controllers/user/wallete.controller')
 user_router.get('/wallete/:userId', protectRoute, userWalletDetail);
+
 
 module.exports = user_router;  

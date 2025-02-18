@@ -24,6 +24,7 @@ import CheckoutPage from '../pages/user/payment/CheckoutPage'
 import OrderSuccessPage from '../components/user/OrderSuccessPage'
 import WalletPage from '../pages/user/Account/WalletPage'
 import Shop from '../pages/user/shop/Shop'
+import Coupons from '../pages/user/Account/Coupons'
 function UserRoutes() {
 
     return (
@@ -48,6 +49,7 @@ function UserRoutes() {
                     <Route path="wallet" element={<UserProtectedRoute element={<WalletPage />} />} />
                     <Route path="orders" element={<UserProtectedRoute element={<Orders />} />} />
                     <Route path="address" element={<UserProtectedRoute element={<AddAddress />} />} />
+                    <Route path="coupons" element={<UserProtectedRoute element={<Coupons />} />} />
                     <Route path="settings" element={<UserProtectedRoute element={<Settings />} />} />
                 </Route>
 

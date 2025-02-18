@@ -12,7 +12,6 @@ const register = async (req, res) => {
     const currentTime = Date.now()
     const expiryTime = req.session.otpExpiry
     const otp = req.session.otp
-    console.log(req.session)
 
     try {
 

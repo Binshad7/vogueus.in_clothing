@@ -1,21 +1,6 @@
 const mongoose = require('mongoose');
 
-// ~~~ Order Schema ~~~
-// Purpose: Defines the structure for storing and managing customer order data in the database.
-// Fields:
-// - user: Links the order to the customer using ObjectId referencing the Users collection.
-// - items: Stores details of the products in the order, including quantity, price, size, and status.
-// - totalAmount: Total cost of the order, required.
-// - paymentMethod: Specifies how the order was paid (e.g., card, wallet, COD).
-// - paymentStatus: Tracks the payment state (e.g., pending, paid, failed).
-// - orderStatus: Tracks the current status of the order (e.g., processing, shipped).
-// - shippingAddress: Stores details of where the order is shipped.
-// - coupon: Tracks coupon details and discounts applied.
-// - statusHistory: Keeps a history of status changes for auditing.
-// Features:
-// - Includes support for return requests at both item and order level.
-// - Timestamp fields automatically track creation and update times for each order.
-// - Utilizes enumerated fields for consistent status and payment values.
+
 
 const orderSchema = new mongoose.Schema({
     userId: {
@@ -67,6 +52,14 @@ const orderSchema = new mongoose.Schema({
         type: String,
         enum: ['wallet', 'razorpay', 'cod'],
         required: true,
+    },
+    usedcoupon: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'coupons'
+    },
+    discoutAmout: {
+        type: Number,
+        default: 0
     },
     paymentStatus: {
         type: String,

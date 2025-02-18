@@ -1,54 +1,58 @@
 import React, { useState } from 'react';
 import { Check, X } from 'lucide-react';
+import { toast } from 'react-toastify';
 
 const OrderSummary = ({ items, onApplyCoupon, orderSummary }) => {
     const [couponCode, setCouponCode] = useState('');
     const [appliedCoupon, setAppliedCoupon] = useState(null);
-    const [couponError, setCouponError] = useState('');
     const [isApplying, setIsApplying] = useState(false);
+    const [error, setError] = useState('');
 
-    const handleCouponCodeApplay = () => {
-        setIsApplying(true)
-        onApplyCoupon(couponCode)
-        console.log(couponCode)
-        setTimeout(() => {
-            setIsApplying(false)
-        }, 2000)
-    }
-    const handleApplyCoupon = () => {
-        setIsApplying(true);
-        setCouponError('');
-        // onApplyCoupon(couponCode)
-        // Simulate coupon validation
-        setTimeout(() => {
-            // Mock coupon validation logic
-            if (couponCode.toLowerCase() === 'save10') {
-                setAppliedCoupon({
-                    code: couponCode,
-                    discount: 100,
-                    type: 'Fixed'
-                });
+    const handleApplyCoupon = async () => {
+
+        if (!couponCode.trim()) {
+            setError('Please enter a coupon code');
+            return;
+        }
+
+        try {
+            setIsApplying(true);
+            setError('');
+
+            const couponResult = await onApplyCoupon(couponCode.trim());
+
+            if (couponResult.status) {
+                setAppliedCoupon(couponResult);
                 setCouponCode('');
+                toast.success('Coupon applied successfully!');
             } else {
-                setCouponError('Invalid coupon code');
+                toast.error(couponResult.message)
             }
+        } catch (error) {
+            setError(error.message);
+            toast.error(error.message);
+        } finally {
             setIsApplying(false);
-        }, 800);
+        }
     };
 
-    const removeCoupon = () => {
-        setAppliedCoupon(null);
-        setCouponError('');
+    const removeCoupon = async () => {
+        try {
+            await onApplyCoupon('');
+            setAppliedCoupon(null);
+            setError('');
+            toast.success('Coupon removed successfully');
+        } catch (error) {
+            toast.error('Failed to remove coupon');
+        }
     };
 
     return (
         <div className="bg-white rounded-lg shadow">
-            {/* Header */}
             <div className="p-4 border-b">
                 <h2 className="text-lg font-semibold text-gray-800">Order Summary</h2>
             </div>
 
-            {/* Order Items */}
             <div className="p-4 border-b">
                 <div className="space-y-4">
                     {items.map((item) => (
@@ -59,17 +63,23 @@ const OrderSummary = ({ items, onApplyCoupon, orderSummary }) => {
                                 className="w-20 h-20 rounded-md object-cover"
                             />
                             <div className="flex-1">
-                                <h3 className="font-medium text-gray-800">{item?.productDetails?.productName}</h3>
+                                <h3 className="font-medium text-gray-800">
+                                    {item?.productDetails?.productName}
+                                </h3>
                                 <div className="mt-1 text-sm text-gray-500">
                                     <span>Size: {item?.itemDetails?.size}</span>
                                 </div>
                                 <div className="mt-1 flex justify-between">
-                                    <span className="text-sm text-gray-500">Qty: {item?.itemDetails?.quantity}</span>
-                                    <span className="font-medium">₹   {(
-                                        (item.productDetails.currentPrice > 0
-                                            ? item.productDetails.currentPrice
-                                            : item.productDetails.regularPrice) * item.itemDetails.quantity
-                                    ).toFixed(2)}
+                                    <span className="text-sm text-gray-500">
+                                        Qty: {item?.itemDetails?.quantity}
+                                    </span>
+                                    <span className="font-medium">
+                                        ₹{(
+                                            (item.productDetails.currentPrice > 0
+                                                ? item.productDetails.currentPrice
+                                                : item.productDetails.regularPrice) *
+                                            item.itemDetails.quantity
+                                        ).toFixed(2)}
                                     </span>
                                 </div>
                             </div>
@@ -78,7 +88,6 @@ const OrderSummary = ({ items, onApplyCoupon, orderSummary }) => {
                 </div>
             </div>
 
-            {/* Coupon Section */}
             <div className="p-4 border-b">
                 {!appliedCoupon ? (
                     <div className="space-y-2">
@@ -91,10 +100,10 @@ const OrderSummary = ({ items, onApplyCoupon, orderSummary }) => {
                                 className="flex-1 px-3 py-2 border rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500"
                             />
                             <button
-                                onClick={handleCouponCodeApplay}
-                                disabled={!couponCode || isApplying}
+                                onClick={handleApplyCoupon}
+                                disabled={!couponCode.trim() || isApplying}
                                 className={`px-4 py-2 rounded-lg font-medium transition-colors
-                  ${!couponCode || isApplying
+                                    ${!couponCode.trim() || isApplying
                                         ? 'bg-gray-100 text-gray-400'
                                         : 'bg-blue-600 text-white hover:bg-blue-700'
                                     }`}
@@ -102,8 +111,8 @@ const OrderSummary = ({ items, onApplyCoupon, orderSummary }) => {
                                 {isApplying ? 'Applying...' : 'Apply'}
                             </button>
                         </div>
-                        {couponError && (
-                            <p className="text-sm text-red-500">{couponError}</p>
+                        {error && (
+                            <p className="text-sm text-red-500">{error}</p>
                         )}
                     </div>
                 ) : (
@@ -129,7 +138,6 @@ const OrderSummary = ({ items, onApplyCoupon, orderSummary }) => {
                 )}
             </div>
 
-            {/* Price Breakdown */}
             <div className="p-4 space-y-3 border-b">
                 <div className="flex justify-between text-gray-600">
                     <span>Subtotal</span>
@@ -139,35 +147,45 @@ const OrderSummary = ({ items, onApplyCoupon, orderSummary }) => {
                     <span>Shipping</span>
                     <span>₹{orderSummary?.shipping}</span>
                 </div>
-                <div className="flex justify-between text-green-600">
-                    <span>Discount</span>
-                    <span>- ₹{orderSummary.Discount}</span>
-                </div>
-                {appliedCoupon && (
+                {orderSummary?.couponDiscount > 0 && (
                     <div className="flex justify-between text-green-600">
-                        <span>Coupon Discount ({appliedCoupon.code})</span>
-                        <span>- ₹{appliedCoupon.discount}</span>
+                        <span>Coupon Discount</span>
+                        <span>- ₹{orderSummary?.couponDiscount}</span>
                     </div>
                 )}
             </div>
 
-            {/* Total */}
             <div className="p-4 bg-gray-50 rounded-b-lg">
                 <div className="flex justify-between items-center">
-                    <div>
-                        <span className="text-lg font-semibold text-gray-800">Total</span>
-                    </div>
+                    <span className="text-lg font-semibold text-gray-800">Total</span>
                     <span className="text-xl font-semibold text-gray-800">
                         ₹{orderSummary?.Total?.toLocaleString()}
                     </span>
                 </div>
             </div>
 
-            {/* Estimated Delivery */}
             <div className="p-4 border-t">
-                <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-600">Estimated Delivery</span>
-                    <span className="font-medium text-gray-800">3-5 Business Days</span>
+                <div className="text-sm text-gray-600">
+                    <div className="flex items-center justify-between">
+                        <span>Estimated Delivery</span>
+                        <span className="font-medium text-gray-800">3-5 Business Days</span>
+                    </div>
+                    {orderSummary?.shipping > 0 && (
+                        <p className="mt-2 text-xs">
+                            Free shipping on orders above ₹500
+                        </p>
+                    )}
+                </div>
+            </div>
+
+            {/* Additional Info Section */}
+            <div className="p-4 border-t bg-gray-50">
+                <div className="text-xs text-gray-500 space-y-2">
+                    <p>• Prices and delivery charges are inclusive of taxes</p>
+                    <p>• Order confirmation will be sent to your registered email</p>
+                    {appliedCoupon && (
+                        <p>• Coupon discount will be applied to the final amount</p>
+                    )}
                 </div>
             </div>
         </div>

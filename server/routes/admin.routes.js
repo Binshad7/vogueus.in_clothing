@@ -61,7 +61,7 @@ admin_router.patch('/product/updateProductStatus/:proId', protectRoute, updatePr
 admin_router.patch('/product/updateProduct/:proId', upload.array('images', 3), protectRoute, updateProduct)
 
 // productStock Managemente
-admin_router.put('/product/variantsupdate/:productId',protectRoute,updateProductVariants)
+admin_router.put('/product/variantsupdate/:productId', protectRoute, updateProductVariants)
 
 // admin users handle 
 const { fetchAllUsers, updateUserStatus } = require('../controllers/admin/adminManageUser.controller')
@@ -76,5 +76,12 @@ admin_router.patch('/orders/updateOrderStatus/:orderId', protectRoute, updateOrd
 admin_router.patch('/orders/itemReturnStatus/:orderId/:itemId', protectRoute, orderItemReturnStatus);
 
 
+// admin Coupon Handling
+const { addCoupon, editCoupon, updateBlockStatus,getAllCoupons,deleteCoupon } = require('../controllers/admin/coupon.controller');
+admin_router.post('/coupon/addCoupon', protectRoute, addCoupon)
+admin_router.get('/coupon/getAllCoupons', protectRoute, getAllCoupons)
+admin_router.patch('/coupon/updateStatus/:couponId', protectRoute, updateBlockStatus)
+admin_router.patch('/coupon/editCoupon/:couponId', protectRoute, editCoupon)
+admin_router.delete('/coupon/deleteCoupon/:couponId', protectRoute, deleteCoupon)
 
 module.exports = admin_router; 

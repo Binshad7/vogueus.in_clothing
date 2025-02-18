@@ -7,6 +7,7 @@ const mongoose = require("mongoose");
 const walletSchema = require('../../models/wallet')
 const Razorpay = require('razorpay')
 const { RAZORPAY_KEY_ID, RAZORPAY_SCRETE } = require('../../config/ENV_VARS')
+const couponSchema = require('../../models/coupon')
 const razorpay = new Razorpay({
     key_id: RAZORPAY_KEY_ID,
     key_secret: RAZORPAY_SCRETE
@@ -27,6 +28,48 @@ const getUserOrderes = async (req, res) => {
     }
 }
 
+const validateCoupon = async (req, res) => {
+    const { couponCode, cartTotal } = req.body;
+
+    try {
+        // Check if coupon exists
+        const isValidCoupon = await couponSchema.findOne({ couponCode });
+        if (!isValidCoupon) {
+            return res.status(400).json({ success: false, message: 'Coupon is not valid' });
+        }
+
+        // Check minimum order amount condition
+        if (cartTotal < isValidCoupon.minimumOrderAmount) {
+            return res.status(400).json({
+                success: false,
+                message: `This coupon is applicable for a minimum order amount of ₹${isValidCoupon.minimumOrderAmount}`
+            });
+        }
+
+        // Calculate Discount Amount
+        let discountAmount = (cartTotal * isValidCoupon.discount) / 100;
+
+
+        // Ensure discount does not exceed maximum limit
+        if (discountAmount > isValidCoupon.maximumDiscountAmount) {
+            discountAmount = isValidCoupon.maximumDiscountAmount;
+        }
+
+        // Response Object
+        let coupon = {
+            couponCode: isValidCoupon.couponCode,
+            discount: discountAmount.toFixed(2),
+            couponId: isValidCoupon._id
+        };
+
+        res.status(200).json({ success: true, message: 'Coupon is valid', coupon });
+
+    } catch (error) {
+        console.error("Error validating coupon:", error);
+        res.status(500).json({ success: false, message: 'Server error, please try again later' });
+    }
+};
+
 
 const createNewOrder = async (req, res) => {
     try {
@@ -35,7 +78,8 @@ const createNewOrder = async (req, res) => {
             return res.status(400).json({ success: false, message: 'Invalid User ID' });
         }
 
-        const { selectedAddressIndex, paymentMethod } = req.body;
+        const { selectedAddressIndex, paymentMethod, appliedCoupon } = req.body;
+        console.log(appliedCoupon)
         if (!req.user.address || !req.user.address[selectedAddressIndex]) {
             return res.status(400).json({ success: false, message: "Address is required" });
         }
@@ -46,6 +90,8 @@ const createNewOrder = async (req, res) => {
             return res.status(400).json({ success: false, message: "Cart is empty" });
         }
         const orderId = 'VOG-' + uuidv4().split('-')[0].toUpperCase();
+
+
 
         let totalAmount = 0;
         const items = userCart.map((item) => {
@@ -62,7 +108,27 @@ const createNewOrder = async (req, res) => {
                 size: item.items.size,
             };
         });
+        let discout;
+        if (appliedCoupon) {
 
+            const isValidCoupon = await couponSchema.findById(appliedCoupon);
+            if (!isValidCoupon) {
+                return res.status(400).json({ success: false, message: 'Coupon Is Not Valid' })
+            }
+            if (totalAmount < isValidCoupon.minimumOrderAmount) {
+                return res.status(400).json({
+                    success: false,
+                    message: `This coupon is applicable for a minimum order amount of ₹${isValidCoupon.minimumOrderAmount}`
+                });
+            }
+
+            let discountAmount = (Number(totalAmount) * isValidCoupon.discount) / 100;
+            if (discountAmount > isValidCoupon.maximumDiscountAmount) {
+                discountAmount = isValidCoupon.maximumDiscountAmount;
+            }
+            discout = discountAmount
+            totalAmount = totalAmount - discountAmount
+        }
         if (paymentMethod === 'wallet') {
             const walletBalance = await walletSchema.findOne({ userId });
             if (Number(totalAmount) > walletBalance.balance) return res.status(400).json({ succees: false, message: 'Wallet Balance Is Insufficient ' })
@@ -78,6 +144,12 @@ const createNewOrder = async (req, res) => {
         if (paymentMethod === 'wallet') {
             productDetails.paymentStatus = 'paid';
         }
+        if (appliedCoupon) {
+            productDetails.usedcoupon = appliedCoupon
+        }
+        if (paymentMethod !== 'raozrpay' && appliedCoupon) {
+            productDetails.discoutAmout = discout
+        }
 
         const newOrder = new orderSchema(productDetails);
         const orderedItem = await newOrder.save();
@@ -91,7 +163,6 @@ const createNewOrder = async (req, res) => {
                 { $inc: { "variants.$[elem].stock": -item.quantity } },
                 { arrayFilters: [{ "elem.size": item.size }] }
             );
-         console.log(updateResult)                                                                                                                  
             if (updateResult.modifiedCount === 0) {
                 return res.status(400).json({ success: false, message: `Stock update failed for product ${item.productId}` });
             }
@@ -142,7 +213,7 @@ const createNewOrder = async (req, res) => {
             updateCart.items = [];
             await updateCart.save();
         }
-
+        await couponSchema.updateOne({ _id: appliedCoupon }, { $inc: { usageCount: 1 } });
         const orderDetails = await getOrderItems(req.user._id);
         const lastAddedProduct = orderDetails.find((item) => item.orderId === orderId);
         res.status(201).json({
@@ -452,7 +523,8 @@ module.exports = {
     returnOrderItem,
     returnOrder,
     razorpayPaymentStatus,
-    paymentCaneled
+    paymentCaneled,
+    validateCoupon
 };
 
 

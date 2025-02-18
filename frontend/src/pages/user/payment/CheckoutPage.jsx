@@ -1,4 +1,3 @@
-// CheckoutPage.jsx
 import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
@@ -22,18 +21,18 @@ function CheckoutPage() {
     const user = useSelector((state) => state.user.user);
     const { userWallete, loading } = useSelector((state) => state.userWalleteDetails);
 
-    const [lastOrder, setLastOrder] = useState(null);
     const [selectedAddress, setSelectedAddress] = useState(0);
     const [selectedPayment, setSelectedPayment] = useState(null);
-    const [applyCoupon, setAppliedCoupon] = useState("");
+    const [couponDiscount, setCouponDiscount] = useState(0);
+    const [appliedCouponDetails, setAppliedCouponDetails] = useState(null);
+    const [processingPayment, setProcessingPayment] = useState(false);
 
-    // Memoized order summary calculation
     const orderSummary = useMemo(() => {
         if (!cart || cart.length === 0) {
             return {
                 subTotal: 0,
                 shipping: 0,
-                Discount: 0,
+                couponDiscount: 0,
                 Total: 0,
             };
         }
@@ -52,88 +51,119 @@ function CheckoutPage() {
             return total + (price > 500 ? 0 : 10);
         }, 0);
 
-        const discount = applyCoupon?.trim() === "b1nshad" && subtotal + shipping > 1000 ? 250 : 0;
-
         return {
             subTotal: subtotal,
             shipping,
-            Discount: discount,
-            Total: subtotal + shipping - discount,
+            couponDiscount,
+            Total: subtotal + shipping - couponDiscount,
         };
-    }, [cart, applyCoupon]);
+    }, [cart, couponDiscount]);
 
-    const handleApplyCoupon = useCallback((coupon) => {
-        setAppliedCoupon(coupon);
-        if (coupon.trim() === "b1nshad") {
-            toast.success("Coupon applied!");
+    const handleApplyCoupon = async (couponCode) => {
+        try {
+            if (!couponCode) {
+                setCouponDiscount(0);
+                setAppliedCouponDetails(null);
+                return null;
+            }
+
+            const response = await userAxios.post('/coupon/validate_coupon', {
+                couponCode,
+                cartTotal: orderSummary.subTotal
+            });
+
+            if (response.data.coupon) {
+                const discount = response.data.coupon.discount;
+                setCouponDiscount(discount);
+                const couponDetails = {
+                    status: true,
+                    couponId: response?.data?.coupon?.couponId,
+                    code: couponCode,
+                    discount: discount,
+                    coupon: response.data.coupon,
+                    message: 'Coupon Applied Successfully'
+                };
+                setAppliedCouponDetails(couponDetails);
+                return couponDetails;
+            }
+            
+            return {
+                status: false,
+                message: response.data.message
+            };
+        } catch (error) {
+            setCouponDiscount(0);
+            setAppliedCouponDetails(null);
+            throw new Error(error.response?.data?.message || 'Failed to apply coupon');
         }
-    }, []);
+    };
 
-    const loadRazorpayScript = useCallback(() => {
-        return new Promise((resolve) => {
+    const handleRazorpayPayment = useCallback(async (orderData) => {
+        const {
+            totalAmount,
+            orderId,
+            _id,
+            fullName,
+            mobileNumber,
+            email
+        } = orderData;
+
+        return new Promise((resolve, reject) => {
             const script = document.createElement("script");
             script.src = "https://checkout.razorpay.com/v1/checkout.js";
-            script.onload = () => resolve(true);
-            script.onerror = () => resolve(false);
+
+            script.onerror = () => {
+                reject(new Error("Failed to load Razorpay"));
+            };
+
+            script.onload = () => {
+                const options = {
+                    key: RAZORPAY_KEY_ID,
+                    amount: (totalAmount - couponDiscount) * 100,
+                    currency: "INR",
+                    name: "VOGUEUS",
+                    description: "Payment for Order",
+                    order_id: orderId,
+                    handler: async (response) => {
+                        try {
+                            await userAxios.patch(`/orders/orderPaymentStatus/${_id}`, {
+                                razorpay_payment_id: response.razorpay_payment_id,
+                                razorpay_order_id: response.razorpay_order_id,
+                                razorpay_signature: response.razorpay_signature
+                            });
+                            
+                            dispatch(createNewOreder(orderData));
+                            dispatch(clearCartItems());
+                            resolve({ success: true, orderId: _id });
+                        } catch (error) {
+                            await userAxios.patch(`/orders/orderPaymentFaild/${_id}`);
+                            reject(new Error("Payment verification failed"));
+                        }
+                    },
+                    prefill: {
+                        name: fullName,
+                        email: email[0],
+                        contact: mobileNumber,
+                    },
+                    theme: {
+                        color: "#F37254",
+                    },
+                    modal: {
+                        escape: false,
+                        ondismiss: async () => {
+                            await userAxios.patch(`/orders/orderPaymentFaild/${_id}`);
+                            reject(new Error("Payment cancelled"));
+                        },
+                    },
+                };
+
+                const razorpayInstance = new window.Razorpay(options);
+                razorpayInstance.open();
+            };
+
             document.body.appendChild(script);
         });
-    }, []);
-
-    const handleRazorpayPayment = useCallback(async (totalAmount, orderId, _id, fullName, mobileNumber, email) => {
-        const razorpayLoaded = await loadRazorpayScript();
-        
-        if (!razorpayLoaded) {
-            toast.error("Failed to load Razorpay. Please try again.");
-            return;
-        }
-
-        const options = {
-            key: RAZORPAY_KEY_ID,
-            amount: totalAmount * 100,
-            currency: "INR",
-            name: "VOGUEUS",
-            description: "Test Transaction",
-            order_id: orderId,
-            handler: async (response) => {
-                try {
-                    // First save order to Redux
-                    dispatch(createNewOreder(lastOrder));
-                    
-                    // Then update payment status
-                    await userAxios.patch(`/orders/orderPaymentStatus/${_id}`);
-                    
-                    // Clear cart after successful payment
-                    dispatch(clearCartItems());
-                    
-                    toast.success("✅ Payment Successful!");
-                    
-                    // Navigate after all operations are complete
-                    navigate(`/orderSuccess/${_id}`);
-                } catch (error) {
-                    toast.error("Payment verification failed!");
-                    await userAxios.patch(`/orders/orderPaymentFaild/${_id}`);
-                }
-            },
-            prefill: {
-                name: fullName,
-                email: mobileNumber,
-                contact: email,
-            },
-            theme: {
-                color: "#F37254",
-            },
-            modal: {
-                escape: false,
-                ondismiss: async () => {
-                    await userAxios.patch(`/orders/orderPaymentFaild/${_id}`);
-                    toast.error("Payment was not completed. Order is cancelled!");
-                },
-            },
-        };
-
-        const razorpayInstance = new window.Razorpay(options);
-        razorpayInstance.open();
-    }, [dispatch, navigate, lastOrder, loadRazorpayScript]);
+    }, [dispatch, couponDiscount]);
 
     const handleOrderConfirm = useCallback(async () => {
         if (!user?._id) {
@@ -146,54 +176,79 @@ function CheckoutPage() {
             return;
         }
 
+        if (processingPayment) {
+            return;
+        }
+
+        setProcessingPayment(true);
+
         try {
             const response = await userAxios.post(`/neworder/${user._id}`, {
                 paymentMethod: selectedPayment,
                 selectedAddressIndex: selectedAddress,
+                appliedCoupon: appliedCouponDetails?.couponId
             });
 
-            let orderItem = JSON.parse(response.data.orderItems);
-
-            if (selectedPayment === "razorpay") {
-                setLastOrder(orderItem);
-                handleRazorpayPayment(
-                    orderItem?.totalAmount,
-                    response?.data?.orderId,
-                    orderItem?._id,
-                    orderItem?.fullName,
-                    orderItem?.mobileNumber,
-                    orderItem?.email[0]
-                );
-                return;
+            const orderItem = JSON.parse(response.data.orderItems);
+            dispatch(createNewOreder(orderItem));            if (selectedPayment === "razorpay") {
+                try {
+                    const result = await handleRazorpayPayment({
+                        totalAmount: orderItem.totalAmount,
+                        orderId: response.data.orderId,
+                        _id: orderItem._id,
+                        fullName: orderItem.fullName,
+                        mobileNumber: orderItem.mobileNumber,
+                        email: orderItem.email
+                    });
+                      
+                    if (result.success) {
+                        toast.success("Payment Successful!");
+                        navigate(`/orderSuccess/${result.orderId}`);
+                    }
+                } catch (error) {
+                    toast.error(error.message);
+                }
+            } else {
+                dispatch(createNewOreder(orderItem));
+                dispatch(clearCartItems());
+                toast.success(response?.data?.message);
+                navigate(`/orderSuccess/${orderItem._id}`);
             }
-
-            // For non-Razorpay payments
-            dispatch(createNewOreder(orderItem));
-            dispatch(clearCartItems());
-            toast.success(response?.data?.message);
-            navigate(`/orderSuccess/${orderItem._id}`);
         } catch (error) {
             toast.error(error?.response?.data?.message || "Order creation failed");
+        } finally {
+            setProcessingPayment(false);
         }
-    }, [selectedPayment, orderSummary.Total, userWallete.balance, user?._id, selectedAddress, handleRazorpayPayment, dispatch, navigate]);
+    }, [
+        user?._id,
+        selectedPayment,
+        selectedAddress,
+        orderSummary.Total,
+        userWallete.balance,
+        appliedCouponDetails,
+        processingPayment,
+        handleRazorpayPayment,
+        dispatch,
+        navigate
+    ]);
 
     useEffect(() => {
         if (!user?._id) return;
-        
+
         dispatch(getWallete(user._id));
         dispatch(GetCart());
-        
+
         if (cart.length === 0) {
             navigate("/");
         }
-    }, [dispatch, navigate, user?._id]);
+    }, [dispatch, navigate, user?._id, cart.length]);
 
     if (loading) {
         return <Spinner />;
     }
 
     return (
-        <div className="min-h-screen bg-gray-100 py-8 relative">
+        <div className="min-h-screen bg-gray-100 py-8">
             <div className="max-w-7xl mx-auto px-4">
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     <div className="lg:col-span-2">
@@ -203,16 +258,17 @@ function CheckoutPage() {
                             onAddressSelect={setSelectedAddress}
                         />
                         <PaymentOptions
-                            walleteBalanceAMout={userWallete.balance}
+                            walleteBalanceAmount={userWallete.balance}
                             selectedPayment={selectedPayment}
                             onPaymentSelect={setSelectedPayment}
                             handleOrderConfirm={handleOrderConfirm}
+                            disabled={processingPayment}
                         />
                     </div>
                     <div>
-                        <OrderSummary 
-                            items={cart} 
-                            onApplyCoupon={handleApplyCoupon} 
+                        <OrderSummary
+                            items={cart}
+                            onApplyCoupon={handleApplyCoupon}
                             orderSummary={orderSummary}
                         />
                     </div>

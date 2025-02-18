@@ -15,7 +15,8 @@ const OrderSuccessPage = () => {
     const { user } = useSelector((state) => state.user);
     const [lastOrder, setLastOrder] = useState(null);
     const pdfRef = useRef();
-
+    console.log('payment is fine');
+    
     useEffect(() => {
         dispatch(getOrderItems(user?._id));
     }, [dispatch, user?._id, orderId]);
