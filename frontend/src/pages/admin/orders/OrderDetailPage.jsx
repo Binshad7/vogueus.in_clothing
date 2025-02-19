@@ -321,10 +321,14 @@ const OrderDetails = () => {
               <span className="text-gray-600">Shipping:</span>
               <span className="font-medium">₹{order?.shippingPrice || 0}</span>
             </div>
+            <div className="flex justify-between">
+              <span className="text-gray-600">Coupon:</span>
+              <span className="font-medium">₹{order?.discoutAmout || 0}</span>
+            </div>
             <div className="flex justify-between border-t pt-2">
               <span className="font-semibold">Total:</span>
               <span className="font-semibold">₹{
-                (order?.items?.reduce((acc, item) => acc + (item.productPrice * item.quantity), 0) + (order?.shippingPrice || 0))
+                order.totalAmount
               }</span>
             </div>
           </div>

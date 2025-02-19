@@ -86,7 +86,7 @@ function CheckoutPage() {
                 setAppliedCouponDetails(couponDetails);
                 return couponDetails;
             }
-            
+
             return {
                 status: false,
                 message: response.data.message
@@ -131,7 +131,7 @@ function CheckoutPage() {
                                 razorpay_order_id: response.razorpay_order_id,
                                 razorpay_signature: response.razorpay_signature
                             });
-                            
+
                             dispatch(createNewOreder(orderData));
                             dispatch(clearCartItems());
                             resolve({ success: true, orderId: _id });
@@ -190,7 +190,8 @@ function CheckoutPage() {
             });
 
             const orderItem = JSON.parse(response.data.orderItems);
-            dispatch(createNewOreder(orderItem));            if (selectedPayment === "razorpay") {
+            dispatch(createNewOreder(orderItem));
+            if (selectedPayment === "razorpay") {
                 try {
                     const result = await handleRazorpayPayment({
                         totalAmount: orderItem.totalAmount,
@@ -200,7 +201,7 @@ function CheckoutPage() {
                         mobileNumber: orderItem.mobileNumber,
                         email: orderItem.email
                     });
-                      
+
                     if (result.success) {
                         toast.success("Payment Successful!");
                         navigate(`/orderSuccess/${result.orderId}`);

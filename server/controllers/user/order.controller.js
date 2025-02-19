@@ -233,9 +233,14 @@ const razorpayPaymentStatus = async (req, res) => {
     const { orderId } = req.params;
 
     try {
+
+
         const updatePaymentStatus = await orderSchema.findOneAndUpdate({ _id: orderId }, { $set: { paymentStatus: 'paid' } }, { new: true });
         if (!updatePaymentStatus) {
             return res.status(400).json({ success: false, message: 'Order Not Find' })
+        }
+        if (updatePaymentStatus?.usedcoupon) {
+            await couponSchema.updateOne({ _id: updatePaymentStatus.usedcoupon }, { $inc: { usageCount: 1 } })
         }
         const updateCart = await GetCart(updatePaymentStatus.userId);
         if (updateCart) {
@@ -289,6 +294,7 @@ const paymentCaneled = async (req, res) => {
     }
 
 }
+
 const cancellOrder = async (req, res) => {
     const { orderId } = req.params;
     if (!orderId) {
@@ -318,6 +324,7 @@ const cancellOrder = async (req, res) => {
                 return res.status(400).json({ success: false, message: `Stock update failed for product ${item.productId}` });
             }
         }
+
 
         // Refund if paid through wallet or Razorpay
         if (order.paymentMethod === "wallet" || order.paymentMethod === "razorpay") {
@@ -369,14 +376,21 @@ const cancelOrderItem = async (req, res) => {
         }
 
         // Get the product price for refund
-        const productPrice = item.productPrice;
+        let refundAmount = Math.floor(item.productPrice);
 
+        if (existingOrder.usedcoupon) {
+            let discoutFactor = existingOrder.totalAmount / (existingOrder.totalAmount + existingOrder.discoutAmout)
+            console.log('fatctor : ', discoutFactor)
+            console.log('refundAmout  : ', Math.floor(refundAmount * discoutFactor))
+            refundAmount = Math.floor(refundAmount * discoutFactor)
+
+        }
         // Update the item status to 'cancelled' and adjust totalAmount
         const updatedOrder = await orderSchema.findOneAndUpdate(
             { _id: orderId, "items._id": itemId },
             {
                 $set: { "items.$.itemStatus": "cancelled" },
-                $inc: { totalAmount: -productPrice } // Reduce totalAmount by the product price
+                $inc: { totalAmount: -refundAmount } // Reduce totalAmount by the product price
             },
             { new: true }
         );
@@ -390,12 +404,12 @@ const cancelOrderItem = async (req, res) => {
 
         // Refund logic: Check payment method (only refund if Wallet or Razorpay was used)
         if (existingOrder.paymentMethod === "wallet" || existingOrder.paymentMethod === "razorpay") {
-            await Wallet.findOneAndUpdate(
+            await walletSchema.findOneAndUpdate(
                 { userId: existingOrder.userId },
                 {
-                    $inc: { balance: productPrice },
+                    $inc: { balance: refundAmount },
                     $push: {
-                        transactions: { type: "refund", amount: productPrice }
+                        transactions: { type: "refund", amount: refundAmount }
                     }
                 },
                 { new: true }
