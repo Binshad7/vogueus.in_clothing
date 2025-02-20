@@ -89,19 +89,23 @@ const Orders = () => {
     setCancellingOrder(orderId);
 
     const result = await dispatch(cancelOrder(orderId));
-    console.log("itemss")
+
     console.log(cancelOrder.fulfilled.match(result));
-    
+
     if (cancelOrder.fulfilled.match(result)) {
       setCancellingOrder(null);
-      console.log('order updated')
+
     }
   };
 
   const handleItemCancel = async (orderId, itemId) => {
     setCancellingItem(itemId);
-    await dispatch(cancelOrderItem({ orderId, itemId }));
-    setCancellingItem(null);
+   const result =  await dispatch(cancelOrderItem({ orderId, itemId }));
+    if (cancelOrder.fulfilled.match(result)) {
+      setCancellingItem(null);
+
+    }
+   
   };
 
   const handleReturnRequest = async () => {
@@ -145,7 +149,7 @@ const Orders = () => {
     const orderStatus = order.orderStatus.toLowerCase();
     const paymentStatus = order.paymentStatus.toLowerCase();
     const returnRequest = order.items.some((item) => item.itemStatus === 'delivered' && item.returnRequest.requestStatus);
-    
+
     return {
       canCancel: orderStatus === 'processing', // Only show cancel for processing status
       canReturn: orderStatus === 'delivered' && order.items[0].itemStatus === 'delivered' && !returnRequest,

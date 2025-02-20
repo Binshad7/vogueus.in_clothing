@@ -21,7 +21,7 @@ const getUserOrderes = async (req, res) => {
     }
     try {
         const orderDetails = await getOrderItems(req.user._id);
-        res.status(200).json({ success: true, message: 'Order All Fetched', orderItems: JSON.stringify(orderDetails) })
+        res.status(200).json({ success: true, message: 'Order All Fetched', orderdItem: JSON.stringify(orderDetails) })
     } catch (error) {
         console.error("Error placing order:", error);
         res.status(500).json({ success: false, message: 'Server error, please try again later' });
@@ -183,7 +183,7 @@ const createNewOrder = async (req, res) => {
             return res.status(201).json({
                 success: true,
                 message: "Order placed successfully",
-                orderItems: JSON.stringify(lastAddedProduct),
+                orderdItem: JSON.stringify(lastAddedProduct),
                 orderId: razorpayOrder.id
             });
         }
@@ -219,7 +219,7 @@ const createNewOrder = async (req, res) => {
         res.status(201).json({
             success: true,
             message: "Order placed successfully",
-            orderItems: JSON.stringify(lastAddedProduct),
+            orderdItem: JSON.stringify(lastAddedProduct),
         });
 
     } catch (error) {
@@ -286,7 +286,7 @@ const paymentCaneled = async (req, res) => {
                 return res.status(400).json({ success: false, message: `Stock update failed for product ${item.productId}` });
             }
         }
-        res.status(200).json({ success: true, message: 'Order cancelled and refund processed (if applicable)' });
+        res.status(200).json({ success: true, message: 'Order cancelled and refund processed ' });
 
     } catch (error) {
         console.error("Error cancelling order:", error);
@@ -302,9 +302,14 @@ const cancellOrder = async (req, res) => {
     }
 
     try {
+        const existingOrder = await orderSchema.findOne({ _id: orderId });
+        let checkStatusMatch = existingOrder.items.every(item => item.itemStatus === 'processing');
+        if (!checkStatusMatch) {
+            return res.status(400).json({ success: false, message: "Order Can't fuly Cancell Each Product Can Do" });
+        }
         const order = await orderSchema.findOneAndUpdate(
             { _id: orderId },
-            { $set: { orderStatus: "cancelled" } },
+            { $set: { orderStatus: "cancelled", "items.$[].itemStatus": "cancelled" } },
             { new: true }
         );
 
@@ -343,8 +348,8 @@ const cancellOrder = async (req, res) => {
 
             await wallet.save();
         }
-
-        res.status(200).json({ success: true, message: 'Order cancelled and refund processed (if applicable)' });
+        const orderDetails = await getOrderItems(req.user._id);
+        res.status(200).json({ success: true, message: 'Order cancelled and Refund Amount Credited To wallet ', orderdItem: JSON.stringify(orderDetails) });
 
     } catch (error) {
         console.error("Error cancelling order:", error);
@@ -368,6 +373,10 @@ const cancelOrderItem = async (req, res) => {
             return res.status(404).json({ success: false, message: "Order not found" });
         }
 
+        if (existingOrder.orderStatus === 'cancelled') {
+            return res.status(400).json({ success: false, message: "Order already cancelled" });
+        }
+
         // Find the item inside the order
         const item = existingOrder.items.find((i) => i._id.toString() === itemId);
 
@@ -375,22 +384,47 @@ const cancelOrderItem = async (req, res) => {
             return res.status(404).json({ success: false, message: "Item not found in order" });
         }
 
+        if (item.itemStatus === 'cancelled') {
+            return res.status(400).json({ success: false, message: "Product already cancelled" });
+        }
+
         // Get the product price for refund
-        let refundAmount = Math.floor(item.productPrice);
+        let refundAmount = item.productPrice;
+
+        // Ensure original total amount is used for discount calculations
+        let originalTotalAmount = existingOrder.totalAmount;
 
         if (existingOrder.usedcoupon) {
-            let discoutFactor = existingOrder.totalAmount / (existingOrder.totalAmount + existingOrder.discoutAmout)
-            console.log('fatctor : ', discoutFactor)
-            console.log('refundAmout  : ', Math.floor(refundAmount * discoutFactor))
-            refundAmount = Math.floor(refundAmount * discoutFactor)
-
+            let discountFactor = originalTotalAmount / (originalTotalAmount + existingOrder.discoutAmout);
+            refundAmount = Math.round((refundAmount * item.quantity) * discountFactor); // Using Math.round() to avoid excessive reduction
         }
-        // Update the item status to 'cancelled' and adjust totalAmount
+        // 3797  coupon 500  3297   2*1798 1548
+
+        // Update the item status to 'cancelled'
+
+
+        // If it's the last item in the order, cancel the entire order
+        let updateDetails = {
+            "items.$.itemStatus": "cancelled"
+        };
+       
+        const filterItems = existingOrder.items.filter(item => item._id.toString() !== itemId);
+        const statusMatch = filterItems?.every(item => item.itemStatus === 'cancelled')
+
+        if (statusMatch) {
+            updateDetails.orderStatus = 'cancelled';
+            updateDetails.paymentStatus = 'refunded'
+        }
+        // If it's the last item in the order, cancel the entire order
+        if (existingOrder.items.length === 1) {
+            updateDetails.orderStatus = 'cancelled';
+             updateDetails.paymentStatus = 'refunded'
+        }
+        // Update the order in the database
         const updatedOrder = await orderSchema.findOneAndUpdate(
             { _id: orderId, "items._id": itemId },
             {
-                $set: { "items.$.itemStatus": "cancelled" },
-                $inc: { totalAmount: -refundAmount } // Reduce totalAmount by the product price
+                $set: updateDetails,
             },
             { new: true }
         );
@@ -402,8 +436,9 @@ const cancelOrderItem = async (req, res) => {
             { arrayFilters: [{ "elem.size": item.size }] }
         );
 
-        // Refund logic: Check payment method (only refund if Wallet or Razorpay was used)
-        if (existingOrder.paymentMethod === "wallet" || existingOrder.paymentMethod === "razorpay") {
+        // Refund logic: Process refund only if payment was via wallet or Razorpay
+        //existingOrder.paymentMethod === "wallet" || existingOrder.paymentMethod === "razorpay"
+        if (['wallet','razorpay'].includes(existingOrder.paymentMethod)) {
             await walletSchema.findOneAndUpdate(
                 { userId: existingOrder.userId },
                 {
@@ -421,14 +456,16 @@ const cancelOrderItem = async (req, res) => {
 
         res.status(200).json({
             success: true,
-            message: "Order item canceled and amount refunded",
-            orderdItem: JSON.stringify(orderDetails),
+            message: "Order item cancelled successfully",
+            refundedAmount: refundAmount,
+            updatedOrder: JSON.stringify(orderDetails),
         });
     } catch (error) {
-        console.error("Error canceling order:", error);
+        console.error("Error cancelling order:", error);
         res.status(500).json({ success: false, message: "Server error, please try again later" });
     }
 };
+
 
 
 const returnOrderItem = async (req, res) => {

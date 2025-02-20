@@ -9,7 +9,7 @@ const getOrderItems = createAsyncThunk(
     async (userId, { rejectWithValue }) => {
         try {
             const response = await userAxios.get(`/orders/${userId}`);
-            return JSON.parse(response.data.orderItems);
+            return JSON.parse(response.data.orderdItem);
         } catch (error) {
             return rejectWithValue(error.response.data.message);
         }
@@ -22,7 +22,7 @@ const cancelOrder = createAsyncThunk(
         try {
             const response = await userAxios.patch(`/orders/cancellOrder/${userId}`);
             toast.success(response.data.message);
-            return JSON.parse(response.data.orderItems);
+            return JSON.parse(response.data.orderdItem);
         } catch (error) {
             toast.error(error.response.data.message);
             return rejectWithValue(error.response.data.message);
@@ -35,7 +35,7 @@ const cancelOrderItem = createAsyncThunk(
         try {
             const response = await userAxios.patch(`/orders/cancellItem/${orderId}/${itemId}`);
             toast.success(response.data.message);
-            return JSON.parse(response.data.orderItems);
+            return JSON.parse(response.data.orderdItem);
         } catch (error) {
             toast.error(error.response.data.message);
             return rejectWithValue(error.response.data.message);
@@ -49,7 +49,7 @@ const returnOrderItem = createAsyncThunk(
         try {
             const response = await userAxios.patch(`/orders/returnOrderItem/${orderId}`, { ...updateDetails });
             toast.success(response.data.message);
-            return JSON.parse(response.data.orderItems);
+            return JSON.parse(response.data.orderdItem);
         } catch (error) {
             toast.error(error.response.data.message);
             return rejectWithValue(error.response.data.message);

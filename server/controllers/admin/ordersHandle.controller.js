@@ -36,7 +36,7 @@ const updateOrderItemStatus = async (req, res) => {
             return res.status(404).json({ success: false, message: 'Order Not Found' });
         }
         if (existOrder.paymentMethod === 'razorpay' && existOrder.paymentStatus === 'pending') {
-           return res.status(400).json({success:false,message:'Online Payment Is Pending'})        
+            return res.status(400).json({ success: false, message: 'Online Payment Is Pending' })
         }
         const existItem = existOrder.items.find(item => item._id.toString() === itemId);
         if (!existItem) {
@@ -101,14 +101,18 @@ const updateOrderStatus = async (req, res) => {
             return res.status(400).json({ success: false, message: "Product not find " })
         }
         if (updateOrder.paymentMethod === 'razorpay' && updateOrder.paymentStatus === 'pending') {
-            return res.status(400).json({success:false,message:'Online Payment Is Pending'})        
-         }
+            return res.status(400).json({ success: false, message: 'Online Payment Is Pending' })
+        }
         if (updateOrder.orderStatus === 'cancelled') {
             return res.status(400).json({ success: false, message: 'Order As bin cancelled' })
         }
         const orderStatusIsReturned = updateOrder.items.every(item => item.itemStatus === 'returned')
         if (orderStatus === 'returned' && !orderStatusIsReturned) {
             return res.status(400).json({ success: false, message: "Can't Change  Order Not Fuly Returend " })
+        }
+        const orderStatusIsCancelled = updateOrder.items.some(item => item.itemStatus === 'cancelled');
+        if (orderStatusIsCancelled) {
+            return res.status(400).json({ success: false, message: "Can't Change  Order Not Fuly A Items Is Cancelled " })
         }
         let updatedData = {
             orderStatus: orderStatus
@@ -172,7 +176,7 @@ const orderItemReturnStatus = async (req, res) => {
             return true
         }
         );
-        console.log(orderStatusIsReturned)
+
         if (orderStatusIsReturned) {
             updatingDetail.orderStatus = 'returned';
         }

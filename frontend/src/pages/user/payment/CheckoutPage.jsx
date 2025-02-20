@@ -189,7 +189,7 @@ function CheckoutPage() {
                 appliedCoupon: appliedCouponDetails?.couponId
             });
 
-            const orderItem = JSON.parse(response.data.orderItems);
+            const orderItem = JSON.parse(response.data.orderdItem);
             dispatch(createNewOreder(orderItem));
             if (selectedPayment === "razorpay") {
                 try {
@@ -210,8 +210,8 @@ function CheckoutPage() {
                     toast.error(error.message);
                 }
             } else {
-                dispatch(createNewOreder(orderItem));
-                dispatch(clearCartItems());
+                await dispatch(createNewOreder(orderItem));
+                await dispatch(clearCartItems());
                 toast.success(response?.data?.message);
                 navigate(`/orderSuccess/${orderItem._id}`);
             }
