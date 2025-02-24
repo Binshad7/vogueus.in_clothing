@@ -12,6 +12,7 @@ import OrderListingPage from '../pages/admin/orders/OrderListingPage'
 import OrderDetails from '../pages/admin/orders/OrderDetailPage'
 import StockManagement from '../pages/admin/stockManagemente/StockManagement'
 import CouponManagement from '../pages/admin/couponsManagement/CouponManagement'
+import ManageOffers from '../pages/admin/offer/ManageOffers'
 
 
 function AdminRoutes() {
@@ -29,6 +30,7 @@ function AdminRoutes() {
         <Route path='/orders/detailspage/:orderId' element={<OrderDetails />} />
         <Route path='/allusers' element={<UserManagement />} />
         <Route path='/coupon' element={<CouponManagement />} />
+        <Route path='/offer' element={<ManageOffers />} />
         <Route path='/stockmanagement' element={<StockManagement />} />
 
 

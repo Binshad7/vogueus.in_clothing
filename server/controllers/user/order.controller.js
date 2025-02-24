@@ -396,11 +396,10 @@ const cancelOrderItem = async (req, res) => {
 
         if (existingOrder.usedcoupon) {
             let discountFactor = originalTotalAmount / (originalTotalAmount + existingOrder.discoutAmout);
-            refundAmount = Math.round((refundAmount * item.quantity) * discountFactor); // Using Math.round() to avoid excessive reduction
+            refundAmount = (refundAmount * item.quantity) * discountFactor; // Using Math.round() to avoid excessive reduction
+            refundAmount = Math.round(refundAmount)
         }
-        // 3797  coupon 500  3297   2*1798 1548
-
-        // Update the item status to 'cancelled'
+        
 
 
         // If it's the last item in the order, cancel the entire order

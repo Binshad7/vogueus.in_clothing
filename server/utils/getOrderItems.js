@@ -178,7 +178,8 @@ async function getAllOrders(page = 1, limit = 10, search = '', status = '') {
                     orderedAt: { $first: '$orderedAt' },
                     deliveredAt: { $first: '$deliveredAt' },
                     returnRequest: { $first: '$returnRequest' },
-                    statusHistory: { $first: '$statusHistory' }
+                    statusHistory: { $first: '$statusHistory' },
+                    discoutAmout: {$first: '$discoutAmout' }
                 }
             },
 

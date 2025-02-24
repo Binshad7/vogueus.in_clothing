@@ -45,6 +45,7 @@ const OrderDetails = () => {
   const [loading, setLoading] = useState(false);
   const [selectedReturnAction, setSelectedReturnAction] = useState({});
   const [isUpdatingAllItems, setIsUpdatingAllItems] = useState(false);
+  const [selectedIndex, setSelecetedIndex] = useState(null)
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
@@ -54,8 +55,13 @@ const OrderDetails = () => {
     let currentItem = orders?.find((item) => item._id == orderId);
     setOrder(currentItem);
     setLoading(false);
-  }, [orderId, orders]);
 
+  }, [orderId, orders]);
+  useEffect(() => {
+
+    console.log(selectedIndex);
+    // let refundFactor = order?.
+  }, [selectedIndex])
 
   const orderStatusUpdate = async (newStatus) => {
     dispatch(updateOrderStatus({ orderId, orderStatus: newStatus }))
@@ -261,7 +267,10 @@ const OrderDetails = () => {
                           {!selectedReturnAction[index] ? (
                             <div className="flex space-x-2">
                               <button
-                                onClick={() => setSelectedReturnAction(prev => ({ ...prev, [index]: 'approve' }))}
+                                onClick={() => {
+                                  setSelecetedIndex(index)
+                                  setSelectedReturnAction(prev => ({ ...prev, [index]: 'approve' }))
+                                }}
                                 className="flex-1 bg-green-500 text-white p-2 rounded hover:bg-green-600 text-sm"
                               >
                                 Approve
@@ -317,10 +326,10 @@ const OrderDetails = () => {
               <span className="text-gray-600">Subtotal:</span>
               <span className="font-medium">₹{order?.items?.reduce((acc, item) => acc + (item.productPrice * item.quantity), 0)}</span>
             </div>
-            <div className="flex justify-between">
+            {/* <div className="flex justify-between">
               <span className="text-gray-600">Shipping:</span>
               <span className="font-medium">₹{order?.shippingPrice || 0}</span>
-            </div>
+            </div> */}
             <div className="flex justify-between">
               <span className="text-gray-600">Coupon:</span>
               <span className="font-medium">₹{order?.discoutAmout || 0}</span>

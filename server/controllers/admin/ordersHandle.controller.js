@@ -153,12 +153,12 @@ const orderItemReturnStatus = async (req, res) => {
     }
 
     try {
-        const returnOrderItem = await orderSchema.findById(orderId);
-        if (!returnOrderItem) {
+        const returnOrder = await orderSchema.findById(orderId);
+        if (!returnOrder) {
             return res.status(400).json({ success: false, message: 'Order Not Found' });
         }
 
-        const returnItem = returnOrderItem.items.find(item => item._id.toString() === itemId);
+        const returnItem = returnOrder.items.find(item => item._id.toString() === itemId);
         if (!returnItem) {
             return res.status(400).json({ success: false, message: 'Item Not Found' });
         }
@@ -168,10 +168,10 @@ const orderItemReturnStatus = async (req, res) => {
         if (returnStatus === 'approve') {
             updatingDetail['items.$.paymentStatus'] = 'refunded';
             updatingDetail['items.$.itemStatus'] = 'returned';
-            // updatingDetail.totalAmount = returnOrderItem.totalAmount - returnItem.productPrice;
+
         }
 
-        const orderStatusIsReturned = returnOrderItem.items.every(item => {
+        const orderStatusIsReturned = returnOrder.items.every(item => {
             if (returnItem._id !== item._id) return item.itemStatus === 'returned'
             return true
         }
@@ -196,12 +196,21 @@ const orderItemReturnStatus = async (req, res) => {
         if (returnStatus === 'reject') {
             return res.status(200).json({ success: true, message: 'Return Status Changed', order: updatedOrderItem });
         }
+        let originalTotalAmount = returnOrder.totalAmount;
+        let refundAmount = returnItem.productPrice
+        if (returnOrder.usedcoupon) {
+            let discountFactor = originalTotalAmount / (originalTotalAmount + returnOrder.discoutAmout);
+            refundAmount = (refundAmount * returnItem.quantity) * discountFactor;
+            refundAmount = Math.round(refundAmount);
+
+        }
+
 
         const userWallet = await walletSchema.findOneAndUpdate(
-            { userId: returnOrderItem.userId },
+            { userId: returnOrder.userId },
             {
-                $inc: { balance: returnItem.productPrice },
-                $push: { transactions: { type: 'refund', amount: returnItem.productPrice } }
+                $inc: { balance: refundAmount },
+                $push: { transactions: { type: 'refund', amount: refundAmount } }
             },
             { new: true, upsert: true }
         );
