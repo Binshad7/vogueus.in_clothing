@@ -24,7 +24,16 @@ const subcategorySchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'user',
         required: true,
-    }
+    },
+    // Offers Field
+    offers: [
+        {
+            title: { type: String, required: true },
+            discount: { type: Number, required: true, min: 0 }, // % or fixed amount
+            startDate: { type: Date, required: true },
+            endDate: { type: Date, required: true },
+        }
+    ],
 }, { timestamps: true });
 
 module.exports = mongoose.model("subcategory", subcategorySchema);

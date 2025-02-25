@@ -1,10 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
     Plus, Filter, Search, ChevronDown, Edit, Trash2,
     Calendar, Tag, Percent, Clock, AlertCircle, X, Save,
     Check, ToggleLeft, ToggleRight
 } from 'lucide-react';
-
+import { addProductListCategory } from '../../../store/middlewares/admin/categoryHandle';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchProduct } from '../../../store/middlewares/admin/ProductRelate';
+import { addOffer } from '../../../store/middlewares/admin/offerHandle';
 const ManageOffers = () => {
     const [activeTab, setActiveTab] = useState('category');
     const [showModal, setShowModal] = useState(false);
@@ -14,6 +17,67 @@ const ManageOffers = () => {
     const [currentOffer, setCurrentOffer] = useState(null);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [minDate, setMinDate] = useState('');
+    const [selectedCategory, setSelectedCategory] = useState('');
+    const [subcategories, setSubcategories] = useState([]);
+    const [categoryId, setCategoryId] = useState(null);
+    const [productId, setProductId] = useState(null);
+    const [subcategoryId, setSubCategoryId] = useState(null);
+    const [errors, seterrors] = useState(null)
+    const [formData, setFormData] = useState({
+        title: '',
+        discount: '',
+        startDate: '',
+        expiryDate: '',
+        category: '',
+        subcategory: '',
+        productName: '',
+    });
+    const { Products, loading } = useSelector((state) => state.AllProducts);
+    const { addProductListingCategory } = useSelector((state) => state.category);
+    const dispatch = useDispatch();
+    // const navigate = useNavigate()
+    useEffect(() => {
+        dispatch(addProductListCategory());
+    }, [dispatch]);
+    useEffect(() => {
+        dispatch(fetchProduct());
+    }, [dispatch]);
+    // category 
+    useEffect(() => {
+        if (addProductListingCategory?.length > 0) {
+            const initialCategory = addProductListingCategory[0];
+            setSelectedCategory(initialCategory?.categoryName || '');
+            setSubcategories(initialCategory?.subcategories || []);
+            setCategoryId(initialCategory?._id);
+            setSubCategoryId(initialCategory?.subcategories[0]?._id);
+
+            setFormData(prev => ({
+                ...prev,
+                category: initialCategory?.categoryName || '',
+                subcategory: initialCategory?.subcategories[0]?.subcategoryName || ''
+            }));
+            console.log('Category', initialCategory?._id)
+            console.log('subCategory', initialCategory?.subcategories[0]?._id)
+        }
+    }, [addProductListingCategory]);
+
+    const handleCategoryChange = useCallback((e) => {
+        const categoryName = e.target.value;
+        const category = addProductListingCategory.find(cat => cat.categoryName === categoryName);
+
+        if (category) {
+            setCategoryId(category._id);
+            setSelectedCategory(categoryName);
+            setSubcategories(category.subcategories || []);
+            setSubCategoryId(category.subcategories[0]?._id);
+
+            setFormData(prev => ({
+                ...prev,
+                category: categoryName,
+                subcategory: category.subcategories[0]?.subcategoryName || ''
+            }));
+        }
+    }, [addProductListingCategory]);
 
     // Set minimum date to today in YYYY-MM-DD format
     useEffect(() => {
@@ -26,46 +90,17 @@ const ManageOffers = () => {
 
     // Sample data
     const [categoryOffers, setCategoryOffers] = useState([
-        { id: 1, title: '10 perc', discount: 10, startDate: '2025-02-24', expiryDate: '2025-02-27', applyTo: 'categories', parentCategory: 'Men', categoryName: 'shirt', createdAt: '24/2/2025', status: 'active' },
-        { id: 2, title: 'Spring Sale', discount: 15, startDate: '2025-03-01', expiryDate: '2025-03-15', applyTo: 'categories', parentCategory: 'Women', categoryName: 'pants', createdAt: '20/2/2025', status: 'scheduled' },
-        { id: 3, title: 'Clearance', discount: 25, startDate: '2025-02-10', expiryDate: '2025-02-28', applyTo: 'categories', parentCategory: 'Kids', categoryName: 'accessories', createdAt: '08/2/2025', status: 'active' }
+        { id: 1, title: '10 perc', discount: 10, startDate: '2025-02-24', expiryDate: '2025-02-27', applyTo: 'categories', parentCategory: 'Men', categoryName: 'shirt', createdAt: '24/2/2025' },
+        { id: 2, title: 'Spring Sale', discount: 15, startDate: '2025-03-01', expiryDate: '2025-03-15', applyTo: 'categories', parentCategory: 'Women', categoryName: 'pants', createdAt: '20/2/2025' },
+        { id: 3, title: 'Clearance', discount: 25, startDate: '2025-02-10', expiryDate: '2025-02-28', applyTo: 'categories', parentCategory: 'Kids', categoryName: 'accessories', createdAt: '08/2/2025' }
     ]);
 
     const [productOffers, setProductOffers] = useState([
-        { id: 1, title: 'Flash Sale', discount: 20, startDate: '2025-02-25', expiryDate: '2025-02-26', applyTo: 'products', productName: 'T-shirt Blue XL', createdAt: '23/2/2025', status: 'active' },
-        { id: 2, title: 'New Arrival', discount: 5, startDate: '2025-03-05', expiryDate: '2025-03-20', applyTo: 'products', productName: 'Slim Jeans', createdAt: '22/2/2025', status: 'scheduled' }
+        { id: 1, title: 'Flash Sale', discount: 20, startDate: '2025-02-25', expiryDate: '2025-02-26', applyTo: 'products', productName: 'T-shirt Blue XL', createdAt: '23/2/2025' },
+        { id: 2, title: 'New Arrival', discount: 5, startDate: '2025-03-05', expiryDate: '2025-03-20', applyTo: 'products', productName: 'Slim Jeans', createdAt: '22/2/2025' }
     ]);
 
-    // Form state for add/edit
-    const [formData, setFormData] = useState({
-        title: '',
-        discount: '',
-        startDate: '',
-        expiryDate: '',
-        parentCategory: '',
-        categoryName: '',
-        productName: '',
-        status: 'active'
-    });
 
-    // Sample parent categories and their subcategories
-    const parentCategories = ['Men', 'Women', 'Kids', 'Unisex'];
-
-    // Mapping of parent categories to their subcategories
-    const categoryMap = {
-        'Men': ['shirt', 'pants', 'accessories', 'footwear', 'outerwear'],
-        'Women': ['shirt', 'pants', 'dresses', 'accessories', 'footwear', 'outerwear'],
-        'Kids': ['shirt', 'pants', 'onesies', 'accessories', 'footwear'],
-        'Unisex': ['accessories', 'footwear', 'outerwear']
-    };
-
-    // Get subcategories based on selected parent category
-    const getSubcategories = (parent) => {
-        return categoryMap[parent] || [];
-    };
-
-    // Sample products
-    const products = ['T-shirt Blue XL', 'Slim Jeans', 'Leather Belt', 'Running Shoes', 'Winter Jacket'];
 
     const handleOpenModal = (type, offer = null) => {
         setModalType(type);
@@ -78,24 +113,21 @@ const ManageOffers = () => {
                 discount: offer.discount,
                 startDate: offer.startDate,
                 expiryDate: offer.expiryDate,
-                parentCategory: offer.parentCategory || parentCategories[0],
-                categoryName: offer.categoryName || '',
+                category: offer.parentCategory || selectedCategory,
+                subcategory: offer.categoryName || subcategories,
                 productName: offer.productName || '',
-                status: offer.status
             });
         } else {
             // Add mode - reset form
             setCurrentOffer(null);
-            const defaultParentCategory = parentCategories[0];
             setFormData({
                 title: '',
                 discount: '',
                 startDate: minDate,
                 expiryDate: '',
-                parentCategory: defaultParentCategory,
-                categoryName: type === 'category' ? getSubcategories(defaultParentCategory)[0] : '',
+                category: selectedCategory,
+                subcategory: subcategories,
                 productName: type === 'product' ? products[0] : '',
-                status: 'active'
             });
         }
 
@@ -107,69 +139,60 @@ const ManageOffers = () => {
         setShowDeleteConfirm(false);
     };
 
-    const handleInputChange = (e) => {
-        const { name, value } = e.target;
+    const handleInputChange = useCallback((e) => {
+        let { name, value } = e.target
+        if (name === 'subcategory') {
+            const category = addProductListingCategory.find(cat => cat.categoryName === selectedCategory);
+            const subcategory = category?.subcategories?.find(
+                subCat => subCat.subcategoryName === value
+            );
 
-        if (name === 'parentCategory') {
-            // When parent category changes, update the subcategory to the first available option
-            const subcategories = getSubcategories(value);
-            setFormData({
-                ...formData,
-                [name]: value,
-                categoryName: subcategories.length > 0 ? subcategories[0] : ''
-            });
-        } else {
-            setFormData({
-                ...formData,
-                [name]: value
-            });
+            setSubCategoryId(subcategory?._id);
         }
-    };
-
-    const handleSubmit = () => {
-        // Format the data
-        const newOffer = {
-            id: currentOffer ? currentOffer.id : Date.now(), // Use existing ID or generate new one
-            title: formData.title,
-            discount: parseFloat(formData.discount),
-            startDate: formData.startDate,
-            expiryDate: formData.expiryDate,
-            applyTo: modalType === 'category' ? 'categories' : 'products',
-            parentCategory: modalType === 'category' ? formData.parentCategory : '',
-            categoryName: modalType === 'category' ? formData.categoryName : '',
-            productName: modalType === 'product' ? formData.productName : '',
-            createdAt: currentOffer ? currentOffer.createdAt : new Date().toLocaleDateString('en-GB'),
-            status: formData.status
-        };
-
-        if (modalType === 'category') {
-            if (currentOffer) {
-                // Update existing category offer
-                setCategoryOffers(
-                    categoryOffers.map(offer =>
-                        offer.id === currentOffer.id ? newOffer : offer
-                    )
-                );
-            } else {
-                // Add new category offer
-                setCategoryOffers([...categoryOffers, newOffer]);
-            }
-        } else {
-            if (currentOffer) {
-                // Update existing product offer
-                setProductOffers(
-                    productOffers.map(offer =>
-                        offer.id === currentOffer.id ? newOffer : offer
-                    )
-                );
-            } else {
-                // Add new product offer
-                setProductOffers([...productOffers, newOffer]);
-            }
+        if (name === 'productName') {
+            let product = Products.find(item => item?.productName === value);
+            setProductId(product?._id)
         }
 
-        handleCloseModal();
+        setFormData(prev => ({
+            ...prev,
+            [name]: value
+        }));
+    }, [selectedCategory, addProductListingCategory]);
+
+    const validateForm = () => {
+        let errors = {};
+
+        if (!formData.title.trim()) errors.title = "Title is required";
+        if (!formData.discount) errors.discount = "Discount is required";
+        else if (isNaN(formData.discount) || formData.discount < 0) errors.discount = "Invalid discount";
+
+        if (!formData.startDate) errors.startDate = "Start date is required";
+        if (!formData.expiryDate) errors.expiryDate = "Expiry date is required";
+        else if (new Date(formData.expiryDate) <= new Date(formData.startDate))
+            errors.expiryDate = "Expiry date must be after start date";
+
+        // if (!formData.category) errors.category = "Category is required";
+        // if (!formData.subcategory) errors.subcategory = "Subcategory is required";
+        // if (!formData.productName) errors.productName = "Product name is required";
+
+        seterrors(errors);
+
+        return Object.keys(errors).length === 0;
     };
+
+
+    const handleSubmit = async (e) => {
+        e.preventDefault()
+        console.log(errors)
+        console.log(validateForm())
+        if (!validateForm()) return
+
+        const result = await dispatch(addOffer({ title: formData.title, discount: formData.discount, startDate: formData.startDate, expiryDate: formData.expiryDate, subcategoryId, productId }))
+        if (addOffer.fulfilled.match(result)) {
+            handleCloseModal()
+        }
+    }
 
     const handleDelete = (offer) => {
         setCurrentOffer(offer);
@@ -185,36 +208,6 @@ const ManageOffers = () => {
         setShowDeleteConfirm(false);
     };
 
-    const toggleStatus = (offer) => {
-        const newStatus = offer.status === 'active' ? 'scheduled' : 'active';
-
-        if (activeTab === 'category') {
-            setCategoryOffers(
-                categoryOffers.map(item =>
-                    item.id === offer.id ? { ...item, status: newStatus } : item
-                )
-            );
-        } else {
-            setProductOffers(
-                productOffers.map(item =>
-                    item.id === offer.id ? { ...item, status: newStatus } : item
-                )
-            );
-        }
-    };
-
-    const getStatusBadge = (status) => {
-        switch (status) {
-            case 'active':
-                return <span className="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">Active</span>;
-            case 'scheduled':
-                return <span className="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800">Scheduled</span>;
-            case 'expired':
-                return <span className="px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-800">Expired</span>;
-            default:
-                return null;
-        }
-    };
 
     // Format date for display
     const formatDateDisplay = (dateString) => {
@@ -282,15 +275,6 @@ const ManageOffers = () => {
                 <div className="mb-6 p-4 bg-gray-50 rounded-lg">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                            <select className="w-full p-2 border border-gray-300 rounded-md">
-                                <option value="all">All Statuses</option>
-                                <option value="active">Active</option>
-                                <option value="scheduled">Scheduled</option>
-                                <option value="expired">Expired</option>
-                            </select>
-                        </div>
-                        <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Date Range</label>
                             <input type="date" className="w-full p-2 border border-gray-300 rounded-md" />
                         </div>
@@ -349,7 +333,6 @@ const ManageOffers = () => {
                                     Product
                                 </th>
                             )}
-                            <th className="py-3 px-4 text-left font-medium text-gray-500 uppercase tracking-wider text-xs">Status</th>
                             <th className="py-3 px-4 text-left font-medium text-gray-500 uppercase tracking-wider text-xs">Actions</th>
                         </tr>
                     </thead>
@@ -384,20 +367,7 @@ const ManageOffers = () => {
                                                 {offer.categoryName}
                                             </div>
                                         </td>
-                                        <td className="py-4 px-4 whitespace-nowrap">
-                                            <div className="flex items-center gap-2">
-                                                {getStatusBadge(offer.status)}
-                                                <button
-                                                    onClick={() => toggleStatus(offer)}
-                                                    className="ml-2 text-gray-500 hover:text-gray-700"
-                                                >
-                                                    {offer.status === 'active' ?
-                                                        <ToggleRight size={20} className="text-green-500" /> :
-                                                        <ToggleLeft size={20} className="text-gray-400" />
-                                                    }
-                                                </button>
-                                            </div>
-                                        </td>
+
                                         <td className="py-4 px-4 whitespace-nowrap">
                                             <div className="flex gap-2">
                                                 <button
@@ -456,20 +426,7 @@ const ManageOffers = () => {
                                                 {offer.productName}
                                             </div>
                                         </td>
-                                        <td className="py-4 px-4 whitespace-nowrap">
-                                            <div className="flex items-center gap-2">
-                                                {getStatusBadge(offer.status)}
-                                                <button
-                                                    onClick={() => toggleStatus(offer)}
-                                                    className="ml-2 text-gray-500 hover:text-gray-700"
-                                                >
-                                                    {offer.status === 'active' ?
-                                                        <ToggleRight size={20} className="text-green-500" /> :
-                                                        <ToggleLeft size={20} className="text-gray-400" />
-                                                    }
-                                                </button>
-                                            </div>
-                                        </td>
+
                                         <td className="py-4 px-4 whitespace-nowrap">
                                             <div className="flex gap-2">
                                                 <button
@@ -554,6 +511,7 @@ const ManageOffers = () => {
                                         className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                                         placeholder="Enter offer title..."
                                     />
+                                    {errors?.title && <p className='text-red-700 text-lg'>{errors?.title}</p>}
                                 </div>
 
                                 <div>
@@ -562,28 +520,17 @@ const ManageOffers = () => {
                                         <input
                                             type="number"
                                             name="discount"
+                                            min={0}
                                             value={formData.discount}
                                             onChange={handleInputChange}
                                             className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                                             placeholder="10"
                                         />
                                         <span className="ml-2 text-gray-500">%</span>
+                                        {errors?.discount && <p className='text-red-700 text-lg'>{errors?.discount}</p>}
                                     </div>
                                 </div>
 
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                                    <select
-                                        name="status"
-                                        value={formData.status}
-                                        onChange={handleInputChange}
-                                        className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-                                    >
-                                        <option value="active">Active</option>
-                                        <option value="scheduled">Scheduled</option>
-                                        <option value="expired">Expired</option>
-                                    </select>
-                                </div>
 
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
@@ -595,6 +542,7 @@ const ManageOffers = () => {
                                         min={minDate}
                                         className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                                     />
+                                    {errors?.startDate && <p className='text-red-700 text-lg'>{errors?.startDate}</p>}
                                 </div>
 
                                 <div>
@@ -607,6 +555,7 @@ const ManageOffers = () => {
                                         min={formData.startDate || minDate}
                                         className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                                     />
+                                    {errors?.expiryDate && <p className='text-red-700 text-lg'>{errors?.expiryDate}</p>}
                                 </div>
 
                                 {modalType === 'category' ? (
@@ -614,28 +563,34 @@ const ManageOffers = () => {
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700 mb-1">Parent Category</label>
                                             <select
-                                                name="parentCategory"
-                                                value={formData.parentCategory}
-                                                onChange={handleInputChange}
+                                                name="category"
+                                                value={formData.category}
+                                                onChange={handleCategoryChange}
                                                 className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                                             >
-                                                {parentCategories.map(cat => (
-                                                    <option key={cat} value={cat}>{cat}</option>
+                                                {addProductListingCategory.map(option => (
+                                                    <option key={option._id} value={option.categoryName}>
+                                                        {option.categoryName}
+                                                    </option>
                                                 ))}
                                             </select>
+                                            {errors?.category && <p className='text-red-700 text-lg'>{errors?.category}</p>}
                                         </div>
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700 mb-1">Subcategory</label>
                                             <select
-                                                name="categoryName"
-                                                value={formData.categoryName}
+                                                name="subcategory"
+                                                value={formData.subcategory}
                                                 onChange={handleInputChange}
                                                 className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                                             >
-                                                {getSubcategories(formData.parentCategory).map(cat => (
-                                                    <option key={cat} value={cat}>{cat}</option>
+                                                {subcategories?.map(option => (
+                                                    <option key={option._id} value={option.subcategoryName}>
+                                                        {option.subcategoryName}
+                                                    </option>
                                                 ))}
                                             </select>
+                                            {errors?.subcategory && <p className='text-red-700 text-lg'>{errors?.subcategory}</p>}
                                         </div>
                                     </>
                                 ) : (
@@ -647,8 +602,8 @@ const ManageOffers = () => {
                                             onChange={handleInputChange}
                                             className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                                         >
-                                            {products.map(prod => (
-                                                <option key={prod} value={prod}>{prod}</option>
+                                            {Products?.map(prod => (
+                                                <option key={prod?._id} value={prod?.productName}>{prod?.productName} </option>
                                             ))}
                                         </select>
                                     </div>
@@ -663,13 +618,24 @@ const ManageOffers = () => {
                             >
                                 Cancel
                             </button>
-                            <button
-                                onClick={handleSubmit}
-                                className="px-4 py-2 bg-emerald-500 text-white rounded-md hover:bg-emerald-600 flex items-center gap-1"
-                            >
-                                <Save size={16} />
-                                {currentOffer ? 'Update' : 'Save'} Offer
-                            </button>
+                            {
+                                currentOffer === 'Update' ?
+                                    <button
+                                        onClick={handleSubmit}
+                                        className="px-4 py-2 bg-emerald-500 text-white rounded-md hover:bg-emerald-600 flex items-center gap-1"
+                                    >
+                                        <Save size={16} />
+                                        Update Offer
+                                    </button> :
+                                    <button
+                                        onClick={handleSubmit}
+                                        className="px-4 py-2 bg-emerald-500 text-white rounded-md hover:bg-emerald-600 flex items-center gap-1"
+                                    >
+                                        <Save size={16} />
+                                        Save  Offer
+                                    </button>
+
+                            }
                         </div>
                     </div>
                 </div>

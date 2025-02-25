@@ -77,11 +77,17 @@ admin_router.patch('/orders/itemReturnStatus/:orderId/:itemId', protectRoute, or
 
 
 // admin Coupon Handling
-const { addCoupon, editCoupon, updateBlockStatus,getAllCoupons,deleteCoupon } = require('../controllers/admin/coupon.controller');
+const { addCoupon, editCoupon, updateBlockStatus, getAllCoupons, deleteCoupon } = require('../controllers/admin/coupon.controller');
 admin_router.post('/coupon/addCoupon', protectRoute, addCoupon)
 admin_router.get('/coupon/getAllCoupons', protectRoute, getAllCoupons)
 admin_router.patch('/coupon/updateStatus/:couponId', protectRoute, updateBlockStatus)
 admin_router.patch('/coupon/editCoupon/:couponId', protectRoute, editCoupon)
 admin_router.delete('/coupon/deleteCoupon/:couponId', protectRoute, deleteCoupon)
+
+// offer handling 
+const { createOffer } = require('../controllers/admin/offerHandle.controller')
+// admin_router.get('/offer/getalloffers', protectRoute,);
+admin_router.post('/offer/addOffer', protectRoute, createOffer);
+
 
 module.exports = admin_router; 

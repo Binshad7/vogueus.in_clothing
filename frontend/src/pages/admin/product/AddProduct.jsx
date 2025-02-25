@@ -22,7 +22,7 @@ const INITIAL_FORM_STATE = {
   productName: '',
   description: '',
   category: '',
-  subcategory: '',
+  subcategory: '', 
   regularPrice: '',
   currentPrice: '',
   variant: []
@@ -201,7 +201,6 @@ const AddProduct = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log(formData.subcategory);
     
     setErrors(INITIAL_ERRORS_STATE);
 

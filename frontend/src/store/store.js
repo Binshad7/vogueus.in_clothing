@@ -12,6 +12,7 @@ import adminSlice from './reducers/admin/admin_auth_slice'
 import AllProducts from './reducers/admin/product_slice'
 import adminOrders from './reducers/admin/admin_orders'
 import couponHandling from './reducers/admin/coupon'
+import offerHandling from './reducers/admin/offers'
 const store = configureStore({
     reducer: {
         user: userSlice,
@@ -25,7 +26,8 @@ const store = configureStore({
         userOrders,
         adminOrders,
         userWalleteDetails,
-        couponHandling
+        couponHandling,
+        offerHandling
     }
 })
 

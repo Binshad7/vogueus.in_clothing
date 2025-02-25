@@ -19,7 +19,6 @@ const productSchema = new mongoose.Schema({
             discount: { type: Number, required: true, min: 0 }, // % or fixed amount
             startDate: { type: Date, required: true },
             endDate: { type: Date, required: true },
-            isActive: { type: Boolean, default: true }
         }
     ],
 
