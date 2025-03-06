@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Check } from 'lucide-react';
 import { toast } from 'react-toastify';
 
-const PaymentSelection = ({ selectedPayment, onPaymentSelect, handleOrderConfirm, walleteBalanceAmount }) => {
+const PaymentSelection = ({ selectedPayment, onPaymentSelect, handleOrderConfirm, walleteBalanceAmount,totalAmount }) => {
     const [isProcessing, setIsProcessing] = useState(false);
 
     const paymentMethods = [

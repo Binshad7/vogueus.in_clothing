@@ -244,14 +244,6 @@ const Shop = () => {
 
                 {/* Main Content Area */}
                 <div className="flex-1 p-6">
-                    {/* Debug info */}
-                    {process.env.NODE_ENV === 'development' && (
-                        <div className="mb-4 p-2 bg-yellow-100 rounded">
-                            <p>Total products: {AllProducts?.length}</p>
-                            <p>Filtered products: {products?.length}</p>
-                            <p>Current page: {currentPage}</p>
-                        </div>
-                    )}
 
                     {/* Products Grid */}
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

@@ -11,7 +11,9 @@ createRoot(document.getElementById('root')).render(
     <StrictMode>
       <Provider store={store}>
           <SideBarContext>
+
             <App />
+
           </SideBarContext>
       </Provider>
     </StrictMode>

@@ -151,8 +151,9 @@ function CheckoutPage() {
                     modal: {
                         escape: false,
                         ondismiss: async () => {
-                            await userAxios.patch(`/orders/orderPaymentFaild/${_id}`);
-                            reject(new Error("Payment cancelled"));
+                            navigate('/account-details/orders')
+                            // await userAxios.patch(`/orders/orderPaymentFaild/${_id}`);
+                            reject(new Error("Payment Faild"));
                         },
                     },
                 };
@@ -166,6 +167,11 @@ function CheckoutPage() {
     }, [dispatch, couponDiscount]);
 
     const handleOrderConfirm = useCallback(async () => {
+
+        if (selectedPayment === 'cod' && orderSummary?.Total > 1000) {
+            toast.error('Order Amount Above 1000 COD Not Allowed')
+            return
+        }
         if (!user?._id) {
             toast.error("Please log in to continue");
             return;
@@ -264,6 +270,7 @@ function CheckoutPage() {
                             onPaymentSelect={setSelectedPayment}
                             handleOrderConfirm={handleOrderConfirm}
                             disabled={processingPayment}
+                            totalAmount={orderSummary}
                         />
                     </div>
                     <div>

@@ -1,8 +1,83 @@
 import React, { useState, useEffect } from 'react';
-import { Wallet, ArrowUpRight, ArrowDownLeft, Plus, History, Search, Filter, ChevronDown } from 'lucide-react';
+import { Wallet, ArrowUpRight, ArrowDownLeft, Plus, History, Search, Filter, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useSelector, useDispatch } from 'react-redux';
 import { getWallete } from '../../../store/middlewares/user/wallete';
 import { useNavigate } from 'react-router-dom';
+
+// Pagination Component
+const Pagination = ({ currentPage, totalPages, onPageChange }) => {
+  const pageNumbers = [];
+  
+  // Calculate page range to display (show at most 5 page numbers)
+  let startPage = Math.max(1, currentPage - 2);
+  let endPage = Math.min(totalPages, startPage + 4);
+  
+  if (endPage - startPage < 4) {
+    startPage = Math.max(1, endPage - 4);
+  }
+  
+  for (let i = startPage; i <= endPage; i++) {
+    pageNumbers.push(i);
+  }
+
+  return (
+    <div className="flex items-center justify-center mt-6 mb-4">
+      <button
+        onClick={() => onPageChange(currentPage - 1)}
+        disabled={currentPage === 1}
+        className="p-2 mx-1 rounded-md border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        <ChevronLeft className="w-4 h-4" />
+      </button>
+      
+      {startPage > 1 && (
+        <>
+          <button
+            onClick={() => onPageChange(1)}
+            className="px-3 py-1 mx-1 rounded-md border border-gray-300"
+          >
+            1
+          </button>
+          {startPage > 2 && <span className="mx-1">...</span>}
+        </>
+      )}
+      
+      {pageNumbers.map(number => (
+        <button
+          key={number}
+          onClick={() => onPageChange(number)}
+          className={`px-3 py-1 mx-1 rounded-md ${
+            currentPage === number
+              ? "bg-blue-600 text-white"
+              : "border border-gray-300"
+          }`}
+        >
+          {number}
+        </button>
+      ))}
+      
+      {endPage < totalPages && (
+        <>
+          {endPage < totalPages - 1 && <span className="mx-1">...</span>}
+          <button
+            onClick={() => onPageChange(totalPages)}
+            className="px-3 py-1 mx-1 rounded-md border border-gray-300"
+          >
+            {totalPages}
+          </button>
+        </>
+      )}
+      
+      <button
+        onClick={() => onPageChange(currentPage + 1)}
+        disabled={currentPage === totalPages}
+        className="p-2 mx-1 rounded-md border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        <ChevronRight className="w-4 h-4" />
+      </button>
+    </div>
+  );
+};
 
 const WalletPage = () => {
   // States
@@ -10,6 +85,10 @@ const WalletPage = () => {
   const [filterType, setFilterType] = useState('all');
   const [showAddMoneyModal, setShowAddMoneyModal] = useState(false);
   const [addAmount, setAddAmount] = useState('');
+  
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [transactionsPerPage] = useState(5);
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -42,6 +121,21 @@ const WalletPage = () => {
     const matchesType = filterType === 'all' || transaction.type === filterType;
     return matchesSearch && matchesType;
   }) || [];
+  
+  // Reset to first page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, filterType]);
+
+  // Pagination logic
+  const indexOfLastTransaction = currentPage * transactionsPerPage;
+  const indexOfFirstTransaction = indexOfLastTransaction - transactionsPerPage;
+  const currentTransactions = filteredTransactions.slice(indexOfFirstTransaction, indexOfLastTransaction);
+  const totalPages = Math.ceil(filteredTransactions.length / transactionsPerPage);
+
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
 
   // Quick Action Button component
   const QuickActionButton = ({ icon, label, onClick, bgColor }) => (
@@ -195,8 +289,8 @@ const WalletPage = () => {
         </div>
 
         <div className="divide-y">
-          {filteredTransactions.length > 0 ? (
-            filteredTransactions.map((transaction) => (
+          {currentTransactions.length > 0 ? (
+            currentTransactions.map((transaction) => (
               <div
                 key={transaction._id}
                 className="flex items-center justify-between p-4 hover:bg-gray-50 transition-colors"
@@ -234,6 +328,24 @@ const WalletPage = () => {
             </div>
           )}
         </div>
+        
+        {/* Pagination controls */}
+        {filteredTransactions.length > 0 && (
+          <>
+            {totalPages > 1 && (
+              <Pagination 
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={handlePageChange}
+              />
+            )}
+            
+            {/* Display page info */}
+            <div className="text-center text-sm text-gray-500 pb-4">
+              Showing {indexOfFirstTransaction + 1}-{Math.min(indexOfLastTransaction, filteredTransactions.length)} of {filteredTransactions.length} transactions
+            </div>
+          </>
+        )}
       </div>
 
       {/* Add Money Modal */}

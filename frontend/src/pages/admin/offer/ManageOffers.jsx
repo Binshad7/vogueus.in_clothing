@@ -1,13 +1,14 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
     Plus, Filter, Search, ChevronDown, Edit, Trash2,
-    Calendar, Tag, Percent, Clock, AlertCircle, X, Save,
-    Check, ToggleLeft, ToggleRight
+    Calendar, Tag, Percent, AlertCircle, X, Save,
+    PackageOpen
 } from 'lucide-react';
 import { addProductListCategory } from '../../../store/middlewares/admin/categoryHandle';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchProduct } from '../../../store/middlewares/admin/ProductRelate';
-import { addOffer } from '../../../store/middlewares/admin/offerHandle';
+import { addOffer, getAllOffers, deleteOffer } from '../../../store/middlewares/admin/offerHandle';
+
 const ManageOffers = () => {
     const [activeTab, setActiveTab] = useState('category');
     const [showModal, setShowModal] = useState(false);
@@ -22,7 +23,14 @@ const ManageOffers = () => {
     const [categoryId, setCategoryId] = useState(null);
     const [productId, setProductId] = useState(null);
     const [subcategoryId, setSubCategoryId] = useState(null);
-    const [errors, seterrors] = useState(null)
+    const [errors, setErrors] = useState({});
+    const [items, setItems] = useState([]);
+    const [render, setRender] = useState(false)
+    // Filter states
+    const [dateFilter, setDateFilter] = useState('');
+    const [minDiscount, setMinDiscount] = useState('');
+    const [maxDiscount, setMaxDiscount] = useState('');
+
     const [formData, setFormData] = useState({
         title: '',
         discount: '',
@@ -32,17 +40,20 @@ const ManageOffers = () => {
         subcategory: '',
         productName: '',
     });
-    const { Products, loading } = useSelector((state) => state.AllProducts);
+
+    const { Products } = useSelector((state) => state.AllProducts);
     const { addProductListingCategory } = useSelector((state) => state.category);
+    const { loading, productOffers, subcategoryOffers } = useSelector(state => state.offerHandling);
     const dispatch = useDispatch();
-    // const navigate = useNavigate()
+
+    // Initial data fetching
     useEffect(() => {
+        dispatch(getAllOffers());
         dispatch(addProductListCategory());
-    }, [dispatch]);
-    useEffect(() => {
         dispatch(fetchProduct());
-    }, [dispatch]);
-    // category 
+    }, [dispatch, render]);
+
+    // Category setup
     useEffect(() => {
         if (addProductListingCategory?.length > 0) {
             const initialCategory = addProductListingCategory[0];
@@ -56,11 +67,33 @@ const ManageOffers = () => {
                 category: initialCategory?.categoryName || '',
                 subcategory: initialCategory?.subcategories[0]?.subcategoryName || ''
             }));
-            console.log('Category', initialCategory?._id)
-            console.log('subCategory', initialCategory?.subcategories[0]?._id)
         }
     }, [addProductListingCategory]);
 
+    // Set initial items based on default activeTab
+    useEffect(() => {
+        if (subcategoryOffers?.length > 0 && activeTab === 'category') {
+            setItems(subcategoryOffers);
+        } else if (productOffers?.length > 0 && activeTab === 'product') {
+            setItems(productOffers);
+        }
+    }, [subcategoryOffers, productOffers, activeTab]);
+
+    // Product setup
+    useEffect(() => {
+        setProductId(Products[0]?._id);
+    }, [Products]);
+
+    // Set minimum date to today
+    useEffect(() => {
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = String(today.getMonth() + 1).padStart(2, '0');
+        const day = String(today.getDate()).padStart(2, '0');
+        setMinDate(`${year}-${month}-${day}`);
+    }, []);
+
+    // Handle category change
     const handleCategoryChange = useCallback((e) => {
         const categoryName = e.target.value;
         const category = addProductListingCategory.find(cat => cat.categoryName === categoryName);
@@ -79,29 +112,52 @@ const ManageOffers = () => {
         }
     }, [addProductListingCategory]);
 
-    // Set minimum date to today in YYYY-MM-DD format
-    useEffect(() => {
-        const today = new Date();
-        const year = today.getFullYear();
-        const month = String(today.getMonth() + 1).padStart(2, '0');
-        const day = String(today.getDate()).padStart(2, '0');
-        setMinDate(`${year}-${month}-${day}`);
-    }, []);
+    // Handle search
+    const handleSearch = (term) => {
+        setSearchTerm(term);
+    };
 
-    // Sample data
-    const [categoryOffers, setCategoryOffers] = useState([
-        { id: 1, title: '10 perc', discount: 10, startDate: '2025-02-24', expiryDate: '2025-02-27', applyTo: 'categories', parentCategory: 'Men', categoryName: 'shirt', createdAt: '24/2/2025' },
-        { id: 2, title: 'Spring Sale', discount: 15, startDate: '2025-03-01', expiryDate: '2025-03-15', applyTo: 'categories', parentCategory: 'Women', categoryName: 'pants', createdAt: '20/2/2025' },
-        { id: 3, title: 'Clearance', discount: 25, startDate: '2025-02-10', expiryDate: '2025-02-28', applyTo: 'categories', parentCategory: 'Kids', categoryName: 'accessories', createdAt: '08/2/2025' }
-    ]);
+    // Apply filters
+    const applyFilters = () => {
+        let filteredData = activeTab === 'category' ? [...subcategoryOffers] : [...productOffers];
 
-    const [productOffers, setProductOffers] = useState([
-        { id: 1, title: 'Flash Sale', discount: 20, startDate: '2025-02-25', expiryDate: '2025-02-26', applyTo: 'products', productName: 'T-shirt Blue XL', createdAt: '23/2/2025' },
-        { id: 2, title: 'New Arrival', discount: 5, startDate: '2025-03-05', expiryDate: '2025-03-20', applyTo: 'products', productName: 'Slim Jeans', createdAt: '22/2/2025' }
-    ]);
+        // Apply date filter
+        if (dateFilter) {
+            const filterDate = new Date(dateFilter);
+            filteredData = filteredData.filter(offer => {
+                const startDate = new Date(offer.startDate);
+                const endDate = new Date(offer.endDate || offer.expiryDate);
+                return startDate <= filterDate && filterDate <= endDate;
+            });
+        }
 
+        // Apply discount range filters
+        if (minDiscount) {
+            filteredData = filteredData.filter(offer =>
+                parseFloat(offer.discount) >= parseFloat(minDiscount)
+            );
+        }
 
+        if (maxDiscount) {
+            filteredData = filteredData.filter(offer =>
+                parseFloat(offer.discount) <= parseFloat(maxDiscount)
+            );
+        }
 
+        setItems(filteredData);
+        setFilterOpen(false);
+    };
+
+    // Reset filters
+    const resetFilters = () => {
+        setDateFilter('');
+        setMinDiscount('');
+        setMaxDiscount('');
+        setItems(activeTab === 'category' ? subcategoryOffers : productOffers);
+        setFilterOpen(false);
+    };
+
+    // Modal handlers
     const handleOpenModal = (type, offer = null) => {
         setModalType(type);
 
@@ -109,12 +165,12 @@ const ManageOffers = () => {
             // Edit mode - populate form with offer data
             setCurrentOffer(offer);
             setFormData({
-                title: offer.title,
+                title: offer.offerTitle,
                 discount: offer.discount,
                 startDate: offer.startDate,
-                expiryDate: offer.expiryDate,
-                category: offer.parentCategory || selectedCategory,
-                subcategory: offer.categoryName || subcategories,
+                expiryDate: offer.endDate || offer.expiryDate,
+                category: offer.parentCategoryName || selectedCategory,
+                subcategory: offer.subcategoryName || formData.subcategory,
                 productName: offer.productName || '',
             });
         } else {
@@ -126,8 +182,8 @@ const ManageOffers = () => {
                 startDate: minDate,
                 expiryDate: '',
                 category: selectedCategory,
-                subcategory: subcategories,
-                productName: type === 'product' ? products[0] : '',
+                subcategory: subcategories[0]?.subcategoryName || '',
+                productName: type === 'product' ? Products[0]?.productName || '' : '',
             });
         }
 
@@ -137,10 +193,13 @@ const ManageOffers = () => {
     const handleCloseModal = () => {
         setShowModal(false);
         setShowDeleteConfirm(false);
+        setErrors({});
     };
 
+    // Form input change
     const handleInputChange = useCallback((e) => {
-        let { name, value } = e.target
+        let { name, value } = e.target;
+
         if (name === 'subcategory') {
             const category = addProductListingCategory.find(cat => cat.categoryName === selectedCategory);
             const subcategory = category?.subcategories?.find(
@@ -149,77 +208,162 @@ const ManageOffers = () => {
 
             setSubCategoryId(subcategory?._id);
         }
+
         if (name === 'productName') {
             let product = Products.find(item => item?.productName === value);
-            setProductId(product?._id)
+            if (product) {
+                setProductId(product._id);
+            }
         }
 
         setFormData(prev => ({
             ...prev,
             [name]: value
         }));
-    }, [selectedCategory, addProductListingCategory]);
+    }, [selectedCategory, addProductListingCategory, Products]);
 
+    // Form validation
     const validateForm = () => {
-        let errors = {};
+        let newErrors = {};
 
-        if (!formData.title.trim()) errors.title = "Title is required";
-        if (!formData.discount) errors.discount = "Discount is required";
-        else if (isNaN(formData.discount) || formData.discount < 0) errors.discount = "Invalid discount";
+        if (!formData.title.trim()) newErrors.title = "Title is required";
+        if (!formData.discount) newErrors.discount = "Discount is required";
+        else if (isNaN(formData.discount) || formData.discount < 0) newErrors.discount = "Invalid discount";
 
-        if (!formData.startDate) errors.startDate = "Start date is required";
-        if (!formData.expiryDate) errors.expiryDate = "Expiry date is required";
+        if (!formData.startDate) newErrors.startDate = "Start date is required";
+        if (!formData.expiryDate) newErrors.expiryDate = "Expiry date is required";
         else if (new Date(formData.expiryDate) <= new Date(formData.startDate))
-            errors.expiryDate = "Expiry date must be after start date";
+            newErrors.expiryDate = "Expiry date must be after start date";
 
-        // if (!formData.category) errors.category = "Category is required";
-        // if (!formData.subcategory) errors.subcategory = "Subcategory is required";
-        // if (!formData.productName) errors.productName = "Product name is required";
-
-        seterrors(errors);
-
-        return Object.keys(errors).length === 0;
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
     };
 
-
+    // Form submission
+    // Fix for handleSubmit function
     const handleSubmit = async (e) => {
-        e.preventDefault()
-        console.log(errors)
-        console.log(validateForm())
-        if (!validateForm()) return
+        e.preventDefault();
 
-        const result = await dispatch(addOffer({ title: formData.title, discount: formData.discount, startDate: formData.startDate, expiryDate: formData.expiryDate, subcategoryId, productId }))
-        if (addOffer.fulfilled.match(result)) {
-            handleCloseModal()
+        if (!validateForm()) return;
+        if (modalType === 'product') {
+            setSubCategoryId(() => null);
+        } else {
+            setProductId(() => null);
         }
-    }
 
+        try {
+            const result = await dispatch(addOffer({
+                title: formData.title,
+                discount: formData.discount,
+                startDate: formData.startDate,
+                expiryDate: formData.expiryDate,
+                subcategoryId: modalType === 'product' ? null : subcategoryId,
+                productId: modalType !== 'product' ? null : productId
+            }));
+
+            if (result.meta.requestStatus === 'fulfilled') {
+                handleCloseModal();
+                setRender(!render)
+                // Update the items list based on the active tab
+                setItems(activeTab === 'category' ? subcategoryOffers : productOffers);
+            }
+        } catch (error) {
+            console.error("Error adding offer:", error);
+        }
+    };
+
+    // Fix for confirmDelete function
+    const confirmDelete = async () => {
+        let productId;
+        let subcategoryId;
+
+        if (currentOffer?.subcategoryName) {
+            productId = null;
+            subcategoryId = currentOffer?._id;
+        } else {
+            productId = currentOffer?._id;
+            subcategoryId = null;
+        }
+
+        try {
+            const result = await dispatch(deleteOffer({
+                offerTitle: currentOffer?.offerTitle,
+                productId,
+                subcategoryId,
+                offerId: currentOffer?.offerId
+            }));
+
+            setShowDeleteConfirm(false);
+
+            if (deleteOffer.fulfilled.match(result)) {
+                setRender(!render)
+                // Update the items list based on the active tab
+                setItems(activeTab === 'category' ? subcategoryOffers : productOffers);
+            }
+        } catch (error) {
+            console.error("Error deleting offer:", error);
+        }
+    };
+
+    // Delete handlers
     const handleDelete = (offer) => {
         setCurrentOffer(offer);
         setShowDeleteConfirm(true);
     };
 
-    const confirmDelete = () => {
-        if (activeTab === 'category') {
-            setCategoryOffers(categoryOffers.filter(offer => offer.id !== currentOffer.id));
-        } else {
-            setProductOffers(productOffers.filter(offer => offer.id !== currentOffer.id));
-        }
-        setShowDeleteConfirm(false);
-    };
 
 
-    // Format date for display
+    // Date formatting
     const formatDateDisplay = (dateString) => {
         if (!dateString) return '';
 
-        // If the date is already in DD/MM/YYYY format, return as is
-        if (dateString.includes('/')) return dateString;
+        const date = new Date(dateString);
 
-        // Convert from YYYY-MM-DD to DD/MM/YYYY
-        const [year, month, day] = dateString.split('-');
+        if (isNaN(date.getTime())) return 'Invalid Date';
+
+        const day = String(date.getUTCDate()).padStart(2, '0');
+        const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+        const year = date.getUTCFullYear();
+
         return `${day}/${month}/${year}`;
     };
+
+    // Filter data based on search term
+    const filterData = (data) => {
+        if (!searchTerm) return data;
+
+        return data.filter(offer => {
+            const searchFields = [
+                offer.offerTitle,
+                offer.discount?.toString(),
+                offer.productName,
+                offer.subcategoryName,
+                offer.parentCategoryName
+            ];
+
+            return searchFields.some(field =>
+                field && field.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+        });
+    };
+
+    // Handle tab switching and update items accordingly
+    const handleListingData = (type) => {
+        setActiveTab(type);
+
+        if (type === 'category') {
+            setItems(subcategoryOffers || []);
+        } else {
+            setItems(productOffers || []);
+        }
+    };
+
+    // Get filtered data based on current search term
+    const getFilteredData = () => {
+        return filterData(items || []);
+    };
+
+    const filteredData = getFilteredData();
 
     return (
         <div className="max-w-6xl mx-auto p-6 bg-white rounded-lg shadow-sm">
@@ -238,18 +382,27 @@ const ManageOffers = () => {
                         placeholder="Search offers..."
                         className="bg-transparent outline-none w-full"
                         value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
+                        onChange={(e) => handleSearch(e.target.value)}
                     />
+                    {searchTerm && (
+                        <button
+                            onClick={() => setSearchTerm('')}
+                            className="text-gray-400 hover:text-gray-600"
+                        >
+                            <X size={18} />
+                        </button>
+                    )}
                 </div>
 
                 <div className="flex gap-3">
                     <button
                         onClick={() => setFilterOpen(!filterOpen)}
-                        className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+                        className={`flex items-center gap-2 px-4 py-2 border rounded-lg hover:bg-gray-50 ${filterOpen ? 'border-blue-500 text-blue-500' : 'border-gray-300 text-gray-700'
+                            }`}
                     >
                         <Filter size={16} />
                         Filters
-                        <ChevronDown size={16} />
+                        <ChevronDown size={16} className={filterOpen ? 'transform rotate-180' : ''} />
                     </button>
 
                     <button
@@ -270,47 +423,120 @@ const ManageOffers = () => {
                 </div>
             </div>
 
-            {/* Filter Panel - hidden by default */}
+            {/* Filter Panel */}
             {filterOpen && (
-                <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+                <div className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Date Range</label>
-                            <input type="date" className="w-full p-2 border border-gray-300 rounded-md" />
+                            <input
+                                type="date"
+                                className="w-full p-2 border border-gray-300 rounded-md"
+                                value={dateFilter}
+                                onChange={(e) => setDateFilter(e.target.value)}
+                            />
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Discount Range</label>
                             <div className="flex items-center gap-2">
-                                <input type="number" placeholder="Min %" className="w-full p-2 border border-gray-300 rounded-md" />
+                                <input
+                                    type="number"
+                                    placeholder="Min %"
+                                    className="w-full p-2 border border-gray-300 rounded-md"
+                                    value={minDiscount}
+                                    onChange={(e) => setMinDiscount(e.target.value)}
+                                />
                                 <span>-</span>
-                                <input type="number" placeholder="Max %" className="w-full p-2 border border-gray-300 rounded-md" />
+                                <input
+                                    type="number"
+                                    placeholder="Max %"
+                                    className="w-full p-2 border border-gray-300 rounded-md"
+                                    value={maxDiscount}
+                                    onChange={(e) => setMaxDiscount(e.target.value)}
+                                />
                             </div>
                         </div>
-                    </div>
-                    <div className="flex justify-end mt-4">
-                        <button className="px-4 py-2 bg-gray-800 text-white rounded-md hover:bg-gray-900">Apply Filters</button>
+                        <div className="flex items-end">
+                            <div className="flex gap-2 w-full">
+                                <button
+                                    onClick={resetFilters}
+                                    className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-100 flex-1"
+                                >
+                                    Reset
+                                </button>
+                                <button
+                                    onClick={applyFilters}
+                                    className="px-4 py-2 bg-gray-800 text-white rounded-md hover:bg-gray-900 flex-1"
+                                >
+                                    Apply Filters
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             )}
 
-            {/* Tabs */}
-            <div className="flex border-b mb-6">
+            {/* Tabs - Styled as pills for better visibility */}
+            <div className="flex gap-2 mb-6 bg-gray-100 p-1 rounded-lg w-fit">
                 <button
-                    onClick={() => setActiveTab('category')}
-                    className={`py-2 px-4 font-medium ${activeTab === 'category' ? 'border-b-2 border-emerald-500 text-emerald-600' : 'text-gray-500'}`}
+                    onClick={() => handleListingData('category')}
+                    className={`py-2 px-4 font-medium rounded-md transition-all ${activeTab === 'category'
+                        ? 'bg-emerald-500 text-white shadow-sm'
+                        : 'text-gray-500 hover:bg-gray-200'
+                        }`}
                 >
-                    Category Offers
+                    <span className="flex items-center gap-1">
+                        <Tag size={16} />
+                        Category Offers
+                    </span>
                 </button>
                 <button
-                    onClick={() => setActiveTab('product')}
-                    className={`py-2 px-4 font-medium ${activeTab === 'product' ? 'border-b-2 border-emerald-500 text-emerald-600' : 'text-gray-500'}`}
+                    onClick={() => handleListingData('product')}
+                    className={`py-2 px-4 font-medium rounded-md transition-all ${activeTab === 'product'
+                        ? 'bg-slate-600 text-white shadow-sm'
+                        : 'text-gray-500 hover:bg-gray-200'
+                        }`}
                 >
-                    Product Offers
+                    <span className="flex items-center gap-1">
+                        <PackageOpen size={16} />
+                        Product Offers
+                    </span>
                 </button>
             </div>
 
+            {/* Status bar for search/filter */}
+            {(searchTerm || minDiscount || maxDiscount || dateFilter) && (
+                <div className="flex items-center gap-2 mb-4 text-sm text-gray-600">
+                    <span>Filtered by:</span>
+                    {searchTerm && (
+                        <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full flex items-center gap-1">
+                            Search: "{searchTerm}"
+                            <button onClick={() => setSearchTerm('')} className="text-blue-500 hover:text-blue-700">
+                                <X size={14} />
+                            </button>
+                        </span>
+                    )}
+                    {(minDiscount || maxDiscount) && (
+                        <span className="bg-purple-100 text-purple-800 px-2 py-1 rounded-full flex items-center gap-1">
+                            Discount: {minDiscount || '0'}% - {maxDiscount || '100'}%
+                            <button onClick={() => { setMinDiscount(''); setMaxDiscount(''); }} className="text-purple-500 hover:text-purple-700">
+                                <X size={14} />
+                            </button>
+                        </span>
+                    )}
+                    {dateFilter && (
+                        <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full flex items-center gap-1">
+                            Date: {dateFilter}
+                            <button onClick={() => setDateFilter('')} className="text-yellow-500 hover:text-yellow-700">
+                                <X size={14} />
+                            </button>
+                        </span>
+                    )}
+                </div>
+            )}
+
             {/* Offers Table */}
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto rounded-lg border border-gray-200">
                 <table className="w-full">
                     <thead>
                         <tr className="bg-gray-50">
@@ -337,154 +563,111 @@ const ManageOffers = () => {
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200">
-                        {activeTab === 'category' ? (
-                            categoryOffers.length > 0 ? (
-                                categoryOffers.map((offer, index) => (
-                                    <tr key={offer.id} className="hover:bg-gray-50">
-                                        <td className="py-4 px-4 whitespace-nowrap">{index + 1}</td>
-                                        <td className="py-4 px-4 whitespace-nowrap font-medium">{offer.title}</td>
-                                        <td className="py-4 px-4 whitespace-nowrap">
-                                            <div className="flex items-center">
-                                                <Percent size={16} className="text-orange-500 mr-1" />
-                                                {offer.discount}%
-                                            </div>
-                                        </td>
-                                        <td className="py-4 px-4 whitespace-nowrap">
-                                            <div className="flex items-center">
-                                                <Calendar size={16} className="text-blue-500 mr-1" />
-                                                {formatDateDisplay(offer.startDate)} - {formatDateDisplay(offer.expiryDate)}
-                                            </div>
-                                        </td>
-                                        <td className="py-4 px-4 whitespace-nowrap">
-                                            <div className="flex items-center">
-                                                <Tag size={16} className="text-purple-500 mr-1" />
-                                                {offer.parentCategory}
-                                            </div>
-                                        </td>
-                                        <td className="py-4 px-4 whitespace-nowrap">
-                                            <div className="flex items-center">
-                                                <Tag size={16} className="text-green-500 mr-1" />
-                                                {offer.categoryName}
-                                            </div>
-                                        </td>
+                        {filteredData.length > 0 ? (
+                            filteredData.map((offer, index) => (
 
-                                        <td className="py-4 px-4 whitespace-nowrap">
-                                            <div className="flex gap-2">
-                                                <button
-                                                    className="p-1 text-blue-600 hover:bg-blue-50 rounded"
-                                                    onClick={() => handleOpenModal('category', offer)}
-                                                >
-                                                    <Edit size={16} />
-                                                </button>
-                                                <button
-                                                    className="p-1 text-red-600 hover:bg-red-50 rounded"
-                                                    onClick={() => handleDelete(offer)}
-                                                >
-                                                    <Trash2 size={16} />
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))
-                            ) : (
-                                <tr>
-                                    <td colSpan="8" className="py-4 px-4 text-center text-gray-500">
-                                        <div className="flex flex-col items-center py-6">
-                                            <AlertCircle size={24} className="text-gray-400 mb-2" />
-                                            <p>No category offers found</p>
-                                            <button
-                                                onClick={() => handleOpenModal('category')}
-                                                className="mt-2 text-emerald-600 hover:underline"
-                                            >
-                                                Create your first category offer
-                                            </button>
+                                <tr key={offer?.offerId || index} className="hover:bg-gray-50">
+                                    <td className="py-4 px-4 whitespace-nowrap">{index + 1}</td>
+                                    {/* <td className="py-4 px-4 whitespace-nowrap">{offer?._id}</td> */}
+
+                                    <td className="py-4 px-4 whitespace-nowrap font-medium">{offer.offerTitle}</td>
+                                    <td className="py-4 px-4 whitespace-nowrap">
+                                        <div className="flex items-center">
+                                            <Percent size={16} className="text-orange-500 mr-1" />
+                                            <span className="font-semibold">{offer.discount}%</span>
                                         </div>
                                     </td>
-                                </tr>
-                            )
-                        ) : (
-                            productOffers.length > 0 ? (
-                                productOffers.map((offer, index) => (
-                                    <tr key={offer.id} className="hover:bg-gray-50">
-                                        <td className="py-4 px-4 whitespace-nowrap">{index + 1}</td>
-                                        <td className="py-4 px-4 whitespace-nowrap font-medium">{offer.title}</td>
+                                    <td className="py-4 px-4 whitespace-nowrap">
+                                        <div className="flex items-center">
+                                            <Calendar size={16} className="text-blue-500 mr-1" />
+                                            {formatDateDisplay(offer.startDate)} - {formatDateDisplay(offer.endDate || offer.expiryDate)}
+                                        </div>
+                                    </td>
+
+                                    {activeTab === 'category' ? (
+                                        <>
+                                            <td className="py-4 px-4 whitespace-nowrap">
+                                                <div className="flex items-center">
+                                                    <Tag size={16} className="text-purple-500 mr-1" />
+                                                    {offer.parentCategoryName}
+                                                </div>
+                                            </td>
+                                            <td className="py-4 px-4 whitespace-nowrap">
+                                                <div className="flex items-center">
+                                                    <Tag size={16} className="text-green-500 mr-1" />
+                                                    {offer.subcategoryName}
+                                                </div>
+                                            </td>
+                                        </>
+                                    ) : (
                                         <td className="py-4 px-4 whitespace-nowrap">
                                             <div className="flex items-center">
-                                                <Percent size={16} className="text-orange-500 mr-1" />
-                                                {offer.discount}%
-                                            </div>
-                                        </td>
-                                        <td className="py-4 px-4 whitespace-nowrap">
-                                            <div className="flex items-center">
-                                                <Calendar size={16} className="text-blue-500 mr-1" />
-                                                {formatDateDisplay(offer.startDate)} - {formatDateDisplay(offer.expiryDate)}
-                                            </div>
-                                        </td>
-                                        <td className="py-4 px-4 whitespace-nowrap">
-                                            <div className="flex items-center">
-                                                <Tag size={16} className="text-purple-500 mr-1" />
+                                                <PackageOpen size={16} className="text-purple-500 mr-1" />
                                                 {offer.productName}
                                             </div>
                                         </td>
+                                    )}
 
-                                        <td className="py-4 px-4 whitespace-nowrap">
-                                            <div className="flex gap-2">
-                                                <button
-                                                    className="p-1 text-blue-600 hover:bg-blue-50 rounded"
-                                                    onClick={() => handleOpenModal('product', offer)}
-                                                >
-                                                    <Edit size={16} />
-                                                </button>
-                                                <button
-                                                    className="p-1 text-red-600 hover:bg-red-50 rounded"
-                                                    onClick={() => handleDelete(offer)}
-                                                >
-                                                    <Trash2 size={16} />
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))
-                            ) : (
-                                <tr>
-                                    <td colSpan="7" className="py-4 px-4 text-center text-gray-500">
-                                        <div className="flex flex-col items-center py-6">
-                                            <AlertCircle size={24} className="text-gray-400 mb-2" />
-                                            <p>No product offers found</p>
+                                    <td className="py-4 px-4 whitespace-nowrap">
+                                        <div className="flex gap-2">
                                             <button
-                                                onClick={() => handleOpenModal('product')}
-                                                className="mt-2 text-slate-600 hover:underline"
+                                                className="p-1 text-blue-600 hover:bg-blue-50 rounded"
+                                                onClick={() => handleOpenModal(activeTab === 'category' ? 'category' : 'product', offer)}
                                             >
-                                                Create your first product offer
+                                                <Edit size={16} />
+                                            </button>
+                                            <button
+                                                className="p-1 text-red-600 hover:bg-red-50 rounded"
+                                                onClick={() => handleDelete(offer)}
+                                            >
+                                                <Trash2 size={16} />
                                             </button>
                                         </div>
                                     </td>
                                 </tr>
-                            )
+                            ))
+                        ) : (
+                            <tr>
+                                <td colSpan={activeTab === 'category' ? 8 : 7} className="py-4 px-4 text-center text-gray-500">
+                                    <div className="flex flex-col items-center py-6">
+                                        <AlertCircle size={24} className="text-gray-400 mb-2" />
+                                        <p>No {activeTab} offers found</p>
+                                        {searchTerm && <p className="text-sm text-gray-400 mt-1">Try adjusting your search</p>}
+                                        <button
+                                            onClick={() => handleOpenModal(activeTab)}
+                                            className={`mt-2 ${activeTab === 'category' ? 'text-emerald-600' : 'text-slate-600'} hover:underline`}
+                                        >
+                                            Create your first {activeTab} offer
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
                         )}
                     </tbody>
                 </table>
             </div>
 
-            {/* Pagination */}
-            <div className="mt-6 flex items-center justify-between">
-                <div className="text-sm text-gray-500">
-                    Showing <span className="font-medium">1</span> to <span className="font-medium">
-                        {activeTab === 'category' ? categoryOffers.length : productOffers.length}
-                    </span> of <span className="font-medium">
-                        {activeTab === 'category' ? categoryOffers.length : productOffers.length}
-                    </span> results
-                </div>
+            {/* Pagination - Simple version */}
+            {filteredData.length > 0 && (
+                <div className="mt-6 flex items-center justify-between">
+                    <div className="text-sm text-gray-500">
+                        Showing <span className="font-medium">1</span> to <span className="font-medium">
+                            {filteredData.length}
+                        </span> of <span className="font-medium">
+                            {filteredData.length}
+                        </span> results
+                    </div>
 
-                <div className="flex gap-1">
-                    <button className="px-3 py-1 border border-gray-300 rounded-md bg-white text-gray-500 hover:bg-gray-50 disabled:opacity-50" disabled>
-                        Previous
-                    </button>
-                    <button className="px-3 py-1 border border-gray-300 rounded-md bg-white text-gray-500 hover:bg-gray-50 disabled:opacity-50" disabled>
-                        Next
-                    </button>
+                    <div className="flex gap-1">
+                        <button className="px-3 py-1 border border-gray-300 rounded-md bg-white text-gray-500 hover:bg-gray-50 disabled:opacity-50" disabled>
+                            Previous
+                        </button>
+                        <button className="px-3 py-1 border border-gray-300 rounded-md bg-white text-gray-500 hover:bg-gray-50 disabled:opacity-50" disabled>
+                            Next
+                        </button>
+                    </div>
                 </div>
-            </div>
+            )}
 
             {/* Add/Edit Modal */}
             {showModal && (
@@ -511,7 +694,7 @@ const ManageOffers = () => {
                                         className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                                         placeholder="Enter offer title..."
                                     />
-                                    {errors?.title && <p className='text-red-700 text-lg'>{errors?.title}</p>}
+                                    {errors?.title && <p className='text-red-700 text-sm mt-1'>{errors.title}</p>}
                                 </div>
 
                                 <div>
@@ -521,16 +704,16 @@ const ManageOffers = () => {
                                             type="number"
                                             name="discount"
                                             min={0}
+                                            max={100}
                                             value={formData.discount}
                                             onChange={handleInputChange}
                                             className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                                             placeholder="10"
                                         />
                                         <span className="ml-2 text-gray-500">%</span>
-                                        {errors?.discount && <p className='text-red-700 text-lg'>{errors?.discount}</p>}
                                     </div>
+                                    {errors?.discount && <p className='text-red-700 text-sm mt-1'>{errors.discount}</p>}
                                 </div>
-
 
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
@@ -542,7 +725,7 @@ const ManageOffers = () => {
                                         min={minDate}
                                         className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                                     />
-                                    {errors?.startDate && <p className='text-red-700 text-lg'>{errors?.startDate}</p>}
+                                    {errors?.startDate && <p className='text-red-700 text-sm mt-1'>{errors.startDate}</p>}
                                 </div>
 
                                 <div>
@@ -555,7 +738,7 @@ const ManageOffers = () => {
                                         min={formData.startDate || minDate}
                                         className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                                     />
-                                    {errors?.expiryDate && <p className='text-red-700 text-lg'>{errors?.expiryDate}</p>}
+                                    {errors?.expiryDate && <p className='text-red-700 text-sm mt-1'>{errors.expiryDate}</p>}
                                 </div>
 
                                 {modalType === 'category' ? (
@@ -568,14 +751,14 @@ const ManageOffers = () => {
                                                 onChange={handleCategoryChange}
                                                 className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                                             >
-                                                {addProductListingCategory.map(option => (
+                                                {addProductListingCategory?.map(option => (
                                                     <option key={option._id} value={option.categoryName}>
                                                         {option.categoryName}
                                                     </option>
                                                 ))}
                                             </select>
-                                            {errors?.category && <p className='text-red-700 text-lg'>{errors?.category}</p>}
                                         </div>
+
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700 mb-1">Subcategory</label>
                                             <select
@@ -584,13 +767,12 @@ const ManageOffers = () => {
                                                 onChange={handleInputChange}
                                                 className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                                             >
-                                                {subcategories?.map(option => (
+                                                {subcategories.map(option => (
                                                     <option key={option._id} value={option.subcategoryName}>
                                                         {option.subcategoryName}
                                                     </option>
                                                 ))}
                                             </select>
-                                            {errors?.subcategory && <p className='text-red-700 text-lg'>{errors?.subcategory}</p>}
                                         </div>
                                     </>
                                 ) : (
@@ -602,40 +784,36 @@ const ManageOffers = () => {
                                             onChange={handleInputChange}
                                             className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                                         >
-                                            {Products?.map(prod => (
-                                                <option key={prod?._id} value={prod?.productName}>{prod?.productName} </option>
+                                            {Products?.map(product => (
+                                                <option key={product._id} value={product.productName}>
+                                                    {product.productName}
+                                                </option>
                                             ))}
                                         </select>
                                     </div>
                                 )}
                             </div>
-                        </div>
 
-                        <div className="p-4 border-t flex justify-end gap-2">
-                            <button
-                                onClick={handleCloseModal}
-                                className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
-                            >
-                                Cancel
-                            </button>
-                            {
-                                currentOffer === 'Update' ?
-                                    <button
-                                        onClick={handleSubmit}
-                                        className="px-4 py-2 bg-emerald-500 text-white rounded-md hover:bg-emerald-600 flex items-center gap-1"
-                                    >
-                                        <Save size={16} />
-                                        Update Offer
-                                    </button> :
-                                    <button
-                                        onClick={handleSubmit}
-                                        className="px-4 py-2 bg-emerald-500 text-white rounded-md hover:bg-emerald-600 flex items-center gap-1"
-                                    >
-                                        <Save size={16} />
-                                        Save  Offer
-                                    </button>
-
-                            }
+                            <div className="mt-6 flex justify-end gap-3">
+                                <button
+                                    type="button"
+                                    onClick={handleCloseModal}
+                                    className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={handleSubmit}
+                                    className={`px-4 py-2 rounded-md text-white flex items-center ${modalType === 'category'
+                                        ? 'bg-emerald-500 hover:bg-emerald-600'
+                                        : 'bg-slate-600 hover:bg-slate-700'
+                                        }`}
+                                >
+                                    <Save size={18} className="mr-1" />
+                                    {currentOffer ? 'Update' : 'Create'} Offer
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -644,27 +822,24 @@ const ManageOffers = () => {
             {/* Delete Confirmation Modal */}
             {showDeleteConfirm && (
                 <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-lg shadow-lg w-full max-w-md">
-                        <div className="p-6">
-                            <div className="flex items-center justify-center text-red-500 mb-4">
-                                <AlertCircle size={48} />
-                            </div>
-                            <h3 className="text-lg font-medium text-center mb-2">Confirm Delete</h3>
-                            <p className="text-gray-600 text-center mb-6">
-                                Are you sure you want to delete the offer "{currentOffer?.title}"? This action cannot be undone.
+                    <div className="bg-white rounded-lg shadow-lg w-full max-w-md p-6">
+                        <div className="text-center">
+                            <AlertCircle size={48} className="mx-auto text-red-500 mb-4" />
+                            <h3 className="text-lg font-medium text-gray-900 mb-2">Confirm Delete</h3>
+                            <p className="text-gray-500 mb-6">
+                                Are you sure you want to delete this offer? This action cannot be undone.
                             </p>
-                            <div className="flex justify-center gap-4">
+                            <div className="flex justify-center gap-3">
                                 <button
                                     onClick={handleCloseModal}
-                                    className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                                    className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50"
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     onClick={confirmDelete}
-                                    className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 flex items-center gap-1"
+                                    className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
                                 >
-                                    <Trash2 size={16} />
                                     Delete
                                 </button>
                             </div>

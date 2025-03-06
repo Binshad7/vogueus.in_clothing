@@ -1,12 +1,4 @@
-
-
-
-
-
-
-
-
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { addCoupon, getAllCoupons, editCoupon, updateBlockStatus, deleteCoupon } from '../../../store/middlewares/admin/coupon';
 import { useDispatch, useSelector } from 'react-redux';
 
@@ -54,6 +46,14 @@ const CouponManagement = () => {
     const [validationErrors, setValidationErrors] = useState({});
     const [deleteModal, setDeleteModal] = useState({ show: false, couponId: null });
     const [sortConfig, setSortConfig] = useState({ key: 'createdAt', direction: 'desc' });
+    
+    // Refs for inputs to maintain focus
+    const inputRefs = {
+        couponCode: useRef(null),
+        discount: useRef(null),
+        minimumOrderAmount: useRef(null),
+        maximumDiscountAmount: useRef(null)
+    };
 
     const getCurrentDate = () => {
         const today = new Date();
@@ -71,17 +71,17 @@ const CouponManagement = () => {
 
         if (!coupon.discount) {
             errors.discount = 'Discount value is required';
-        } else if (coupon.discountType === 'percentage' && (coupon.discount < 1 || coupon.discount > 100)) {
+        } else if (coupon.discountType === 'percentage' && (parseFloat(coupon.discount) < 1 || parseFloat(coupon.discount) > 100)) {
             errors.discount = 'Percentage discount must be between 1 and 100';
-        } else if (coupon.discountType === 'fixed' && coupon.discount < 1) {
+        } else if (coupon.discountType === 'fixed' && parseFloat(coupon.discount) < 1) {
             errors.discount = 'Fixed discount must be greater than 0';
         }
 
-        if (!coupon.minimumOrderAmount || coupon.minimumOrderAmount < 0) {
+        if (!coupon.minimumOrderAmount || parseFloat(coupon.minimumOrderAmount) < 0) {
             errors.minimumOrderAmount = 'Minimum order value must be 0 or greater';
         }
 
-        if (!coupon.maximumDiscountAmount || coupon.maximumDiscountAmount < 1) {
+        if (!coupon.maximumDiscountAmount || parseFloat(coupon.maximumDiscountAmount) < 1) {
             errors.maximumDiscountAmount = 'Maximum discount amount must be greater than 0';
         }
 
@@ -95,11 +95,52 @@ const CouponManagement = () => {
         return Object.keys(errors).length === 0;
     };
 
+    // Function to handle post-input validations and formatting
+    const handleInputBlur = (e, coupon, setCoupon) => {
+        const { name, value } = e.target;
+        
+        // Only process numeric fields on blur to avoid focus issues during typing
+        if (['discount', 'minimumOrderAmount', 'maximumDiscountAmount'].includes(name) && value !== '') {
+            let processedValue = value;
+            
+            switch (name) {
+                case 'discount':
+                    processedValue = Math.min(
+                        coupon.discountType === "percentage" ? 100 : 1000000,
+                        Math.max(0, parseFloat(value) || 0)
+                    ).toString();
+                    break;
+                case 'minimumOrderAmount':
+                    processedValue = Math.max(0, parseFloat(value) || 0).toString();
+                    break;
+                case 'maximumDiscountAmount':
+                    processedValue = Math.max(1, parseFloat(value) || 1).toString();
+                    break;
+                default:
+                    break;
+            }
+            
+            setCoupon(prev => ({
+                ...prev,
+                [name]: processedValue
+            }));
+        }
+    };
+
     const handleAddCoupon = async (e) => {
         e.preventDefault();
         setValidationErrors({});
         if (!validateCoupon(newCoupon)) return;
-        const result = await dispatch(addCoupon(newCoupon));
+        
+        // Format numeric values before submission
+        const formattedCoupon = {
+            ...newCoupon,
+            discount: parseFloat(newCoupon.discount),
+            minimumOrderAmount: parseFloat(newCoupon.minimumOrderAmount),
+            maximumDiscountAmount: parseFloat(newCoupon.maximumDiscountAmount)
+        };
+        
+        const result = await dispatch(addCoupon(formattedCoupon));
         if (addCoupon.fulfilled.match(result)) {
             setIsAdding(false);
             resetCouponForm();
@@ -123,6 +164,9 @@ const CouponManagement = () => {
         setCouponId(coupon._id);
         setEditingCoupon({
             ...coupon,
+            discount: coupon.discount.toString(),
+            minimumOrderAmount: coupon.minimumOrderAmount.toString(),
+            maximumDiscountAmount: coupon.maximumDiscountAmount.toString(),
             expiryDate: new Date(coupon.expiryDate).toISOString().split('T')[0]
         });
         setIsEditing(true);
@@ -165,7 +209,20 @@ const CouponManagement = () => {
 
     const handleUpdateCouponConfirm = async () => {
         if (!validateCoupon(editingCoupon)) return;
-        const result = await dispatch(editCoupon({ editingCoupon, couponId }));
+        
+        // Format numeric values before submission
+        const formattedCoupon = {
+            ...editingCoupon,
+            discount: parseFloat(editingCoupon.discount),
+            minimumOrderAmount: parseFloat(editingCoupon.minimumOrderAmount),
+            maximumDiscountAmount: parseFloat(editingCoupon.maximumDiscountAmount)
+        };
+        
+        const result = await dispatch(editCoupon({ 
+            editingCoupon: formattedCoupon, 
+            couponId 
+        }));
+        
         if (editCoupon.fulfilled.match(result)) {
             setCouponId(null);
             setIsEditing(false);
@@ -213,36 +270,28 @@ const CouponManagement = () => {
         const currentCoupon = mode === 'edit' ? editingCoupon : newCoupon;
         const setCurrentCoupon = mode === 'edit' ? setEditingCoupon : setNewCoupon;
 
+        // Fixed handleInputChange to maintain focus
         const handleInputChange = (e) => {
             const { name, value } = e.target;
-            let processedValue = value;
-
-            // Handle coupon code separately to maintain focus
+            
+            // For coupon code, we want to show uppercase while typing but not lose focus
             if (name === 'couponCode') {
-                processedValue = value.toUpperCase();
-            } else {
-                switch (name) {
-                    case 'discount':
-                        processedValue = Math.min(
-                            currentCoupon.discountType === "percentage" ? 100 : 1000000,
-                            Math.max(0, Number(value))
-                        );
-                        break;
-                    case 'minimumOrderAmount':
-                        processedValue = Math.max(0, Number(value));
-                        break;
-                    case 'maximumDiscountAmount':
-                        processedValue = Math.max(1, Number(value));
-                        break;
-                    default:
-                        break;
+                // Convert to uppercase while typing without causing focus issues
+                const upperCaseValue = value.toUpperCase();
+                // Only update if the value has actually changed to avoid unnecessary renders
+                if (upperCaseValue !== currentCoupon[name]) {
+                    setCurrentCoupon(prev => ({
+                        ...prev,
+                        [name]: upperCaseValue
+                    }));
                 }
+            } else {
+                // For all other fields, just update the value directly
+                setCurrentCoupon(prev => ({
+                    ...prev,
+                    [name]: value
+                }));
             }
-
-            setCurrentCoupon(prev => ({
-                ...prev,
-                [name]: processedValue
-            }));
         };
 
         return (
@@ -264,6 +313,7 @@ const CouponManagement = () => {
                                         placeholder="e.g., SUMMER2025"
                                         value={currentCoupon?.couponCode || ''}
                                         onChange={handleInputChange}
+                                        ref={inputRefs.couponCode}
                                         className={`w-full px-4 py-2 rounded-lg border-2 ${validationErrors.couponCode
                                                 ? "border-red-500 focus:border-red-500 focus:ring-red-200"
                                                 : "border-gray-200 focus:border-blue-500 focus:ring-blue-200"
@@ -297,10 +347,12 @@ const CouponManagement = () => {
                                     <input
                                         id="discount"
                                         name="discount"
-                                        type="number"
+                                        type="text" 
                                         placeholder={currentCoupon?.discountType === "percentage" ? "e.g., 20" : "e.g., 500"}
                                         value={currentCoupon?.discount || ''}
                                         onChange={handleInputChange}
+                                        onBlur={(e) => handleInputBlur(e, currentCoupon, setCurrentCoupon)}
+                                        ref={inputRefs.discount}
                                         className={`w-full px-4 py-2 rounded-lg border-2 ${validationErrors.discount
                                                 ? "border-red-500 focus:border-red-500 focus:ring-red-200"
                                                 : "border-gray-200 focus:border-blue-500 focus:ring-blue-200"
@@ -318,10 +370,12 @@ const CouponManagement = () => {
                                     <input
                                         id="minimumOrderAmount"
                                         name="minimumOrderAmount"
-                                        type="number"
+                                        type="text" 
                                         placeholder="e.g., 1000"
                                         value={currentCoupon?.minimumOrderAmount || ''}
                                         onChange={handleInputChange}
+                                        onBlur={(e) => handleInputBlur(e, currentCoupon, setCurrentCoupon)}
+                                        ref={inputRefs.minimumOrderAmount}
                                         className={`w-full px-4 py-2 rounded-lg border-2 ${validationErrors.minimumOrderAmount
                                                 ? "border-red-500 focus:border-red-500 focus:ring-red-200"
                                                 : "border-gray-200 focus:border-blue-500 focus:ring-blue-200"
@@ -339,10 +393,12 @@ const CouponManagement = () => {
                                     <input
                                         id="maximumDiscountAmount"
                                         name="maximumDiscountAmount"
-                                        type="number"
+                                        type="text" 
                                         placeholder="e.g., 1000"
                                         value={currentCoupon?.maximumDiscountAmount || ''}
                                         onChange={handleInputChange}
+                                        onBlur={(e) => handleInputBlur(e, currentCoupon, setCurrentCoupon)}
+                                        ref={inputRefs.maximumDiscountAmount}
                                         className={`w-full px-4 py-2 rounded-lg border-2 ${validationErrors.maximumDiscountAmount
                                                 ? "border-red-500 focus:border-red-500 focus:ring-red-200"
                                                 : "border-gray-200 focus:border-blue-500 focus:ring-blue-200"
@@ -589,6 +645,7 @@ const CouponManagement = () => {
                                                         : formatCurrency(coupon.discount)
                                                     }
                                                 </div>
+                                            
                                                 <div className="text-sm text-gray-500">
                                                     Max: {formatCurrency(coupon.maximumDiscountAmount)}
                                                 </div>

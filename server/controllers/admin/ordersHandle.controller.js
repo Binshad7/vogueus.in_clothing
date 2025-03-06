@@ -224,11 +224,66 @@ const orderItemReturnStatus = async (req, res) => {
         res.status(500).json({ success: false, message: "Server error, please try again later" });
     }
 };
+const salesReport = async (req, res) => {
+    try {
+        let orders = await orderSchema.aggregate([
+            // Filter out orders that are cancelled, returned, or processing
+            {
+                $match: {
+                    orderStatus: { $nin: ["cancelled", "returned", "processing"] }
+                }
+            },
+            {
+                $lookup: {
+                    from: "coupons",
+                    localField: "usedcoupon",
+                    foreignField: "_id",
+                    as: "couponDetails"
+                }
+            },
+            {
+                $unwind: {
+                    path: "$couponDetails",
+                    preserveNullAndEmptyArrays: true
+                }
+            },
+            // Project only the delivered items and recalculate the totalAmount
+            {
+                $project: {
+                    _id: 1,
+                    orderId: 1,
+                    userId: 1,
+                    paymentMethod: 1,
+                    paymentStatus: 1,
+                    orderStatus: 1,
+                    orderedAt: 1,
+                    items: {
+                        $filter: {
+                            input: "$items",
+                            as: "item",
+                            cond: { $eq: ["$$item.itemStatus", "delivered"] }
+                        }
+                    },
+                    totalAmount: 1,
+                    couponCode: "$couponDetails.couponCode",
+                    discoutAmout: 1
+                }
+            }
+        ]);
+
+        res.status(200).json({ orders });
+    } catch (error) {
+        console.error("Error generating sales report:", error);
+        res.status(500).json({ success: false, message: "Server error, please try again later" });
+    }
+};
+
 
 
 module.exports = {
     getAllordersToAdmin,
     updateOrderItemStatus,
     updateOrderStatus,
-    orderItemReturnStatus
+    orderItemReturnStatus,
+    salesReport
 };

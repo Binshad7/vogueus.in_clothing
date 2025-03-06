@@ -79,7 +79,6 @@ const createNewOrder = async (req, res) => {
         }
 
         const { selectedAddressIndex, paymentMethod, appliedCoupon } = req.body;
-        console.log(appliedCoupon)
         if (!req.user.address || !req.user.address[selectedAddressIndex]) {
             return res.status(400).json({ success: false, message: "Address is required" });
         }
@@ -231,10 +230,7 @@ const createNewOrder = async (req, res) => {
 // payment success then change the status of 
 const razorpayPaymentStatus = async (req, res) => {
     const { orderId } = req.params;
-
     try {
-
-
         const updatePaymentStatus = await orderSchema.findOneAndUpdate({ _id: orderId }, { $set: { paymentStatus: 'paid' } }, { new: true });
         if (!updatePaymentStatus) {
             return res.status(400).json({ success: false, message: 'Order Not Find' })
@@ -249,12 +245,36 @@ const razorpayPaymentStatus = async (req, res) => {
         }
         res.status(200).json({ success: true, message: 'Payment Successfuly completed' })
     } catch (error) {
-        console.error("Error placing order:", error);
+        console.error("Error razorpayPaymentStatus order:", error);
         res.status(500).json({ success: false, message: 'Server error, please try again later' });
 
     }
 }
+// repayment option 
 
+const repayment = async (req, res) => {
+    const { orderId } = req.params
+    try {
+
+        const order = await orderSchema.findById(orderId);
+        if (!order) {
+            return res.status(400).json({ success: false, message: "Order Not Find" });
+        }
+        const razorpayOrder = await razorpay.orders.create({
+            currency: 'INR',
+            amount: order?.totalAmount * 100,
+            partial_payment: 1
+        })
+
+        if (!razorpayOrder.id) {
+            return res.status(400).json({ success: false, message: "Failed to create Razorpay order" });
+        }
+        res.status(200).json({ orderId: razorpayOrder.id })
+    } catch (error) {
+        console.error("Error repayment order:", error);
+        res.status(500).json({ success: false, message: 'Server error, please try again later' });
+    }
+}
 
 // when payment fail then order canceld
 const paymentCaneled = async (req, res) => {
@@ -399,14 +419,14 @@ const cancelOrderItem = async (req, res) => {
             refundAmount = (refundAmount * item.quantity) * discountFactor; // Using Math.round() to avoid excessive reduction
             refundAmount = Math.round(refundAmount)
         }
-        
+
 
 
         // If it's the last item in the order, cancel the entire order
         let updateDetails = {
             "items.$.itemStatus": "cancelled"
         };
-       
+
         const filterItems = existingOrder.items.filter(item => item._id.toString() !== itemId);
         const statusMatch = filterItems?.every(item => item.itemStatus === 'cancelled')
 
@@ -417,7 +437,7 @@ const cancelOrderItem = async (req, res) => {
         // If it's the last item in the order, cancel the entire order
         if (existingOrder.items.length === 1) {
             updateDetails.orderStatus = 'cancelled';
-             updateDetails.paymentStatus = 'refunded'
+            updateDetails.paymentStatus = 'refunded'
         }
         // Update the order in the database
         const updatedOrder = await orderSchema.findOneAndUpdate(
@@ -437,7 +457,7 @@ const cancelOrderItem = async (req, res) => {
 
         // Refund logic: Process refund only if payment was via wallet or Razorpay
         //existingOrder.paymentMethod === "wallet" || existingOrder.paymentMethod === "razorpay"
-        if (['wallet','razorpay'].includes(existingOrder.paymentMethod)) {
+        if (['wallet', 'razorpay'].includes(existingOrder.paymentMethod)) {
             await walletSchema.findOneAndUpdate(
                 { userId: existingOrder.userId },
                 {
@@ -574,7 +594,8 @@ module.exports = {
     returnOrder,
     razorpayPaymentStatus,
     paymentCaneled,
-    validateCoupon
+    validateCoupon,
+    repayment
 };
 
 

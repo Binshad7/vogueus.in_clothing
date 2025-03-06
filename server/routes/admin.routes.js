@@ -9,12 +9,13 @@ const {
     adminLogin,
     adminLogout,
     adminRefresh,
-
+    getDashboardData
 } = require('../controllers/admin/admin.controller');
 // auth routes
 admin_router.post('/login', adminLogin);
 admin_router.post('/logout', protectRoute, adminLogout);
 admin_router.get('/refresh', protectRoute, adminRefresh);
+admin_router.get('/dashboard', protectRoute, getDashboardData);
 
 
 // category
@@ -69,11 +70,14 @@ admin_router.get('/usersHandle/fetchUsers', protectRoute, fetchAllUsers)
 admin_router.patch('/usersHandle/blockAndUnBlock/:userID', protectRoute, updateUserStatus)
 
 // handle All Orders
-const { getAllordersToAdmin, updateOrderItemStatus, updateOrderStatus, orderItemReturnStatus } = require('../controllers/admin/ordersHandle.controller')
+const { getAllordersToAdmin, updateOrderItemStatus, updateOrderStatus, orderItemReturnStatus, salesReport } = require('../controllers/admin/ordersHandle.controller')
 admin_router.get('/orders/getallorders', protectRoute, getAllordersToAdmin);
 admin_router.patch('/orders/updateOrderStatus/:orderId/:itemId', protectRoute, updateOrderItemStatus);
 admin_router.patch('/orders/updateOrderStatus/:orderId', protectRoute, updateOrderStatus);
 admin_router.patch('/orders/itemReturnStatus/:orderId/:itemId', protectRoute, orderItemReturnStatus);
+
+// salesReport 
+admin_router.get('/orders/salesreport', protectRoute, salesReport);
 
 
 // admin Coupon Handling
@@ -85,9 +89,10 @@ admin_router.patch('/coupon/editCoupon/:couponId', protectRoute, editCoupon)
 admin_router.delete('/coupon/deleteCoupon/:couponId', protectRoute, deleteCoupon)
 
 // offer handling 
-const { createOffer } = require('../controllers/admin/offerHandle.controller')
-// admin_router.get('/offer/getalloffers', protectRoute,);
+const { createOffer, getAllOffers, deleteOffer } = require('../controllers/admin/offerHandle.controller')
+admin_router.get('/offer/getAllOffers', protectRoute, getAllOffers);
 admin_router.post('/offer/addOffer', protectRoute, createOffer);
+admin_router.delete('/offer/deleteOffer', protectRoute, deleteOffer);
 
 
 module.exports = admin_router; 

@@ -282,11 +282,15 @@ const ProductDetails = () => {
                       ₹{product?.regularPrice || 'N/A'}
                     </Typography>
                   )}
-                  <Chip
-                    label="10% OFF"
-                    color="error"
-                    size="small"
-                  />
+                  {product?.currentPrice > 0 && (
+                    <Chip
+                      label={`${Math.round((1 - product?.currentPrice / product?.regularPrice) * 100)}% OFF`}
+                      color="error"
+                      size="small"
+                    />
+                  )}
+
+
                 </Stack>
               </Box>
 

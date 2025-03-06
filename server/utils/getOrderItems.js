@@ -51,7 +51,8 @@ async function getOrderItems(userId) {
                         }
                     }
                 }
-            }
+            },
+            {$sort:{orderedAt:-1}},
         ]);
 
         return orderDetails;
@@ -226,7 +227,8 @@ async function getAllOrders(page = 1, limit = 10, search = '', status = '') {
                         }
                     }
                 }
-            }
+            },
+            {$sort:{orderedAt:-1}}
         ].filter(Boolean);
 
         const totalOrders = await orderSchema.aggregate([

@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from 'react';
-import { Home, Package, ShoppingCart, Users, Settings, ChevronDown, Menu, Boxes, ReceiptJapaneseYen,BadgeJapaneseYen } from 'lucide-react';
+import { Home, Package, ShoppingCart, Users, Settings, ChevronDown, Menu, Boxes, ReceiptJapaneseYen, BadgeJapaneseYen, FileBarChart } from 'lucide-react';
 import { SideBarContext } from '../../../../context/SideBarContext';
 import { useNavigate } from 'react-router-dom';
 const Sidebar = ({ }) => {
@@ -59,6 +59,11 @@ const Sidebar = ({ }) => {
       title: 'Offer',
       icon: <BadgeJapaneseYen className="h-5 w-5" />,
       path: '/offer'
+    },
+    {
+      title: 'Sales Report',
+      icon: <FileBarChart className="h-5 w-5" />,
+      path: '/salesreport'
     },
     {
       title: 'Settings',

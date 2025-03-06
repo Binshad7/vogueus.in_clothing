@@ -16,15 +16,27 @@ const addOffer = createAsyncThunk(
         }
     }
 );
-const editOffer = createAsyncThunk(
-    'admin/editOffer',
-    async ({ ...offer }, { rejectWithValue }) => {
+const getAllOffers = createAsyncThunk(
+    'admin/getAllOffers',
+    async (_, { rejectWithValue }) => {
         try {
-            const resposne = await adminAxios.patch('/offer/editOffer', { ...offer });
-            toast.success(resposne?.data?.message);
-            return resposne?.data?.offer
+            const resposne = await adminAxios.get('/offer/getAllOffers');
+            return resposne?.data
         } catch (error) {
-            toast.error(error?.resposne?.data?.message)
+            // toast.error(error?.resposne?.data?.message)
+            rejectWithValue()
+        }
+    }
+);
+const deleteOffer = createAsyncThunk(
+    'admin/deleteOffer',
+    async (deleteItem, { rejectWithValue }) => {
+        try {
+            const resposne = await adminAxios.delete(`/offer/deleteOffer`, { data: deleteItem });
+            toast.success(resposne?.data?.message);
+            return resposne?.data
+        } catch (error) {
+            toast.error(error?.response?.data?.message)
             rejectWithValue()
         }
     }
@@ -33,5 +45,7 @@ const editOffer = createAsyncThunk(
 
 export {
     addOffer,
-    editOffer
+    getAllOffers,
+    deleteOffer,
+
 }

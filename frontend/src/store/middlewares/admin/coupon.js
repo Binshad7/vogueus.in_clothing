@@ -7,7 +7,6 @@ const getAllCoupons = createAsyncThunk(
     async (_, { rejectwithValue }) => {
         try {
             const response = await adminAxios.get('/coupon/getAllCoupons')
-            // toast.success(response?.data?.message)
             return response.data.coupon
         } catch (error) {
             toast.error(error?.response?.data?.message)
