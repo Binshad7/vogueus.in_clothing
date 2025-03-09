@@ -44,7 +44,9 @@ const SalesReport = () => {
       setLoading(true);
       const response = await adminAxios.get('/orders/salesreport');
       setReports(response.data.orders);
-      console.log(response.data.orders);
+      console.log('demo');
+      
+      console.log(response.data);
       
       setFilteredReports(response.data.orders);
       setLoading(false);
@@ -424,7 +426,7 @@ const SalesReport = () => {
                   </>
                 )}
 
-                <div className="flex items-end">
+                {/* <div className="flex items-end">
                   <button
                     className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center"
                     onClick={applyFilters}
@@ -432,7 +434,7 @@ const SalesReport = () => {
                     <Filter className="h-4 w-4 mr-2" />
                     Apply Filters
                   </button>
-                </div>
+                </div> */}
               </div>
             </div>
           )}

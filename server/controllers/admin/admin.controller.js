@@ -345,11 +345,11 @@ const getSalesDynamicData = async (timeFrame = 'monthly') => {
             };
 
             const currentWeek = getWeekNumber(todayIST);
-         
+
 
             // Get the week number for January 1st
             const firstWeek = getWeekNumber(startOfYear);
-    
+
 
             // Create map of existing results
             const resultMap = {};
@@ -365,10 +365,10 @@ const getSalesDynamicData = async (timeFrame = 'monthly') => {
                 const key = `${year}-${week}`;
 
                 if (resultMap[key]) {
-                
+
                     filledResults.push(resultMap[key]);
                 } else {
-              
+
                     filledResults.push({
                         name: { year: year, week: week },
                         sales: 0,
@@ -491,6 +491,18 @@ function getDateOfISOWeek(week, year) {
         ISOweekStart.setDate(simple.getDate() + 8 - simple.getDay());
     return ISOweekStart;
 }
+const summaryStatss = async () => {
+    const totalCustomers = await userSchema.countDocuments();
+    const ordses = await orderSchema.find({ orderStatus: 'delivered' })
+    const totalOrders = ordses.length;
+    const totalSales = ordses.reduce((acc, val) => acc + val.totalAmount, 0);
+    const averageOrderValue = ordses.reduce((sum, item) => sum + item.totalAmount, 0) /
+        ordses.reduce((sum, item) => sum + totalOrders, 0)
+
+    return {
+        totalCustomers, totalOrders, totalSales, averageOrderValue
+    }
+}
 
 const getDashboardData = async (req, res) => {
     try {
@@ -502,7 +514,8 @@ const getDashboardData = async (req, res) => {
             yearlyData,
             bestSellingProductsData,
             bestSellingCategoriesData,
-            recentOrders
+            recentOrders,
+            summaryStats
         ] = await Promise.all([
             getSalesDynamicData('daily'),
             getSalesDynamicData('weekly'),
@@ -510,18 +523,12 @@ const getDashboardData = async (req, res) => {
             getSalesDynamicData('yearly'),
             bestSellingProducts(),
             bestSellingCategories(),
-            latestOrders()
+            latestOrders(),
+            summaryStatss()
         ]);
 
 
-        // Calculate summary statistics
-        const summaryStats = {
-            totalSales: monthlyData.reduce((sum, item) => sum + item.sales, 0),
-            totalOrders: monthlyData.reduce((sum, item) => sum + item.orders, 0),
-            totalCustomers: monthlyData.reduce((sum, item) => sum + item.customers, 0),
-            averageOrderValue: monthlyData.reduce((sum, item) => sum + item.sales, 0) /
-                monthlyData.reduce((sum, item) => sum + item.orders, 0)
-        };
+        
 
 
         res.status(200).json({
@@ -537,7 +544,7 @@ const getDashboardData = async (req, res) => {
             summaryStats
         });
     } catch (error) {
-        console.log(error.message)
+        console.log(error)
         res.status(500).json({
             message: 'Error fetching comprehensive dashboard data',
             error: error.message

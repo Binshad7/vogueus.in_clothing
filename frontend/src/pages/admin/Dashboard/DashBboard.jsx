@@ -63,7 +63,6 @@ const AdminDashboard = () => {
   const fetchData = async () => {
     try {
       let response = await adminAxios.get('/dashboard');
-      console.log(response.data);
 
       // Generate colors for categories
       const categoriesWithColors = generateCategoryColors(response?.data?.bestSellingCategoriesData || []);
@@ -178,7 +177,7 @@ const AdminDashboard = () => {
           <div className="col-span-1">
             <div className="flex justify-between items-center mb-6">
               <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-              <button
+              {/* <button
                 className="flex items-center px-4 py-2 border border-indigo-600 text-indigo-600 rounded-md hover:bg-indigo-50 transition-colors"
                 onClick={() => {
                   setLoading(true);
@@ -187,7 +186,7 @@ const AdminDashboard = () => {
               >
                 <RefreshCw size={16} className="mr-2" />
                 Refresh Data
-              </button>
+              </button> */}
             </div>
           </div>
 
@@ -201,13 +200,13 @@ const AdminDashboard = () => {
                       <p className="text-sm text-gray-500 font-medium">{stat.title}</p>
                       <h2 className="text-2xl font-bold my-1">{stat.value}</h2>
                       <div className="flex items-center">
-                        {stat.positive ?
+                        {/* {stat.positive ?
                           <ArrowUpRight size={16} className="text-green-500" /> :
                           <ArrowDownRight size={16} className="text-red-500" />
-                        }
-                        <span className={`text-xs ml-1 ${stat.positive ? 'text-green-500' : 'text-red-500'}`}>
+                        } */}
+                        {/* <span className={`text-xs ml-1 ${stat.positive ? 'text-green-500' : 'text-red-500'}`}>
                           {stat.change} from previous period
-                        </span>
+                        </span> */}
                       </div>
                     </div>
                     <div className={`${stat.bgColor} ${stat.textColor} p-3 rounded-full`}>
