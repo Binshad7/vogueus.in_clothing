@@ -18,7 +18,7 @@ app.use(session({
 
 
 const corsOptions = {
-    origin: ['https://vogueus','http://vogueus'],
+    origin: [FRONTEND_URL,SECOND_FRONTEND_URL],
     credentials: true,
     optionsSuccessStatus: 200
 }
